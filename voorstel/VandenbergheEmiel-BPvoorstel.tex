@@ -1,0 +1,45 @@
+%==============================================================================
+% Sjabloon onderzoeksvoorstel bachproef
+%==============================================================================
+
+\documentclass{hogent-article}
+
+\usepackage{pgfgantt}
+
+\addbibresource{voorstel.bib}
+
+\studyprogramme{Professionele bachelor toegepaste informatica}
+\course{Bachelorproef}
+\assignmenttype{Onderzoeksvoorstel}
+
+\academicyear{2025-2026}
+
+\title{Observability voor Multi-Site Live-Streamingomgevingen:
+Een Proof-of-Concept voor Metrics-, Log- en Flowmonitoring binnen Mediaventures}
+
+\author{Emiel Vandenberghe}
+\email{emiel.vandenberghe3@student.hogent.be}
+
+\supervisor[Co-promotor]{Arne Van Renthergem (Mediaventures)}
+
+\specialisation{System \& Network Administrator}
+\keywords{Observability, Monitoring, SNMP, Syslog, NetFlow, Peplink, NDI, Netgear AV-Line, Live-surgery, Virtualisatie, Streaming-infrastructuur}
+
+\begin{document}
+
+\begin{abstract}
+Mediaventures is een audiovisuele firma die gespecialiseerd is in livestreamingsdiensten, zaalbouw en -inrichting voor internationale medische congressen zoals het \href{https://www.linc-congress.com}{LINC Congress} en het \href{https://www.escardio.org/Congresses-Events/ESC-Congress}{ESC Congress}. Tijdens hun projecten worden verschillende live-surgery-locaties en venues met een centrale site verbonden om hoogwaardige video- en audiostreams in realtime uit te wisselen. Deze samenwerking steunt op een complexe mix van netwerkapparatuur en verbindingen, waardoor de kwaliteit van de livestream door veel verschillende factoren tegelijk beïnvloed wordt. Vandaag bestaat er echter geen centraal systeem dat deze volledige keten bewaakt en vroegtijdig aangeeft wanneer er problemen ontstaan. Daardoor moeten techniekers op elk toestel afzonderlijk inloggen om fouten op te sporen, wat tijdrovend is en het risico op kwaliteitsverlies verhoogt.
+
+Dit onderzoek onderzoekt hoe een geïntegreerde monitoringoplossing kan helpen om deze diverse infrastructuur end-to-end op te volgen en sneller inzicht te krijgen in de gezondheid en prestaties van alle betrokken systemen.
+\end{abstract}
+
+% Toon alleen hoofdsecties in de inhoudstafel (geen subsecties)
+\setcounter{tocdepth}{1}
+
+\tableofcontents
+
+\input{voorstel-inhoud}
+
+\printbibliography[heading=bibintoc, title={Referenties}]
+
+\end{document}
