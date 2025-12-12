@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdflatex:*)",
+      "Bash(xelatex:*)",
+      "Bash(biber:*)"
+    ]
+  }
+}

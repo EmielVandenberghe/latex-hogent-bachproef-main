@@ -3,10 +3,6 @@
 \section{Inleiding}
 \label{sec:inleiding}
 
-\noindent\textbf{GitHub Repository:} \url{https://github.com/EmielVandenberghe/latex-hogent-bachproef-main}
-
-\medskip
-
 Tijdens live-surgeryprojecten en medische congressen maakt Mediaventures gebruik van een uitgebreid audiovisueel netwerk waarin meerdere locaties gelijktijdig met elkaar communiceren. Een typisch scenario is dat een chirurgische ingreep live wordt gestreamd vanuit een operatiezaal — bijvoorbeeld in Duitsland — naar een congreszaal in Leipzig, terwijl dezelfde beelden ook worden doorgestuurd naar de centrale site in Bornem. Afhankelijk van het project verlopen deze verbindingen soms rechtstreeks tussen locaties, en soms via Bornem als tussenknooppunt. Deze flexibiliteit is essentieel, maar maakt de totale infrastructuur ook bijzonder complex.
 
 De omgeving bestaat uit een mix van routers, switches, 5G- en satellietverbindingen, NDI-netwerken en verschillende AV-systemen die elk hun eigen rol vervullen. Omdat al deze componenten nauw samenwerken, kan een probleem op één plaats meteen gevolgen hebben voor alle verbonden locaties. Storingen in bandbreedte, latency, packet loss of lokale netwerkbelasting kunnen de kwaliteit van de livestream merkbaar aantasten. Vandaag bestaat er echter geen centraal platform dat de volledige datastromen, toestellen en verbindingen gezamenlijk bewaakt. Hierdoor moeten techniekers nog steeds handmatig inloggen op afzonderlijke apparaten om problemen te analyseren, wat foutdetectie vertraagt en het risico op kwaliteitsverlies vergroot.
@@ -20,7 +16,7 @@ De omgeving bestaat uit een mix van routers, switches, 5G- en satellietverbindin
 Om de centrale onderzoeksvraag te beantwoorden, worden de volgende deelvragen onderzocht:
 
 \begin{enumerate}
-\item \textbf{Deelvraag voor het probleemdomein}: Welke soorten data en statusinformatie zijn beschikbaar op de verschillende netwerk- en AV-componenten binnen deze internationale workflow, en welke parameters zijn cruciaal om kwaliteitsproblemen vroegtijdig te detecteren?
+\item \textbf{Deelvraag voor het probleemdomein}: Welke soorten data en statusinformatie zijn beschikbaar op de verschillende netwerk- en AV-com\-po\-nen\-ten binnen deze internationale workflow, en welke parameters zijn cruciaal om kwaliteitsproblemen vroegtijdig te detecteren?
 
 \item \textbf{Deelvraag voor het oplossingsdomein}: Welke observability- en monitoringtechnieken sluiten het best aan bij audiovisuele producties met hoge betrouwbaarheidseisen, en welke bestaande tools zijn compatibel met de infrastructuur van Mediaventures?
 
@@ -88,35 +84,35 @@ Het geheel van de literatuur toont dat audiovisuele workflows meerdere gespecial
 \section{Evaluatie en selectie van monitoringtools}
 \label{sec:evaluatie}
 
-Het ontwikkelen van een observabilityoplossing voor een audiovisuele netwerkarchitectuur vereist monitoring die zowel netwerkparameters als AV-specifieke transportlagen kan interpreteren. Om tot een geschikte oplossing te komen, werden drie open-source monitoringoplossingen geëvalueerd: de PLG-stack (Prometheus, Loki en Grafana), ntopng/nProbe en de OpenTelemetry Collector. Deze evaluatie is gebaseerd op documentatie, literatuur en technische bronnen over de werking en integratiemogelijkheden van deze systemen.
+Het ontwikkelen van een observability\-op\-los\-sing voor een audiovisuele netwerk\-ar\-chi\-tec\-tuur vereist monitoring die zowel netwerkparameters als AV-specifieke transportlagen kan interpreteren. Om tot een geschikte oplossing te komen, werden drie open-source monitorings\-op\-los\-sin\-gen geëvalueerd: de PLG-stack (Prometheus, Loki en Grafana), ntopng/nProbe en de OpenTelemetry Collector. Deze evaluatie is gebaseerd op documentatie, literatuur en technische bronnen over de werking en integratie\-mo\-ge\-lijk\-he\-den van deze systemen.
 
 \subsection{Prometheus, Loki en Grafana (PLG-stack)}
 
-Prometheus is een open-source metricscollector die ontworpen is voor het ophalen van tijdreeksdata uit API’s, SNMP-interfaces en custom exporters (Prometheus Authors, 2023). Omdat InControl2 van Peplink een REST-API aanbiedt, kunnen routerstatistieken zoals latency, traffic counters en VPN-gezondheid eenvoudig worden opgehaald en opgeslagen in Prometheus. Loki is een schaalbaar logaggregatieplatform dat logs indexeert op labels in plaats van op inhoud, wat het efficiënter maakt voor gedistribueerde systemen (Grafana Labs, 2023). Grafana fungeert als visualisatielaag en kan zowel Prometheus-metrics als Loki-logs combineren in één dashboard.
+Prometheus is een open-source metricscollector die ontworpen is voor het ophalen van tijdreeks\-data uit API's, SNMP-interfaces en custom exporters (Prometheus Authors, 2023). Omdat InControl2 van Peplink een REST-API aanbiedt, kunnen router\-sta\-tis\-tie\-ken zoals latency, traffic counters en VPN-ge\-zond\-heid eenvoudig worden opgehaald en opgeslagen in Prometheus. Loki is een schaalbaar log\-ag\-gre\-ga\-tie\-plat\-form dat logs indexeert op labels in plaats van op inhoud, wat het efficiënter maakt voor gedistribueerde systemen (Grafana Labs, 2023). Grafana fungeert als visualisatie\-laag en kan zowel Prometheus-metrics als Loki-logs combineren in één dashboard.
 
-Deze toolstack is bijzonder geschikt voor het correleren van netwerkgebeurtenissen met AV-telemetrie. SRT-encoders kunnen bijvoorbeeld jitter, resend-rates of bufferstatistieken via exporters beschikbaar maken, terwijl NDI-mixersoftware CPU-belasting en performance-metingen kan blootstellen via API’s of custom agents. Het belangrijkste nadeel van PLG is dat Prometheus geen direct inzicht biedt in netwerkflows; het meet uitsluitend waarden die door systemen zelf worden geëxporteerd.
+Deze toolstack is bijzonder geschikt voor het correleren van netwerk\-ge\-beur\-te\-nis\-sen met AV-telemetrie. SRT-encoders kunnen bijvoorbeeld jitter, resend-rates of buffer\-sta\-tis\-tie\-ken via exporters beschikbaar maken, terwijl NDI-mixersoftware CPU-belasting en performance-metingen kan blootstellen via API's of custom agents. Het belangrijkste nadeel van PLG is dat Prometheus geen direct inzicht biedt in netwerkflows; het meet uitsluitend waarden die door systemen zelf worden geëxporteerd.
 
 \subsection{ntopng/nProbe voor netwerkflowanalyse}
 
 ntopng is een open-source netwerkmonitor die zich richt op diepgaande analyse van netwerkflows. Volgens de officiële documentatie ondersteunt ntopng NetFlow, sFlow en IPFIX-export om netwerkstromen te analyseren op basis van bron, bestemming, protocol, VLAN en tijdspatroon \autocite{ntop2023}. In tegenstelling tot Prometheus inspecteert ntopng geen counters maar de daadwerkelijke verkeersstromen. Dit is cruciaal in audiovisuele workflows waar NDI honderden megabits per seconde genereert en SRT afhankelijk is van stabiele, burst-vrije transportpaden.
 
-Peplink-routers ondersteunen native NetFlow en IPFIX-export, waardoor ze rechtstreeks meetdata kunnen aanleveren aan ntopng of nProbe \autocite{Peplink2023}. Hierdoor kan ntopng inzicht bieden in welke specifieke stromen verantwoordelijk zijn voor bandbreedtepieken, congestie, multicastflooding of packet loss. Dit maakt ntopng complementair aan PLG: waar PLG toont dat een router 400 Mbps gebruikt, toont ntopng welke stream daarvoor verantwoordelijk is en wanneer burstgedrag of padwijzigingen optreden.
+Peplink-routers ondersteunen native NetFlow en IPFIX-export, waardoor ze rechtstreeks meetdata kunnen aanleveren aan ntopng of nProbe \autocite{Peplink2023}. Hierdoor kan ntopng inzicht bieden in welke specifieke stromen verant\-woor\-de\-lijk zijn voor band\-breed\-te\-pie\-ken, congestie, multicast\-floo\-ding of packet loss. Dit maakt ntopng complementair aan PLG: waar PLG toont dat een router 400 Mbps gebruikt, toont ntopng welke stream daarvoor verantwoordelijk is en wanneer burst\-ge\-drag of pad\-wij\-zi\-gin\-gen optreden.
 
 \subsection{OpenTelemetry Collector}
 
-OpenTelemetry is een open-source observabilityframework dat gestandaardiseerde verzameling van metrics, logs en traces mogelijk maakt. De OpenTelemetry Collector fungeert als een vendor-neutrale datalaag die observabilitygegevens kan ontvangen, converteren en doorsturen naar verschillende backends zoals Grafana, Prometheus of Elastic \autocite{CNCF2023}. Hoewel dit veel flexibiliteit biedt, vereist OTel meer configuratie en biedt het geen eigen visualisatie. Daarom is OTel vooral geschikt als toekomstgerichte uitbreidingslaag, maar niet als primaire monitoringtool voor dit onderzoek.
+OpenTelemetry is een open-source observability\-frame\-work dat gestandaardiseerde verzameling van metrics, logs en traces mogelijk maakt. De OpenTelemetry Collector fungeert als een vendor-neutrale datalaag die observability\-ge\-ge\-vens kan ontvangen, converteren en doorsturen naar verschillende backends zoals Grafana, Prometheus of Elastic \autocite{CNCF2023}. Hoewel dit veel flexibiliteit biedt, vereist OTel meer configuratie en biedt het geen eigen visualisatie. Daarom is OTel vooral geschikt als toekomst\-ge\-rich\-te uit\-brei\-dings\-laag, maar niet als primaire monitoringtool voor dit onderzoek.
 
 \subsection{Vergelijkende analyse}
 
-Uit de vergelijking blijkt dat elk platform een ander deel van het observabilitydomein bestrijkt. De PLG-stack biedt de beste ondersteuning voor het verzamelen van metrics en logs en kan eenvoudig worden geïntegreerd met zowel Peplink’s InControl2 API als AV-software. ntopng vult PLG aan door inzicht te geven in de netwerkstromen zelf—informatie die onmisbaar is voor AV-workflows maar ontbreekt bij traditionele metricssystemen. De OpenTelemetry Collector biedt waarde als standaardisatie- en uitbreidingsmechanisme, maar is niet noodzakelijk binnen de proof-of-concept.
+Uit de vergelijking blijkt dat elk platform een ander deel van het observability\-do\-mein bestrijkt. De PLG-stack biedt de beste ondersteuning voor het verzamelen van metrics en logs en kan eenvoudig worden geïntegreerd met zowel Peplink's InControl2 API als AV-software. ntopng vult PLG aan door inzicht te geven in de netwerk\-stro\-men zelf---informatie die onmisbaar is voor AV-workflows maar ontbreekt bij traditionele metrics\-sys\-te\-men. De OpenTelemetry Collector biedt waarde als standaardisatie- en uitbreidings\-mecha\-nis\-me, maar is niet noodzakelijk binnen de proof-of-concept.
 
-Door de PLG-stack te combineren met ntopng ontstaat een observabilityarchitectuur die zowel breed als diep is: PLG geeft het overzicht en correlatiemogelijkheden, terwijl ntopng het detailniveau levert om audiovisuele verkeerspatronen te analyseren.
+Door de PLG-stack te combineren met ntopng ontstaat een observability\-ar\-chi\-tec\-tuur die zowel breed als diep is: PLG geeft het overzicht en correlatie\-mo\-ge\-lijk\-he\-den, terwijl ntopng het detailniveau levert om audiovisuele verkeers\-pa\-tro\-nen te analyseren.
 
 \subsection{Gekozen oplossing}
 
-Op basis van de bovenstaande analyse wordt de PLG-stack gekozen als centrale monitoringoplossing, aangevuld met ntopng als gespecialiseerde flow-analysetool. De PLG-stack wordt geselecteerd vanwege haar open-source karakter, flexibiliteit, integratiemogelijkheden en sterke visualisatiecapaciteiten. ntopng wordt toegevoegd omdat AV-over-IP-verkeer zich niet laat reduceren tot simpele metrics; diepgaande flowanalyse is noodzakelijk om NDI-bandbreedtepieken, multicastgedrag, SRT-transportkwaliteit en WAN-congestie te kunnen begrijpen.
+Op basis van de bovenstaande analyse wordt de PLG-stack gekozen als centrale monitorings\-op\-los\-sing, aangevuld met ntopng als gespecialiseerde flow-analysetool. De PLG-stack wordt geselecteerd vanwege haar open-source karakter, flexibiliteit, integratie\-mo\-ge\-lijk\-he\-den en sterke visualisatie\-ca\-pa\-ci\-tei\-ten. ntopng wordt toegevoegd omdat AV-over-IP-verkeer zich niet laat reduceren tot simpele metrics; diepgaande flowanalyse is noodzakelijk om NDI-band\-breed\-te\-pie\-ken, multicast\-ge\-drag, SRT-transport\-kwa\-li\-teit en WAN-congestie te kunnen begrijpen.
 
-Samen vormen deze tools een robuust en volledig observabilityplatform dat geschikt is voor zowel de virtuele testopstelling (met FusionHub en meerdere gesimuleerde locaties) als de operationele Mediaventures-workflow.
+Samen vormen deze tools een robuust en volledig observability\-plat\-form dat geschikt is voor zowel de virtuele test\-op\-stel\-ling (met FusionHub en meerdere gesimuleerde locaties) als de operationele Mediaventures-workflow.
 
 
 %---------- Methodologie ------------------------------------------------------
