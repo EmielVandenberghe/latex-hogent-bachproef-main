@@ -9,7 +9,7 @@ De omgeving bestaat uit een mix van routers, switches, 5G- en satellietverbindin
 
 \subsection{Centrale onderzoeksvraag}
 
-\textbf{Hoe kan Mediaventures een geïntegreerde monitoring- en observabilityoplossing inzetten om de volledige audiovisuele infrastructuur end-to-end op te volgen en storingen sneller te detecteren en te interpreteren?}
+\textbf{Hoe kan Mediaventures een geïntegreerde monitoring- en observability\-op\-los\-sing inzetten om de volledige audiovisuele infrastructuur end-to-end op te volgen en storingen sneller te detecteren?}
 
 \subsection{Deelvragen}
 
@@ -27,13 +27,17 @@ Om de centrale onderzoeksvraag te beantwoorden, worden de volgende deelvragen on
 Het probleem- en oplossingsdomein bevindt zich op het snijpunt van AV-productie, netwerktechnologie en realtime kwaliteitsbewaking. Dit onderzoek heeft de volgende concrete doelstellingen:
 
 \begin{itemize}
-\item Een onderbouwde aanbeveling formuleren voor een observabilityoplossing die aansluit bij de specifieke noden van Mediaventures
-\item Een functioneel proof-of-concept ontwikkelen dat metrics, logs en netwerkflows integreert in één gecentraliseerd dashboard
-\item Aantonen hoe deze oplossing de tijd tot detectie van storingen kan verkorten en de troubleshooting-efficiëntie kan verhogen
-\item Een repliceerbare testmethodologie opleveren waarmee verschillende monitoringtools objectief vergeleken kunnen worden
+\item Een onderbouwde aanbeveling formuleren voor een observability\-op\-los\-sing die aansluit bij de specifieke noden van Mediaventures
+\item Een functioneel proof-of-concept ontwikkelen dat metrics, logs en netwerk\-flows integreert in één gecentraliseerd dashboard
+\item Aantonen hoe gecentraliseerde data-verzameling en -visualisatie de tijd tot detectie van storingen kan verkorten en techniekers sneller inzicht geeft in de infrastructuur\-status
+\item Een repliceerbare test\-me\-tho\-do\-lo\-gie opleveren waarmee verschillende monitoringtools objectief vergeleken kunnen worden
 \end{itemize}
 
 De methodologische aanpak omvat literatuurstudie, een analyse van beschikbare protocollen en datastromen, een toolvergelijking en de opzet van een virtuele testomgeving. De rest van dit document bespreekt eerst de theoretische achtergrond, daarna de methode, gevolgd door de verwachte resultaten en conclusies.
+
+\subsection{Afbakening van de scope}
+
+Dit onderzoek richt zich op het verzamelen, aggregeren en visualiseren van observability-data (metrics, logs en netwerk\-flows) afkomstig van alle componenten in de audiovisuele infrastructuur. Het doel is techniekers een volledig, gecentraliseerd overzicht te bieden van de status en prestaties van de infrastructuur via één dashboard. Het automatisch interpreteren van problemen en het voorstellen van concrete oplossingen valt buiten de huidige scope---de focus ligt op detectie en zichtbaar\-ma\-king. Indien tijdens het onderzoek blijkt dat geautomatiseerde interpretatie haalbaar is binnen de beschikbare tijd en middelen, kan deze functionaliteit alsnog worden toegevoegd.
 
 %---------- Literatuurstudie ---------------------------------------------------
 
@@ -183,8 +187,8 @@ Deze risico's zijn bewust geïdentificeerd tijdens de voorbereidingsfase, en de 
 
 Op basis van de literatuurstudie en de toolvergelijking wordt verwacht dat de combinatie van de PLG-stack met ntopng een effectieve observabilityoplossing vormt voor de audiovisuele infrastructuur van Mediaventures. De PLG-stack biedt een flexibel platform voor het verzamelen en visualiseren van metrics en logs, terwijl ntopng het detailniveau levert dat nodig is om specifieke netwerkstromen en hun gedrag te analyseren.
 
-De proof-of-concept zal naar verwachting aantonen dat gecentraliseerde monitoring de tijd tussen het ontstaan van een probleem en de detectie ervan aanzienlijk verkort. Waar techniekers momenteel handmatig moeten inloggen op afzonderlijke apparaten om de oorzaak van kwaliteitsverlies te achterhalen, zal het observabilityplatform deze informatie proactief presenteren via dashboards en alerting. Concreet wordt verwacht dat de detectietijd voor veelvoorkomende problemen zoals packet loss, latencypieken en bandbreedtecongestie met minstens 50 procent afneemt ten opzichte van de huidige werkwijze.
+De proof-of-concept zal naar verwachting aantonen dat gecentraliseerde monitoring de tijd tussen het ontstaan van een probleem en de detectie ervan aanzienlijk verkort. Waar techniekers momenteel handmatig moeten inloggen op afzonderlijke apparaten om relevante status\-in\-for\-ma\-tie te verzamelen, zal het observability\-plat\-form alle beschikbare metrics, logs en netwerkflows gebundeld presenteren via dashboards. Concreet wordt verwacht dat de detectietijd voor veelvoorkomende problemen zoals packet loss, latency\-pie\-ken en band\-breed\-te\-con\-ges\-tie met minstens 50 procent afneemt ten opzichte van de huidige werkwijze.
 
 Daarnaast zal het onderzoek inzicht opleveren in welke parameters het meest indicatief zijn voor kwaliteitsproblemen in AV-over-IP-omgevingen. De verwachting is dat een combinatie van VPN-latency, jitterbufferstatistieken van SRT-encoders en NetFlow-data over NDI-multicastverkeer samen het beste voorspellend vermogen biedt. Deze parameters zullen worden opgenomen in de Grafana-dashboards als primaire indicatoren.
 
-Tot slot wordt verwacht dat de virtuele testomgeving met FusionHub een reproduceerbare basis biedt voor verdere ontwikkeling. De configuraties, dashboards en alertingregels die tijdens het onderzoek worden ontwikkeld, kunnen na afloop worden overgedragen aan Mediaventures voor integratie in hun operationele workflows. De meerwaarde voor het bedrijf bestaat dus niet alleen uit een aanbeveling, maar ook uit een werkend prototype dat als startpunt dient voor productie-implementatie.
+Tot slot wordt verwacht dat de virtuele testomgeving met FusionHub een reproduceerbare basis biedt voor verdere ontwikkeling. De configuraties en dashboards die tijdens het onderzoek worden ontwikkeld, kunnen na afloop worden overgedragen aan Mediaventures voor integratie in hun operationele workflows. De meerwaarde voor het bedrijf bestaat dus niet alleen uit een aanbeveling, maar ook uit een werkend prototype dat als startpunt dient voor productie-implementatie.
