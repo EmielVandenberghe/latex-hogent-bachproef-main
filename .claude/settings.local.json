@@ -3,7 +3,9 @@
     "allow": [
       "Bash(pdflatex:*)",
       "Bash(xelatex:*)",
-      "Bash(biber:*)"
+      "Bash(biber:*)",
+      "Bash(vagrant validate:*)",
+      "Bash(vagrant ssh:*)"
     ]
   }
 }

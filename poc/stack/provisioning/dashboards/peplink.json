@@ -1,0 +1,225 @@
+{
+  "title": "Peplink Infrastructure",
+  "uid": "peplink-infra",
+  "tags": ["peplink", "incontrol2", "mediaventures"],
+  "refresh": "15s",
+  "time": {"from": "now-1h", "to": "now"},
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": {"h": 2, "w": 24, "x": 0, "y": 0},
+      "options": {"content": "# Peplink Infrastructure Monitoring", "mode": "markdown"},
+      "transparent": true
+    },
+    {
+      "type": "row",
+      "title": "SNMP Direct Monitoring (Fast)",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 2},
+      "collapsed": false
+    },
+    {
+      "type": "stat",
+      "title": "Bornem (SNMP)",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 3},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Bornem\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "UNREACHABLE", "color": "red"}, "1": {"text": "REACHABLE", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat",
+      "title": "Venue (SNMP)",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 3},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Venue\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "UNREACHABLE", "color": "red"}, "1": {"text": "REACHABLE", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat",
+      "title": "Surgery1 (SNMP)",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 3},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Live-Surgery1\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "UNREACHABLE", "color": "red"}, "1": {"text": "REACHABLE", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat",
+      "title": "Surgery2 (SNMP)",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 3},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Live-Surgery2\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "UNREACHABLE", "color": "red"}, "1": {"text": "REACHABLE", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "timeseries",
+      "title": "SNMP Response Time",
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 7},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_response_ms", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms", "custom": {"drawStyle": "line", "fillOpacity": 10}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right"}}
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU Usage (SNMP)",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 7},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_cpu_percent", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "max": 100, "custom": {"drawStyle": "line", "fillOpacity": 20}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right"}}
+    },
+    {
+      "type": "row",
+      "title": "InControl2 API Monitoring",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 13},
+      "collapsed": false
+    },
+    {
+      "type": "stat",
+      "title": "Bornem (API)",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 14},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_device_online{device_name=\"Bornem\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "ONLINE", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat",
+      "title": "Venue (API)",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 14},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_device_online{device_name=\"Venue\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "ONLINE", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat",
+      "title": "Surgery1 (API)",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 14},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_device_online{device_name=\"Live-Surgery1\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "ONLINE", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat",
+      "title": "Surgery2 (API)",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 14},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_device_online{device_name=\"Live-Surgery2\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "ONLINE", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Device Uptime",
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 18},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_device_uptime_seconds / 3600", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "h", "custom": {"drawStyle": "line", "fillOpacity": 20}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right"}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Connected Clients",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 18},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_device_client_count", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "line", "fillOpacity": 20}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["last"]}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Bandwidth (TX/RX)",
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 24},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "peplink_device_tx_bytes", "legendFormat": "TX {{device_name}}", "refId": "A"},
+        {"expr": "peplink_device_rx_bytes", "legendFormat": "RX {{device_name}}", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "decbytes", "custom": {"drawStyle": "line", "fillOpacity": 10}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["mean", "max"]}}
+    },
+    {
+      "type": "row",
+      "title": "Exporter Health",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 30},
+      "collapsed": false
+    },
+    {
+      "type": "stat",
+      "title": "Scrape Duration",
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 31},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_scrape_duration_seconds", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"steps": [{"color": "green"}, {"color": "yellow", "value": 5}, {"color": "red", "value": 10}]}}},
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat",
+      "title": "Exporter Status",
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 31},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_scrape_success", "refId": "A"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "FAILED", "color": "red"}, "1": {"text": "OK", "color": "green"}}}], "thresholds": {"steps": [{"color": "red"}, {"color": "green", "value": 1}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat",
+      "title": "API/SNMP Errors",
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 31},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(peplink_api_errors_total)", "legendFormat": "API", "refId": "A"},
+        {"expr": "sum(peplink_snmp_errors_total)", "legendFormat": "SNMP", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green"}, {"color": "yellow", "value": 5}, {"color": "red", "value": 10}]}}},
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    }
+  ],
+  "schemaVersion": 39
+}

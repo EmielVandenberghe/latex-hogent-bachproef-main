@@ -1,0 +1,69 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# Observability Stack VM - Mediaventures PoC
+# Synced folder: ./  ->  /opt/observability
+#
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "almalinux/9"
+  config.vm.hostname = "observability"
+
+  config.vm.network "private_network", 
+    ip: "10.1.1.100",
+    virtualbox__intnet: "intnet-bornem"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "Observability-Stack"
+    vb.memory = 4096
+    vb.cpus = 2
+  end
+
+  # Sync huidige folder naar /opt/observability
+  config.vm.synced_folder ".", "/opt/observability", type: "virtualbox"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "=== Observability Stack Setup ==="
+    
+    # DNS fix
+    echo "nameserver 8.8.8.8" > /etc/resolv.conf
+    
+    # Basis tools
+    dnf install -y epel-release
+    dnf install -y nano vim curl wget git htop tree jq net-tools bind-utils python3 python3-pip tar gzip unzip
+    
+    # Docker
+    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    systemctl start docker
+    systemctl enable docker
+    usermod -aG docker vagrant
+    
+    # Netwerk: VyOS als gateway
+    nmcli connection modify "System eth1" ipv4.gateway 10.1.1.1
+    nmcli connection modify "System eth1" ipv4.dns "8.8.8.8 8.8.4.4"
+    nmcli connection modify "System eth1" ipv4.ignore-auto-dns yes
+    nmcli connection modify "System eth1" ipv4.route-metric 50
+    nmcli connection up "System eth1"
+    ip route del default via 10.0.2.2 || true
+    ip route add default via 10.1.1.1 dev eth1 || true
+
+    # Aliases
+    cat >> /home/vagrant/.bashrc << 'EOF'
+alias obs='cd /opt/observability'
+alias obs-up='cd /opt/observability && docker compose up -d'
+alias obs-down='cd /opt/observability && docker compose down'
+alias obs-build='cd /opt/observability && docker compose up -d --build'
+alias obs-logs='cd /opt/observability && docker compose logs -f'
+EOF
+
+    # Start stack
+    cd /opt/observability
+    docker compose up -d --build
+
+    echo ""
+    echo "=== DONE ==="
+    echo "Grafana: http://192.168.137.10:3000 (admin/admin)"
+    echo ""
+  SHELL
+end
