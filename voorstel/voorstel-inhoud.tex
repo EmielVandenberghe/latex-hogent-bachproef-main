@@ -3,22 +3,22 @@
 \section{Inleiding}
 \label{sec:inleiding}
 
-Tijdens live-surgeryprojecten en medische congressen maakt Mediaventures gebruik van een uitgebreid audiovisueel netwerk waarin meerdere locaties gelijktijdig met elkaar communiceren. Een typisch scenario is dat een chirurgische ingreep live wordt gestreamd vanuit een operatiezaal — bijvoorbeeld in Duitsland — naar een congreszaal in Leipzig, terwijl dezelfde beelden ook worden doorgestuurd naar de centrale site in Bornem. Afhankelijk van het project verlopen deze verbindingen soms rechtstreeks tussen locaties, en soms via Bornem als tussenknooppunt. Deze flexibiliteit is essentieel, maar maakt de totale infrastructuur ook bijzonder complex.
+Tijdens live-surgeryprojecten en medische congressen maakt Mediaventures gebruik van een uitgebreid audiovisueel netwerk waarin meerdere locaties gelijktijdig met elkaar communiceren. Een typisch scenario is dat een chirurgische ingreep live wordt gestreamd vanuit een operatiezaal (bijvoorbeeld in Duitsland) naar een congreszaal in Leipzig, terwijl dezelfde beelden ook worden doorgestuurd naar de centrale site in Bornem. Afhankelijk van het project verlopen deze verbindingen soms rechtstreeks tussen locaties, en soms via Bornem als tussenknooppunt. Deze flexibiliteit is essentieel, maar maakt de totale infrastructuur ook bijzonder complex.
 
-De omgeving bestaat uit een mix van routers, switches, 5G- en satellietverbindingen, NDI-netwerken en verschillende AV-systemen die elk hun eigen rol vervullen. Omdat al deze componenten nauw samenwerken, kan een probleem op één plaats meteen gevolgen hebben voor alle verbonden locaties. Storingen in bandbreedte, latency, packet loss of lokale netwerkbelasting kunnen de kwaliteit van de livestream merkbaar aantasten. Vandaag bestaat er echter geen centraal platform dat de volledige datastromen, toestellen en verbindingen gezamenlijk bewaakt. Hierdoor moeten techniekers nog steeds handmatig inloggen op afzonderlijke apparaten om problemen te analyseren, wat foutdetectie vertraagt en het risico op kwaliteitsverlies vergroot.
+De omgeving bestaat uit een mix van routers, switches, 5G- en satellietverbindingen (zoals Starlink), NDI-netwerken (Network Device Interface) en verschillende audiovisuele (AV-)systemen die elk hun eigen rol vervullen. Omdat al deze componenten nauw samenwerken, kan een probleem op één plaats meteen gevolgen hebben voor alle verbonden locaties. Storingen in bandbreedte, latency, packet loss of lokale netwerkbelasting kunnen de kwaliteit van de livestream merkbaar aantasten. Vandaag bestaat er echter geen centraal platform dat de volledige datastromen, toestellen en verbindingen gezamenlijk bewaakt. Hierdoor moeten techniekers nog steeds handmatig inloggen op afzonderlijke apparaten om problemen te analyseren, wat foutdetectie vertraagt en het risico op kwaliteitsverlies vergroot.
 
 \subsection{Centrale onderzoeksvraag}
 
-\textbf{Hoe kan Mediaventures een geïntegreerde monitoring- en observability\-op\-los\-sing inzetten om de volledige audiovisuele infrastructuur end-to-end op te volgen en storingen sneller te detecteren?}
+Hoe kan Mediaventures een geïntegreerde monitoring- en observability\-op\-los\-sing inzetten om de volledige audiovisuele infrastructuur end-to-end op te volgen en storingen sneller te detecteren?
 
 \subsection{Deelvragen}
 
 Om de centrale onderzoeksvraag te beantwoorden, worden de volgende deelvragen onderzocht:
 
 \begin{enumerate}
-\item \textbf{Deelvraag voor het probleemdomein}: Welke soorten data en statusinformatie zijn beschikbaar op de verschillende netwerk- en AV-com\-po\-nen\-ten binnen deze internationale workflow, en welke parameters zijn cruciaal om kwaliteitsproblemen vroegtijdig te detecteren?
+\item Deelvraag voor het probleemdomein: Welke soorten data en statusinformatie zijn beschikbaar op de verschillende netwerk- en AV-com\-po\-nen\-ten binnen deze internationale workflow, en welke parameters zijn cruciaal om kwaliteitsproblemen vroegtijdig te detecteren?
 
-\item \textbf{Deelvraag voor het oplossingsdomein}: Welke observability- en monitoringtechnieken sluiten het best aan bij audiovisuele producties met hoge betrouwbaarheidseisen, en welke bestaande tools zijn compatibel met de infrastructuur van Mediaventures?
+\item Deelvraag voor het oplossingsdomein: Welke observability- en monitoringtechnieken sluiten het best aan bij audiovisuele producties met hoge betrouwbaarheidseisen, en welke bestaande tools zijn compatibel met de infrastructuur van Mediaventures?
 
 \end{enumerate}
 
@@ -27,17 +27,17 @@ Om de centrale onderzoeksvraag te beantwoorden, worden de volgende deelvragen on
 Het probleem- en oplossingsdomein bevindt zich op het snijpunt van AV-productie, netwerktechnologie en realtime kwaliteitsbewaking. Dit onderzoek heeft de volgende concrete doelstellingen:
 
 \begin{itemize}
-\item Een onderbouwde aanbeveling formuleren voor een observability\-op\-los\-sing die aansluit bij de specifieke noden van Mediaventures
+\item Een onderbouwde aanbeveling formuleren voor een observability oplossing die aansluit bij de specifieke noden van Mediaventures
 \item Een functioneel proof-of-concept ontwikkelen dat metrics, logs en netwerk\-flows integreert in één gecentraliseerd dashboard
 \item Aantonen hoe gecentraliseerde data-verzameling en -visualisatie de tijd tot detectie van storingen kan verkorten en techniekers sneller inzicht geeft in de infrastructuur\-status
-\item Een repliceerbare test\-me\-tho\-do\-lo\-gie opleveren waarmee verschillende monitoringtools objectief vergeleken kunnen worden
+\item Een alerting-mechanisme integreren dat techniekers proactief waarschuwt bij kritieke afwijkingen
 \end{itemize}
 
 De methodologische aanpak omvat literatuurstudie, een analyse van beschikbare protocollen en datastromen, een toolvergelijking en de opzet van een virtuele testomgeving. De rest van dit document bespreekt eerst de theoretische achtergrond, daarna de methode, gevolgd door de verwachte resultaten en conclusies.
 
 \subsection{Afbakening van de scope}
 
-Dit onderzoek richt zich op het verzamelen, aggregeren en visualiseren van observability-data (metrics, logs en netwerk\-flows) afkomstig van alle componenten in de audiovisuele infrastructuur. Het doel is techniekers een volledig, gecentraliseerd overzicht te bieden van de status en prestaties van de infrastructuur via één dashboard. Het automatisch interpreteren van problemen en het voorstellen van concrete oplossingen valt buiten de huidige scope---de focus ligt op detectie en zichtbaar\-ma\-king. Indien tijdens het onderzoek blijkt dat geautomatiseerde interpretatie haalbaar is binnen de beschikbare tijd en middelen, kan deze functionaliteit alsnog worden toegevoegd.
+Dit onderzoek richt zich op het verzamelen, aggregeren en visualiseren van observability-data (metrics, logs en netwerk\-flows) afkomstig van alle componenten in de audiovisuele infrastructuur. Het doel is techniekers een volledig, gecentraliseerd overzicht te bieden van de status en prestaties van de infrastructuur via één dashboard. Het automatisch interpreteren van problemen en het voorstellen van concrete oplossingen valt buiten de huidige scope. De focus ligt op detectie en zichtbaarmaking. Indien tijdens het onderzoek blijkt dat geautomatiseerde interpretatie haalbaar is binnen de beschikbare tijd en middelen, kan deze functionaliteit alsnog worden toegevoegd.
 
 %---------- Literatuurstudie ---------------------------------------------------
 
@@ -46,19 +46,19 @@ Dit onderzoek richt zich op het verzamelen, aggregeren en visualiseren van obser
 
 \subsection{Observability in audiovisuele netwerkarchitecturen}
 
-In audiovisuele productieomgevingen is observability een essentieel concept om de betrouwbaarheid en prestaties van complexe ketens te kunnen beoordelen. Videostreams zijn gevoelig voor vertraging en verlies van datapakketten, waardoor afwijkingen in de netwerklaag onmiddellijk zichtbare impact hebben op de uiteindelijke weergave. Dit geldt in het bijzonder voor live-omgevingen waarin meerdere geografisch gescheiden locaties gelijktijdig video en audio uitwisselen. \textcite{Tommasi2021} tonen aan dat real-time monitoring van parameters zoals latency en packet loss cruciaal is om degradatie in streamingkwaliteit tijdig te detecteren. De literatuur benadrukt daarbij dat observability niet beperkt mag blijven tot netwerkmetingen, maar verschillende niveaus moet combineren om complexe audiovisuele workflows correct te interpreteren.
+In audiovisuele productieomgevingen is observability een essentieel concept om de betrouwbaarheid en prestaties van complexe ketens te kunnen beoordelen. Videostreams zijn gevoelig voor vertraging en verlies van datapakketten, waardoor afwijkingen in de netwerk-, transport- of applicatielaag onmiddellijk zichtbare impact hebben op de uiteindelijke weergave. Dit geldt in het bijzonder voor live-omgevingen waarin meerdere geografisch gescheiden locaties gelijktijdig video en audio uitwisselen. \textcite{Tommasi2021} tonen aan dat real-time monitoring van parameters zoals latency en packet loss cruciaal is om degradatie in streamingkwaliteit tijdig te detecteren. De literatuur benadrukt daarbij dat observability niet beperkt mag blijven tot netwerkmetingen, maar juist die verschillende niveaus moet combineren (netwerklaag, transportlaag en applicatielaag) om complexe audiovisuele workflows correct te interpreteren.
 
 \subsection{NDI als intern audiovisueel transportprotocol}
 
 NDI (Network Device Interface) is een AV-over-IP-technologie die ontworpen is voor situaties waarin meerdere videobronnen binnen een lokaal netwerk (LAN) beschikbaar moeten zijn. Volgens de officiële NDI-documentatie maakt het protocol gebruik van hoge bandbreedtes en lage latency om videobronnen vrijwel in realtime tussen apparaten te transporteren \autocite{NewTek2022}. NDI-apparaten kunnen elkaar automatisch ontdekken binnen hetzelfde subnet, waardoor videobronnen flexibel kunnen worden gerouteerd zonder bijkomende bekabeling.
 
-Binnen Mediaventures ontvangt een computer de verschillende NDI-streams en verwerkt deze via een softwarematige mixer tot één gecombineerd eindbeeld \autocite{VanRenthergem2025}. Dit mixstation vormt een kritisch punt in de workflow: omdat NDI-prestaties afhankelijk zijn van bandbreedte, multicastondersteuning en correcte VLAN-configuratie \autocite{NewTek2022}, heeft elke afwijking in de netwerkcondities of processorbelasting direct impact op het eindbeeld dat vervolgens via SRT wordt verzonden naar de ontvangende locatie.
+Binnen Mediaventures ontvangt een computer de verschillende NDI-streams en verwerkt deze via een softwarematige mixer tot één gecombineerd eindbeeld \autocite{VanRenthergem2025}. Dit mixstation vormt een kritisch punt in de workflow: omdat NDI-prestaties afhankelijk zijn van bandbreedte, multicastondersteuning en correcte VLAN-configuratie \autocite{NewTek2022}, heeft elke afwijking in de netwerkcondities of processorbelasting direct impact op het eindbeeld dat vervolgens via Secure Reliable Transport (SRT) wordt verzonden naar de ontvangende locatie.
 
 \subsection{De omzetting van NDI naar SRT voor transport over grotere afstanden}
 
 Omdat NDI ontworpen is voor gebruik binnen een LAN en niet geschikt is voor transmissie over grote afstanden, wordt de samengestelde NDI-output dus lokaal omgezet naar SRT (Secure Reliable Transport). Haivision, de organisatie achter SRT, beschrijft het protocol als een oplossing die storingen in internetverbindingen compenseert door middel van foutcorrectie en jitterbuffers \autocite{Haivision2023}. Tijdens dit omzettingsproces wordt de NDI-stream gecodeerd naar een geschikt videocompressieformaat en verpakt in een SRT-stream.
 
-Deze omzetting vormt een belangrijke overgang van LAN-gebaseerde videodistributie naar WAN-transmissie. Storingen in de NDI-laag — zoals haperingen of te hoge belasting — worden op dit punt direct doorgegeven aan de SRT-encoder, die ze niet altijd kan corrigeren. Dit maakt monitoring op deze overgang van bijzonder belang \autocite{VanRenthergem2025}.
+Deze omzetting vormt een belangrijke overgang van LAN-gebaseerde videodistributie naar WAN-transmissie. Storingen in de NDI-laag (zoals haperingen of te hoge belasting) worden op dit punt direct doorgegeven aan de SRT-encoder, die ze niet altijd kan corrigeren. Dit maakt monitoring op deze overgang van bijzonder belang \autocite{VanRenthergem2025}.
 
 \subsection{De omzetting van SRT terug naar een lokaal formaat op de ontvangende locatie}
 
@@ -66,13 +66,13 @@ Wanneer de SRT-stream aankomt op de venue of in Bornem, wordt deze opnieuw gedec
 
 \subsection{Peplink, PepVPN en de rol van multi-WAN-routing}
 
-De netwerkarchitectuur tussen de verschillende locaties wordt gerealiseerd met Peplink-routers die PepVPN gebruiken. Deze technologie creëert één logische VPN-tunnel die gelijktijdig over meerdere fysieke internetverbindingen — zoals 5G, Starlink of glasvezel — loopt \autocite{Peplink2023}. Omdat de tunnel gebruik maakt van alle beschikbare verbindingen tegelijk, blijft deze operationeel wanneer één link uitvalt: het verkeer wordt dan automatisch over de overgebleven verbindingen herverdeeld zonder dat de VPN-sessie verbroken wordt. 
+De netwerkarchitectuur tussen de verschillende locaties wordt gerealiseerd met Peplink-routers die PepVPN gebruiken. Deze technologie creëert één logische VPN-tunnel die gelijktijdig over meerdere fysieke internetverbindingen (zoals 5G, Starlink of glasvezel) loopt \autocite{Peplink2023}. Omdat de tunnel gebruik maakt van alle beschikbare verbindingen tegelijk, blijft deze operationeel wanneer één link uitvalt: het verkeer wordt dan automatisch over de overgebleven verbindingen herverdeeld zonder dat de VPN-sessie verbroken wordt. 
 
-De live-surgerylocaties zijn uitgerust met Peplink 20X-routers die via USB-modems toegang hebben tot 5G-netwerken. De venues beschikken over krachtigere Peplink 380X-routers die hogere bandbreedtes kunnen verwerken. Ook in de centrale site in Bornem staat een Peplink-router die fungeert als tussenknooppunt wanneer verkeer niet rechtstreeks tussen locaties wordt gerouteerd \autocite{VanRenthergem2025}. Deze redundantie is cruciaal voor live-productieomgevingen waarin onderbrekingen direct merkbaar zijn.
+De live-surgery locaties zijn uitgerust met Peplink 20X-routers die via USB-modems toegang hebben tot 5G-netwerken. De venues beschikken over krachtigere Peplink 380X-routers die hogere bandbreedtes kunnen verwerken. Ook in de centrale site in Bornem staat een Peplink-router die fungeert als tussenknooppunt wanneer verkeer niet rechtstreeks tussen locaties wordt gerouteerd \autocite{VanRenthergem2025}. Deze redundantie is cruciaal voor live-productieomgevingen waarin onderbrekingen direct merkbaar zijn.
 
 \subsection{InControl2 als platform voor routerobservatie}
 
-InControl2 is het cloudplatform waarmee Peplink beheerders toelaat om routers centraal te monitoren. Volgens de officiële documentatie biedt het platform inzicht in WAN-status, historische latenties, VPN-kwaliteit en configuratiebeheer \autocite{Peplink2023}. Hoewel InControl2 waardevolle routerinformatie biedt, vormt het geen complete observabilityoplossing. Het platform monitort geen audiovisuele protocollen zoals NDI en SRT, en integreert evenmin gegevens van andere netwerkcomponenten. Deze beperking wordt ook bevestigd in secundaire literatuur die benadrukt dat single-vendor monitoringplatformen onvoldoende zicht bieden op heterogene AV-netwerken \autocite{Elradi2025}.
+InControl2 is het cloudplatform waarmee Peplink beheerders toelaat om routers centraal te monitoren. Volgens de officiële documentatie biedt het platform inzicht in WAN-status, historische latenties, VPN-kwaliteit en configuratiebeheer \autocite{Peplink2023}. Hoewel InControl2 waardevolle routerinformatie biedt, vormt het geen complete observabilityoplossing. Het platform monitort geen audiovisuele protocollen zoals NDI en SRT, en integreert evenmin gegevens van andere netwerkcomponenten. Deze beperking wordt ook bevestigd in secundaire literatuur die benadrukt dat single-vendor monitoring platformen onvoldoende zicht bieden op heterogene AV-netwerken \autocite{Elradi2025}.
 
 \subsection{Virtuele onderzoekomgeving via FusionHub}
 
@@ -80,9 +80,9 @@ FusionHub, de virtuele router van Peplink, maakt het mogelijk om PepVPN-verbindi
 
 \subsection{Synthese}
 
-Het geheel van de literatuur toont dat audiovisuele workflows meerdere gespecialiseerde protocollen, netwerkcomponenten en afhankelijkheden combineren. NDI presteert optimaal binnen LAN-omgevingen, terwijl SRT ontworpen is voor WAN-transport. Peplink's PepVPN biedt een robuuste basis voor multi-WAN-routing tussen locaties. Naast deze besproken technologieën worden binnen Mediaventures talloze andere componenten ingezet — zoals camera's, switches en diverse end devices — die elk data genereren en waarin storingen kunnen optreden. Deze zullen tijdens het onderzoek in kaart worden gebracht.
+De literatuur toont dat audiovisuele workflows meerdere gespecialiseerde protocollen, netwerkcomponenten en afhankelijkheden combineren. NDI presteert optimaal binnen LAN-omgevingen, terwijl SRT ontworpen is voor WAN-transport. Peplink's PepVPN biedt een robuuste basis voor multi-WAN-routing tussen locaties. Naast deze besproken technologieën worden binnen Mediaventures talloze andere componenten ingezet (zoals camera's, switches en diverse end devices) die elk data genereren en waarin storingen kunnen optreden. Deze zullen tijdens het onderzoek in kaart worden gebracht.
 
-Omdat geen enkel bestaand platform al deze lagen tegelijk monitort, is een geïntegreerde observabilityaanpak noodzakelijk. Dit onderzoek start met een afgebakende scope gericht op SRT, NDI en PepVPN-verbindingen. Wanneer deze kernprotocollen succesvol gemonitord worden en de tijd het toelaat, kunnen aanvullende componenten geleidelijk worden geïntegreerd. De bedoeling is om ook na afloop van deze bachelorproef verder te werken aan een alomvattende monitoringoplossing voor Mediaventures. 
+Omdat geen enkel bestaand platform al deze lagen tegelijk monitort, is een geïntegreerde observability aanpak noodzakelijk. Dit onderzoek start met een afgebakende scope gericht op SRT, NDI en PepVPN-verbindingen. Wanneer deze kernprotocollen succesvol gemonitord worden en de tijd het toelaat, kunnen aanvullende componenten geleidelijk worden geïntegreerd. De bedoeling is om ook na afloop van deze bachelorproef verder te werken aan een alomvattende monitoringoplossing voor Mediaventures. 
 
 
 %---------- Methodologie ------------------------------------------------------
@@ -91,29 +91,39 @@ Omdat geen enkel bestaand platform al deze lagen tegelijk monitort, is een geïn
 
 Het onderzoek verloopt over twee semesters en bestaat uit zes fasen die samen de draft-deadline van 2 maart 2026 en de finale indiening op 29 mei 2026 haalbaar maken. Elke fase levert resultaten op die nodig zijn voor de volgende stap.
 
-\subsection{Fase 0: Voorbereiding en voorstelontwikkeling (september--december 2025, semester 1)}
+\subsection{Fase 0: Voorbereiding en voorstelontwikkeling}
+
+Tijdstip: september tot december 2025, semester 1
 
 In semester 1 wordt het bachelorproefvoorstel voorbereid. Dit omvat het afbakenen van de onderzoeksvraag in samenspraak met co-promotor Arne Van Renthergem, het verkennen van de infrastructuur bij Mediaventures en het opstellen van een eerste versie van de literatuurstudie. Ook wordt een planning opgemaakt en worden de deliverables per fase vastgelegd. Het resultaat van deze fase is het huidige voorstel dat dient als startpunt voor het eigenlijke onderzoek in semester 2.
 
-\subsection{Fase 1: Analyse van de Mediaventures-infrastructuur (februari 2026, weken 1--3)}
+\subsection{Fase 1: Analyse van de Mediaventures-infrastructuur}
+
+Tijdstip: februari 2026, weken 1 tot 3
 
 Bij aanvang van semester 2 wordt de bestaande infrastructuur bij Mediaventures in kaart gebracht. Dit gebeurt door configuratiebestanden en netwerkdiagrammen te verzamelen van de Peplink 20X- en 380X-routers, de Netgear AV-Line M4250-switches en de NDI-softwaremixers. Daarnaast worden interviews afgenomen met de technische medewerkers, waaronder co-promotor Arne Van Renthergem, om te achterhalen welke workflows gangbaar zijn en waar knelpunten zich bevinden. Tijdens een live-project wordt geobserveerd welke monitoringdata de apparaten aanbieden: statusberichten, prestatiemetingen en informatie over netwerkverkeer.
 
 Het resultaat is een overzicht van alle databronnen die gemonitord kunnen worden en hoe deze data uit de apparaten kan worden gehaald. Dit vormt de basis voor de toolselectie in fase 3.
 
-\subsection{Fase 2: Literatuurstudie (februari--maart 2026, weken 2--5)}
+\subsection{Fase 2: Literatuurstudie}
+
+Tijdstip: februari tot maart 2026, weken 2 tot 5
 
 Parallel aan de infrastructuuranalyse wordt literatuuronderzoek gedaan naar observability in audiovisuele netwerken, QoS-monitoring in streaming workflows, metrics- en logging-architecturen voor gedistribueerde systemen, en netwerksecurity- en eventanalyse. Via Google Scholar, IEEE Xplore en de ACM Digital Library worden bronnen gezocht die de termen gebruikt in dit onderzoek verder uitdiepen. Dit om ervoor te zorgen dat de gekozen aanpak wetenschappelijk onderbouwd is en dat het onderzoek begrijpbaar is voor alle lezers.
 
 Dit onderzoek moet duidelijk maken welke tools, protocollen en architectuurmodellen relevant zijn voor dit project. Ook wordt onderzocht welke parameters volgens de literatuur het meest duiding brengen voor kwaliteitsproblemen in live-streamingomgevingen. De bevindingen worden verwerkt in de draft van 2 maart 2026.
 
-\subsection{Fase 3: Vergelijkende studie van monitoringtools (maart 2026, weken 5--8)}
+\subsection{Fase 3: Vergelijkende studie van monitoringtools}
+
+Tijdstip: maart 2026, weken 5 tot 8
 
 De geselecteerde monitoringtools worden vergeleken aan de hand van vijf criteria: verwerkingstijd tussen data-ingang en visualisatie, volledigheid en betrouwbaarheid van metrics, logs en flows, schaalbaarheid, integratiemogelijkheden met de Peplink-, NDI- en Netgear-apparatuur, en resourcegebruik en onderhoudscomplexiteit.
 
 De vergelijking gebeurt aan de hand van documentatieanalyse, technische specificaties en kleinschalige tests met gesimuleerde data. Per criterium wordt elke tool beoordeeld op een vijfpuntsschaal. De resultaten worden samengevat in een vergelijkingsmatrix. Tussen 2 en 20 maart vindt ook de mondelinge toelichting aan de promotor plaats.
 
-\subsection{Fase 4: Opbouw virtuele testomgeving (maart--april 2026, weken 7--11)}
+\subsection{Fase 4: Opbouw virtuele testomgeving}
+
+Tijdstip: maart tot april 2026, weken 7 tot 11
 
 Omdat de productieomgeving van Mediaventures niet permanent beschikbaar is voor uitgebreide tests, wordt een virtuele testomgeving opgezet met FusionHub-instanties. Twee instanties vertegenwoordigen live-surgerylocaties, één staat voor een venue en één voor de centrale site in Bornem. Deze instanties worden gekoppeld via PepVPN-tunnels over het publieke internet, waardoor realistische WAN-condities ontstaan.
 
@@ -121,9 +131,11 @@ Naast deze virtuele opstelling wordt een fysieke Peplink-router ter beschikking 
 
 In deze omgeving worden tools ingezet die kunstmatig netwerkverkeer genereren om NDI- en SRT-videostromen na te bootsen. Deze nagebootste stromen krijgen vergelijkbare kenmerken als echt audiovisueel verkeer: wisselende datasnelheden en pieken in het verkeer. Indien mogelijk worden de Netgear-switches fysiek opgenomen in de opstelling; anders wordt hun gedrag softwarematig nagebootst.
 
-\subsection{Fase 5: Proof-of-concept implementatie en validatie (april--mei 2026, weken 10--15)}
+\subsection{Fase 5: Proof-of-concept implementatie en validatie}
 
-De gekozen monitoringoplossing wordt geïmplementeerd in de virtuele testomgeving. Dit betekent koppelingen maken met de InControl2-API en de SRT-encoders, logverzameling opzetten en dashboards bouwen die alle databronnen combineren.
+Tijdstip: april tot mei 2026, weken 10 tot 15
+
+De gekozen monitoring oplossing wordt geïmplementeerd in de virtuele testomgeving. Dit betekent koppelingen maken met de InControl2-API en de SRT-encoders, logverzameling opzetten en dashboards bouwen die alle databronnen combineren.
 
 De validatie gebeurt aan de hand van drie testscenario's: een ideale situatie zonder netwerkstoringen, een situatie met gesimuleerde packetlosses en vertragingspieken, en een situatie met overbelasting door meerdere gelijktijdige datastromen. Per scenario wordt gemeten hoe snel de oplossing problemen detecteert en hoe nauwkeurig de gerapporteerde metingen zijn. De resultaten worden vergeleken met de huidige werkwijze waarin techniekers handmatig moeten inloggen op elk apparaat afzonderlijk. De finale draft wordt ingediend op 4 mei 2026, waarna de laatste weken dienen voor het afronden van de bachelorproef (deadline 29 mei 2026).
 
@@ -142,13 +154,13 @@ De volledige planning van het onderzoek over twee semesters wordt weergegeven in
 
 Het onderzoek brengt verschillende risico's met zich mee:
 
-\textbf{Beschikbaarheid testinfrastructuur}: De productieomgeving van Mediaventures is niet permanent beschikbaar voor uitgebreide tests. Dit wordt opgelost door een virtuele testomgeving met FusionHub op te zetten, waardoor reproduceerbare tests mogelijk zijn zonder afhankelijkheid van fysieke apparatuur tijdens live-projecten.
+Beschikbaarheid testinfrastructuur: De productieomgeving van Mediaventures is niet permanent beschikbaar voor uitgebreide tests. Dit wordt opgelost door een virtuele testomgeving met FusionHub op te zetten, waardoor reproduceerbare tests mogelijk zijn zonder afhankelijkheid van fysieke apparatuur tijdens live-projecten.
 
-\textbf{Complexiteit multi-vendor integratie}: De infrastructuur combineert componenten van verschillende leveranciers (Peplink, Netgear, diverse NDI- en SRT-apparaten) met elk hun eigen managementprotocollen. In fase 1 wordt daarom uitgebreid onderzocht welke API's en exportmogelijkheden beschikbaar zijn. Wanneer bepaalde componenten geen standaard exportformaten ondersteunen, kunnen custom exporters worden ontwikkeld of alternatieve dataverzamelingsmethoden worden toegepast.
+Complexiteit multi-vendor integratie: De infrastructuur combineert componenten van verschillende leveranciers (Peplink, Netgear, diverse NDI- en SRT-apparaten) met elk hun eigen managementprotocollen. In fase 1 wordt daarom uitgebreid onderzocht welke API's en exportmogelijkheden beschikbaar zijn. Wanneer bepaalde componenten geen standaard exportformaten ondersteunen, kunnen custom exporters worden ontwikkeld of alternatieve dataverzamelingsmethoden worden toegepast.
 
-\textbf{Beperkte toegang tot vergelijkbare onderzoekscontexten}: Audiovisuele livestreaming voor medische congressen is een nichemarkt met weinig publieke documentatie. Dit wordt opgevangen door nauwe samenwerking met co-promotor Arne Van Renthergem van Mediaventures, die praktijkervaring en inzicht in specifieke uitdagingen kan delen. Daarnaast wordt de literatuurstudie breder getrokken naar aanverwante domeinen zoals IP-video surveillance, live broadcasting en enterprise network monitoring.
+Beperkte toegang tot vergelijkbare onderzoekscontexten: Audiovisuele livestreaming voor medische congressen is een nichemarkt met weinig publieke documentatie. Dit wordt opgevangen door nauwe samenwerking met co-promotor Arne Van Renthergem van Mediaventures, die praktijkervaring en inzicht in specifieke uitdagingen kan delen. Daarnaast wordt de literatuurstudie breder getrokken naar aanverwante domeinen zoals IP-video surveillance, live broadcasting en enterprise network monitoring.
 
-\textbf{Tijdsmanagement}: Het onderzoek combineert theorie en praktische implementatie binnen een beperkt tijdsbestek. De planning is daarom opgedeeld in duidelijke fasen met concrete mijlpalen. Regelmatige voortgangsbesprekingen met de promotor en co-promotor zorgen voor tijdige feedback en bijsturing. De keuze voor open-source tools met actieve communities verkleint het risico op langdurige technische blokkades.
+Tijdsmanagement: Het onderzoek combineert theorie en praktische implementatie binnen een beperkt tijdsbestek. De planning is daarom opgedeeld in duidelijke fasen met concrete mijlpalen. Regelmatige voortgangsbesprekingen met de promotor en co-promotor zorgen voor tijdige feedback en bijsturing. De keuze voor open-source tools met actieve communities verkleint het risico op langdurige technische blokkades.
 
 
 %---------- Verwachte resultaten ----------------------------------------------
@@ -158,8 +170,8 @@ Het onderzoek brengt verschillende risico's met zich mee:
 
 Dit onderzoek zal resulteren in een onderbouwde aanbeveling voor een monitoringoplossing die geschikt is voor de audiovisuele infrastructuur van Mediaventures. De toolvergelijking zal duidelijk maken welke combinatie van monitoring- en observabilitysoftware het best aansluit bij de specifieke eisen van live-surgeryprojecten en medische congressen. De aanbeveling zal gebaseerd zijn op concrete testresultaten uit de virtuele omgeving en de vergelijking met bestaande oplossingen uit de literatuur.
 
-Het proof-of-concept zal naar verwachting aantonen dat gecentraliseerde monitoring de tijd tussen het ontstaan van een probleem en de detectie ervan aanzienlijk verkort. Waar techniekers momenteel handmatig moeten inloggen op afzonderlijke apparaten om relevante statusinformatie te verzamelen, zal een gecentraliseerd monitoringplatform alle beschikbare metingen, logbestanden en netwerkgegevens gebundeld presenteren via dashboards. Concreet wordt verwacht dat de detectietijd voor veelvoorkomende problemen zoals pakketverlies, vertragingspieken en netwerkoverbelasting met minstens 50 procent afneemt ten opzichte van de huidige werkwijze.
+Het proof-of-concept zal naar verwachting aantonen dat gecentraliseerde monitoring de tijd tussen het ontstaan van een probleem en de detectie ervan aanzienlijk verkort. Waar techniekers momenteel handmatig moeten inloggen op afzonderlijke apparaten om relevante statusinformatie te verzamelen, zal een gecentraliseerd monitoringplatform alle beschikbare metingen, logbestanden en netwerkgegevens gebundeld presenteren via dashboards. Concreet wordt verwacht dat de detectietijd voor veelvoorkomende problemen zoals packetloss, vertragingspieken en netwerkoverbelasting opmerkelijk afneemt ten opzichte van de huidige werkwijze.
 
-Het onderzoek zal ook duidelijk maken welke meetwaarden het belangrijkst zijn om kwaliteitsproblemen te detecteren. Naar verwachting geeft een combinatie van VPN-vertragingen, de hoeveelheid herstuurde pakketten bij SRT-streams en de bandbreedte van NDI-stromen het beste beeld van de infrastructuurstatus. Deze inzichten kunnen techniekers helpen om sneller en gerichter te reageren op problemen.
+Het onderzoek zal ook duidelijk maken welke meetwaarden het belangrijkst zijn om kwaliteitsproblemen te detecteren. Deze inzichten kunnen techniekers helpen om sneller en gerichter te reageren op problemen.
 
 Tot slot wordt verwacht dat de virtuele testomgeving met FusionHub een reproduceerbare basis biedt voor verdere ontwikkeling. De configuraties en dashboards die tijdens het onderzoek worden ontwikkeld, kunnen na afloop worden overgedragen aan Mediaventures voor integratie in hun dagelijkse werking. De meerwaarde voor het bedrijf bestaat dus niet alleen uit een aanbeveling, maar ook uit een werkend prototype dat als startpunt dient voor verdere uitbouw.
