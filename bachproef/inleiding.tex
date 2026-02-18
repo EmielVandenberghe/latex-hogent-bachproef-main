@@ -5,46 +5,54 @@
 \chapter{\IfLanguageName{dutch}{Inleiding}{Introduction}}%
 \label{ch:inleiding}
 
-De inleiding moet de lezer net genoeg informatie verschaffen om het onderwerp te begrijpen en in te zien waarom de onderzoeksvraag de moeite waard is om te onderzoeken. In de inleiding ga je literatuurverwijzingen beperken, zodat de tekst vlot leesbaar blijft. Je kan de inleiding verder onderverdelen in secties als dit de tekst verduidelijkt. Zaken die aan bod kunnen komen in de inleiding~\autocite{Pollefliet2011}:
+Tijdens live-surgeryprojecten en medische congressen maakt Mediaventures gebruik van een uitgebreid audiovisueel netwerk waarin meerdere locaties gelijktijdig met elkaar communiceren. Een typisch scenario is dat een chirurgische ingreep live wordt gestreamd vanuit een operatiezaal (bijvoorbeeld in Duitsland) naar een congreszaal in Leipzig, terwijl dezelfde beelden ook worden doorgestuurd naar de centrale site in Bornem. Afhankelijk van het project verlopen deze verbindingen soms rechtstreeks tussen locaties, en soms via Bornem als tussenknooppunt. Deze flexibiliteit is essentieel, maar maakt de totale infrastructuur ook bijzonder complex.
 
-\begin{itemize}
-  \item context, achtergrond
-  \item afbakenen van het onderwerp
-  \item verantwoording van het onderwerp, methodologie
-  \item probleemstelling
-  \item onderzoeksdoelstelling
-  \item onderzoeksvraag
-  \item \ldots
-\end{itemize}
+De omgeving bestaat uit een mix van routers, switches, 5G- en satellietverbindingen (zoals Starlink), NDI-netwerken (Network Device Interface) en verschillende audiovisuele (AV-)systemen die elk hun eigen rol vervullen. Omdat al deze componenten nauw samenwerken, kan een probleem op één plaats meteen gevolgen hebben voor alle verbonden locaties. Storingen in bandbreedte, latency, packet loss of lokale netwerkbelasting kunnen de kwaliteit van de livestream merkbaar aantasten. Vandaag bestaat er echter geen centraal platform dat de volledige datastromen, toestellen en verbindingen gezamenlijk bewaakt. Hierdoor moeten techniekers nog steeds handmatig inloggen op afzonderlijke apparaten om problemen te analyseren, wat foutdetectie vertraagt en het risico op kwaliteitsverlies vergroot.
 
 \section{\IfLanguageName{dutch}{Probleemstelling}{Problem Statement}}%
 \label{sec:probleemstelling}
 
-Uit je probleemstelling moet duidelijk zijn dat je onderzoek een meerwaarde heeft voor een concrete doelgroep. De doelgroep moet goed gedefinieerd en afgelijnd zijn. Doelgroepen als ``bedrijven,'' ``KMO's'', systeembeheerders, enz.~zijn nog te vaag. Als je een lijstje kan maken van de personen/organisaties die een meerwaarde zullen vinden in deze bachelorproef (dit is eigenlijk je steekproefkader), dan is dat een indicatie dat de doelgroep goed gedefinieerd is. Dit kan een enkel bedrijf zijn of zelfs één persoon (je co-promotor/opdrachtgever).
+De probleemstelling richt zich specifiek op Mediaventures, een audiovisuele firma gespecialiseerd in livestreamingsdiensten voor internationale medische congressen. De doelgroep bestaat uit de technische medewerkers van Mediaventures die verantwoordelijk zijn voor het opzetten en onderhouden van de audiovisuele infrastructuur tijdens live-surgeryprojecten en congressen.
+
+Het huidige probleem is dat er geen gecentraliseerd monitoringsysteem bestaat dat de volledige keten van apparatuur en verbindingen bewaakt. Techniekers moeten bij storingen handmatig inloggen op elk apparaat afzonderlijk om de oorzaak te achterhalen. Dit is tijdrovend en verhoogt het risico op kwaliteitsverlies tijdens kritieke momenten in een live-uitzending.
 
 \section{\IfLanguageName{dutch}{Onderzoeksvraag}{Research question}}%
 \label{sec:onderzoeksvraag}
 
-Wees zo concreet mogelijk bij het formuleren van je onderzoeksvraag. Een onderzoeksvraag is trouwens iets waar nog niemand op dit moment een antwoord heeft (voor zover je kan nagaan). Het opzoeken van bestaande informatie (bv. ``welke tools bestaan er voor deze toepassing?'') is dus geen onderzoeksvraag. Je kan de onderzoeksvraag verder specifiëren in deelvragen. Bv.~als je onderzoek gaat over performantiemetingen, dan 
+De centrale onderzoeksvraag luidt: \textit{Hoe kan Mediaventures een geïntegreerde monitoring- en observabilityoplossing inzetten om de volledige audiovisuele infrastructuur end-to-end op te volgen en storingen sneller te detecteren?}
+
+Deze vraag wordt verder gespecificeerd in twee deelvragen:
+
+\begin{enumerate}
+\item Deelvraag voor het probleemdomein: Welke soorten data en statusinformatie zijn beschikbaar op de verschillende netwerk- en AV-componenten binnen deze internationale workflow, en welke parameters zijn cruciaal om kwaliteitsproblemen vroegtijdig te detecteren?
+
+\item Deelvraag voor het oplossingsdomein: Welke observability- en monitoringtechnieken sluiten het best aan bij audiovisuele producties met hoge betrouwbaarheidseisen, en welke bestaande tools zijn compatibel met de infrastructuur van Mediaventures?
+\end{enumerate}
 
 \section{\IfLanguageName{dutch}{Onderzoeksdoelstelling}{Research objective}}%
 \label{sec:onderzoeksdoelstelling}
 
-Wat is het beoogde resultaat van je bachelorproef? Wat zijn de criteria voor succes? Beschrijf die zo concreet mogelijk. Gaat het bv.\ om een proof-of-concept, een prototype, een verslag met aanbevelingen, een vergelijkende studie, enz.
+Het probleem- en oplossingsdomein bevindt zich op het snijpunt van AV-productie, netwerktechnologie en realtime kwaliteitsbewaking. Dit onderzoek heeft de volgende concrete doelstellingen:
+
+\begin{itemize}
+\item Een onderbouwde aanbeveling formuleren voor een observabilityoplossing die aansluit bij de specifieke noden van Mediaventures
+\item Een functioneel proof-of-concept ontwikkelen dat metrics, logs en netwerkflows integreert in één gecentraliseerd dashboard
+\item Aantonen hoe gecentraliseerde data-verzameling en -visualisatie de tijd tot detectie van storingen kan verkorten en techniekers sneller inzicht geeft in de infrastructuurstatus
+\item Een alerting-mechanisme integreren dat techniekers proactief waarschuwt bij kritieke afwijkingen
+\end{itemize}
+
+\subsection{\IfLanguageName{dutch}{Afbakening van de scope}{Scope delimitation}}%
+\label{sec:afbakening-scope}
+
+Dit onderzoek richt zich op het verzamelen, aggregeren en visualiseren van observability-data (metrics, logs en netwerkflows) afkomstig van alle componenten in de audiovisuele infrastructuur. Het doel is techniekers een volledig, gecentraliseerd overzicht te bieden van de status en prestaties van de infrastructuur via één dashboard. Het automatisch interpreteren van problemen en het voorstellen van concrete oplossingen valt buiten de huidige scope. De focus ligt op detectie en zichtbaarmaking. Indien tijdens het onderzoek blijkt dat geautomatiseerde interpretatie haalbaar is binnen de beschikbare tijd en middelen, kan deze functionaliteit alsnog worden toegevoegd.
 
 \section{\IfLanguageName{dutch}{Opzet van deze bachelorproef}{Structure of this bachelor thesis}}%
 \label{sec:opzet-bachelorproef}
 
-% Het is gebruikelijk aan het einde van de inleiding een overzicht te
-% geven van de opbouw van de rest van de tekst. Deze sectie bevat al een aanzet
-% die je kan aanvullen/aanpassen in functie van je eigen tekst.
-
 De rest van deze bachelorproef is als volgt opgebouwd:
 
-In Hoofdstuk~\ref{ch:stand-van-zaken} wordt een overzicht gegeven van de stand van zaken binnen het onderzoeksdomein, op basis van een literatuurstudie.
+In Hoofdstuk~\ref{ch:stand-van-zaken} wordt een overzicht gegeven van de stand van zaken binnen het onderzoeksdomein, op basis van een literatuurstudie. Hierin komen de verschillende technologieën aan bod die gebruikt worden in de audiovisuele infrastructuur van Mediaventures, waaronder NDI, SRT, PepVPN en FusionHub.
 
-In Hoofdstuk~\ref{ch:methodologie} wordt de methodologie toegelicht en worden de gebruikte onderzoekstechnieken besproken om een antwoord te kunnen formuleren op de onderzoeksvragen.
-
-% TODO: Vul hier aan voor je eigen hoofstukken, één of twee zinnen per hoofdstuk
+In Hoofdstuk~\ref{ch:methodologie} wordt de methodologie toegelicht en worden de gebruikte onderzoekstechnieken besproken om een antwoord te kunnen formuleren op de onderzoeksvragen. Dit omvat de opzet van een virtuele testomgeving, de vergelijking van monitoringtools en de implementatie van het proof-of-concept.
 
 In Hoofdstuk~\ref{ch:conclusie}, tenslotte, wordt de conclusie gegeven en een antwoord geformuleerd op de onderzoeksvragen. Daarbij wordt ook een aanzet gegeven voor toekomstig onderzoek binnen dit domein.

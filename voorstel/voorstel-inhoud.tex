@@ -132,7 +132,29 @@ Om te valideren in hoeverre de virtuele omgeving representatief is voor fysieke 
 
 In deze omgeving worden tools ingezet die kunstmatig netwerkverkeer genereren om NDI- en SRT-videostromen na te bootsen. Deze nagebootste stromen krijgen vergelijkbare kenmerken als echt audiovisueel verkeer: wisselende datasnelheden en pieken in het verkeer. Indien mogelijk worden de Netgear-switches fysiek opgenomen in de opstelling; anders wordt hun gedrag softwarematig nagebootst.
 
-\subsection{Fase 5: Proof-of-concept implementatie en validatie}
+\subsection{Fase 5: Connectiviteitsscenarios en bereikbaarheid van remote apparaten}
+
+Bij het opzetten van een gecentraliseerde monitoringoplossing voor gedistribueerde locaties speelt de bereikbaarheid van apparaten een fundamentele rol. Niet elke locatie beschikt over dezelfde type internetverbinding, en dit heeft directe gevolgen voor de manier waarop monitoringdata kan worden verzameld.
+
+In een ideale situatie beschikt elke locatie over een statisch publiek IP-adres. De centrale monitoringserver kan dan rechtstreeks verbinding maken met elk apparaat om statusgegevens op te vragen. Dit model, waarbij de server actief data ophaalt bij de endpoints, wordt aangeduid als polling of pull-based monitoring \autocite{Ligus2012}.
+
+In de praktijk is deze situatie echter eerder uitzondering dan regel. Mobiele internetverbindingen zoals 4G en 5G kennen doorgaans dynamische IP-adressen toe die regelmatig wijzigen. Bovendien bevinden apparaten zich vaak achter Network Address Translation (NAT), een techniek waarbij meerdere apparaten één publiek IP-adres delen. Apparaten achter NAT zijn niet rechtstreeks bereikbaar vanaf het internet: inkomende verbindingen worden geblokkeerd tenzij ze een antwoord zijn op een uitgaande verbinding \autocite{Srisuresh1999}.
+
+Binnen de context van Mediaventures ontstaan hierdoor drie typische connectiviteitsscenarios:
+
+\begin{enumerate}
+\item \textbf{Beide locaties met statisch publiek IP}: Zowel de centrale site in Bornem als de remote locatie beschikken over een vast publiek IP-adres. De monitoringserver kan beide locaties rechtstreeks pollen zonder bijkomende configuratie.
+
+\item \textbf{Eén locatie achter NAT}: De remote locatie (bijvoorbeeld een live-surgery site met 4G-verbinding) bevindt zich achter NAT en is niet rechtstreeks bereikbaar. De centrale site in Bornem heeft wel een publiek IP-adres. In dit scenario moet de remote locatie een uitgaande verbinding initiëren naar Bornem, waarna communicatie in beide richtingen mogelijk wordt.
+
+\item \textbf{Beide locaties achter NAT}: Zowel de remote locatie als een eventuele tweede locatie (bijvoorbeeld een venue op een hotelnetwerk) bevinden zich achter NAT. Geen van beide kan de ander rechtstreeks bereiken. Een derde partij met een publiek IP-adres moet fungeren als tussenstation.
+\end{enumerate}
+
+PepVPN biedt een oplossing voor deze uitdagingen. Zodra een Peplink-router een PepVPN-tunnel opzet naar een centrale hub, ontstaat een virtueel privénetwerk waarin alle deelnemende apparaten elkaar kunnen bereiken, ongeacht hun onderliggende connectiviteitstype \autocite{Peplink2023}. De tunnel wordt geïnitieerd door de remote locatie (uitgaande verbinding), waardoor NAT-problematiek wordt omzeild. Bornem fungeert in deze architectuur als centrale hub: alle remote locaties bouwen een tunnel op naar Bornem, en via deze tunnels kan de monitoringserver alle apparaten bereiken.
+
+Dit betekent dat de gezondheid van de PepVPN-tunnels een voorwaarde is voor effectieve monitoring. Wanneer een tunnel wegvalt, verliest de centrale server het zicht op die locatie. Het monitoren van tunnelstatus, -latency en -packet loss is daarom een essentieel onderdeel van de observabilityoplossing.
+
+\subsection{Fase 6: Proof-of-concept implementatie en validatie}
 
 Tijdstip: april tot mei 2026, weken 10 tot 15
 
