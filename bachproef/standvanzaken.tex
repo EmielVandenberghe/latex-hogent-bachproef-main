@@ -28,6 +28,26 @@ Deze omzetting vormt een belangrijke overgang van LAN-gebaseerde videodistributi
 
 Wanneer de SRT-stream aankomt op de venue of in Bornem (de centrale site), wordt deze opnieuw gedecodeerd. De ontvangende software zet de stream terug om in een videobron die binnen het lokale netwerk kan worden gebruikt. Volgens \textcite{Haivision2023} ondersteunt SRT dit decodeerproces zonder dat de oorspronkelijke kwaliteit onnodig wordt aangetast. In veel audiovisuele workflows wordt de gedecodeerde stream opnieuw als NDI beschikbaar gemaakt zodat deze lokaal op dezelfde manier kan worden gerouteerd als andere videobronnen. Dit zorgt voor een consistente end-to-end workflow waarin NDI wordt gebruikt voor interne distributie en SRT voor transmissie over grotere afstanden \autocite{VanRenthergem2025}.
 
+\subsection{SRT-statistieken en monitoring van streamkwaliteit}
+
+Het SRT-protocol biedt uitgebreide mogelijkheden voor het monitoren van de verbindingskwaliteit in real-time. De protocolspecificatie definieert een reeks statistieken die zowel aan zenderzijde als aan ontvangerzijde beschikbaar zijn en inzicht geven in de gezondheid van de verbinding \autocite{SRTAlliance2024}.
+
+De belangrijkste parameters voor het beoordelen van de streamkwaliteit zijn:
+
+\begin{itemize}
+\item \textbf{Round-Trip Time (RTT)}: De tijd in milliseconden die een pakket nodig heeft om van zender naar ontvanger en terug te reizen. Deze waarde is cruciaal voor het berekenen van de optimale latency-instelling. De aanbevolen SRT-latency is minimaal drie tot vier keer de gemiddelde RTT \autocite{Sharabayko2023}.
+
+\item \textbf{Packet loss}: Het percentage pakketten dat verloren gaat tijdens transport. SRT compenseert pakketverlies via Automatic Repeat Query (ARQ), waarbij verloren pakketten opnieuw worden verzonden. Bij te hoge packet loss of te lage latency-instellingen kunnen pakketten niet tijdig worden hersteld, wat resulteert in zichtbare artefacten in het videobeeld \autocite{Haivision2023}.
+
+\item \textbf{Jitter}: De variatie in aankomsttijd van pakketten. SRT gebruikt een jitterbuffer om deze variatie op te vangen en een constante end-to-end latency te garanderen. Hoge jitter vereist een grotere buffer en dus hogere latency om pakketverlies te voorkomen.
+
+\item \textbf{Retransmissions}: Het aantal pakketten dat opnieuw is verzonden na initieel verlies. Een hoog aantal retransmissies duidt op een instabiele verbinding en verhoogt de effectieve bandbreedte die nodig is voor de stream.
+
+\item \textbf{Available buffer}: De beschikbare ruimte in de ontvangstbuffer, uitgedrukt in bytes of pakketten. Wanneer deze waarde te laag wordt, kunnen nieuwe pakketten niet worden gebufferd en gaan verloren.
+\end{itemize}
+
+Deze statistieken worden door SRT-encoders en -decoders beschikbaar gesteld via interne API's of management-interfaces. Voor monitoring doeleinden kunnen deze waarden periodiek worden uitgelezen en geëxporteerd naar een centraal observability-platform. De correlatie tussen SRT-statistieken en onderliggende WAN-kwaliteit (zoals gemeten via PepVPN) maakt het mogelijk om de oorzaak van streamingproblemen sneller te identificeren: een stijging in RTT of packet loss op de SRT-laag kan direct worden gekoppeld aan degradatie van een specifieke WAN-verbinding.
+
 \section{Peplink, PepVPN en de rol van multi-WAN-routing}
 \label{sec:peplink}
 
@@ -46,6 +66,26 @@ InControl2 is het cloudplatform waarmee Peplink beheerders toelaat om routers ce
 FusionHub is de virtuele router van Peplink, beschikbaar als VM-image voor deployment in cloudomgevingen zoals AWS of Google Cloud, maar ook lokaal via hypervisors zoals VirtualBox of VMware. FusionHub-instanties registreren zich bij InControl2, ondersteunen PepVPN-tunnels en bieden toegang tot de InControl2 API \autocite{Peplink2023}.
 
 Volgens \textcite{VanRenthergem2025} is de functionele overlap tussen FusionHub en fysieke Peplink-hardware circa 90 tot 95 procent. Verschillen bestaan voornamelijk in hardware-specifieke features zoals cellular modem statistics en fysieke WAN-interfaces, die op FusionHub niet aanwezig zijn.
+
+\subsection{Keuze van observability-tooling}
+
+Voor het verzamelen, opslaan en visualiseren van observability-data bestaan verschillende open-source en commerciële oplossingen. In deze sectie wordt de keuze voor de gebruikte toolstack onderbouwd.
+
+De meest gangbare open-source monitoring stacks zijn gebaseerd op Prometheus voor metrics-verzameling, Grafana voor visualisatie en Loki voor log-aggregatie. Deze combinatie, vaak aangeduid als de PLG-stack, wordt breed ingezet in cloud-native omgevingen en DevOps-contexten \autocite{Turnbull2018}. Prometheus werkt volgens een pull-model waarbij de server periodiek endpoints bevraagt, en slaat data op in een geoptimaliseerde time-series database. Grafana biedt een flexibele interface voor het bouwen van dashboards en ondersteunt meerdere databronnen, waaronder Prometheus en Loki.
+
+Alternatieven die werden overwogen zijn Zabbix, Nagios en commerciële platformen zoals Datadog en Splunk. Zabbix en Nagios zijn traditionele monitoringoplossingen met een lange staat van dienst in enterprise-omgevingen \autocite{Turnbull2016}. Deze tools zijn echter primair ontworpen voor server- en infrastructuurmonitoring en bieden minder flexibiliteit voor het integreren van custom metrics uit diverse bronnen zoals de InControl2 API of SRT-encoders. Commerciële oplossingen zoals Datadog bieden uitgebreide functionaliteit maar brengen aanzienlijke licentiekosten met zich mee, wat ze minder geschikt maakt voor een proof-of-concept in een bachelorproefcontext.
+
+De keuze voor de PLG-stack is gebaseerd op de volgende overwegingen:
+
+\begin{itemize}
+\item \textbf{Flexibiliteit}: Prometheus ondersteunt custom exporters, waardoor data uit de InControl2 API en SRT-statistieken eenvoudig kan worden geïntegreerd.
+\item \textbf{Kosteloos}: Alle componenten zijn open-source en kunnen zonder licentiekosten worden ingezet.
+\item \textbf{Actieve community}: Uitgebreide documentatie en community support verlagen de drempel voor implementatie.
+\item \textbf{Schaalbaarheid}: De architectuur is geschikt voor zowel kleinschalige proof-of-concepts als grotere productieomgevingen.
+\item \textbf{Industrie-standaard}: De PLG-stack wordt breed toegepast in vergelijkbare observability-projecten, wat overdraagbaarheid en herkenbaarheid ten goede komt.
+\end{itemize}
+
+Voor dit onderzoek wordt daarom gekozen voor Prometheus als metrics-backend, Grafana als visualisatieplatform en Loki voor eventuele log-aggregatie. Custom Python exporters worden ontwikkeld om data uit de InControl2 API en SRT-encoders om te zetten naar het Prometheus-formaat.
 
 \section{Synthese}
 \label{sec:synthese-standvanzaken}
