@@ -24,16 +24,16 @@ Omdat NDI ontworpen is voor gebruik binnen een LAN en niet geschikt is voor tran
 
 Deze omzetting vormt een belangrijke overgang van LAN-gebaseerde videodistributie naar WAN-transmissie. Storingen in de NDI-laag (zoals haperingen of te hoge belasting) worden op dit punt direct doorgegeven aan de SRT-encoder, die ze niet altijd kan corrigeren. Dit maakt monitoring op deze overgang van bijzonder belang \autocite{VanRenthergem2025}.
 
-\subsection{De omzetting van SRT terug naar een lokaal formaat}
-
-Wanneer de SRT-stream aankomt op de venue of in Bornem (de centrale site), wordt deze opnieuw gedecodeerd. De ontvangende software zet de stream terug om in een videobron die binnen het lokale netwerk kan worden gebruikt. Volgens \textcite{Haivision2023} ondersteunt SRT dit decodeerproces zonder dat de oorspronkelijke kwaliteit onnodig wordt aangetast. In veel audiovisuele workflows wordt de gedecodeerde stream opnieuw als NDI beschikbaar gemaakt zodat deze lokaal op dezelfde manier kan worden gerouteerd als andere videobronnen. Dit zorgt voor een consistente end-to-end workflow waarin NDI wordt gebruikt voor interne distributie en SRT voor transmissie over grotere afstanden \autocite{VanRenthergem2025}.
-
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
-  \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{chatgpt_srt_explanation.png}
+  \includegraphics[width=\linewidth,height=0.38\textheight,keepaspectratio]{chatgpt_srt_explanation.png}
   \caption[NDI-naar-SRT-naar-NDI workflow]{Schematische weergave van de volledige AV-workflow: camera's op de surgery-locatie sturen via NDI naar een mixer-pc en SRT-encoder, waarna de stream via het internet naar de venue wordt getransporteerd en er opnieuw als NDI beschikbaar wordt gemaakt \autocite{ChatGPT2026}.}
   \label{fig:srt-workflow}
 \end{figure}
+
+\subsection{De omzetting van SRT terug naar een lokaal formaat}
+
+Wanneer de SRT-stream aankomt op de venue of in Bornem (de centrale site), wordt deze opnieuw gedecodeerd. De ontvangende software zet de stream terug om in een videobron die binnen het lokale netwerk kan worden gebruikt. Volgens \textcite{Haivision2023} ondersteunt SRT dit decodeerproces zonder dat de oorspronkelijke kwaliteit onnodig wordt aangetast. In veel audiovisuele workflows wordt de gedecodeerde stream opnieuw als NDI beschikbaar gemaakt zodat deze lokaal op dezelfde manier kan worden gerouteerd als andere videobronnen. Dit zorgt voor een consistente end-to-end workflow waarin NDI wordt gebruikt voor interne distributie en SRT voor transmissie over grotere afstanden \autocite{VanRenthergem2025}.
 
 \subsection{SRT-statistieken en monitoring van streamkwaliteit}
 
@@ -61,9 +61,9 @@ De netwerkarchitectuur tussen de verschillende locaties wordt gerealiseerd met P
 
 De live-surgery locaties zijn uitgerust met Peplink 20X-routers die via USB-modems toegang hebben tot 5G-netwerken. De venues beschikken over krachtigere Peplink 380X-routers die hogere bandbreedtes kunnen verwerken. Ook in de centrale site in Bornem staat een Peplink-router die fungeert als tussenknooppunt wanneer verkeer niet rechtstreeks tussen locaties wordt gerouteerd \autocite{VanRenthergem2025}. Deze redundantie is cruciaal voor live-productieomgevingen waarin onderbrekingen direct merkbaar zijn.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
-  \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{chatgpt_topology_mediav.png}
+  \includegraphics[width=0.82\linewidth,height=0.40\textheight,keepaspectratio]{chatgpt_topology_mediav.png}
   \caption[Netwerktopologie van de Mediaventures-infrastructuur]{Schematische weergave van de Peplink-netwerktopologie bij Mediaventures: Bornem fungeert als centrale hub (380X) en is via PepVPN-tunnels verbonden met twee surgery-locaties (20X) en een venue (380X) \autocite{ChatGPT2026}.}
   \label{fig:topology-mediav}
 \end{figure}
@@ -90,14 +90,14 @@ Alternatieven die werden overwogen zijn Zabbix, Nagios en commerciële platforme
 
 De keuze voor de PLG-stack is gebaseerd op verschillende overwegingen. Ten eerste biedt Prometheus ondersteuning voor custom exporters, waardoor data uit de InControl2 API en SRT-statistieken eenvoudig kan worden geïntegreerd. Daarnaast zijn alle componenten open-source en kunnen ze zonder licentiekosten worden ingezet, wat belangrijk is voor een proof-of-concept in een bachelorproefcontext. De uitgebreide documentatie en actieve community verlagen de drempel voor implementatie. Tot slot is de architectuur geschikt voor zowel kleinschalige proof-of-concepts als grotere productieomgevingen, en wordt de PLG-stack breed toegepast in vergelijkbare observability-projecten, wat overdraagbaarheid en herkenbaarheid ten goede komt.
 
-Voor dit onderzoek wordt daarom gekozen voor Prometheus als metrics-backend, Grafana als visualisatieplatform en Loki voor eventuele log-aggregatie. Custom Python exporters worden ontwikkeld om data uit de InControl2 API en SRT-encoders om te zetten naar het Prometheus-formaat.
-
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.7\linewidth,height=0.55\textheight,keepaspectratio]{chatgpt_plg_stack.png}
+  \includegraphics[width=0.62\linewidth,height=0.52\textheight,keepaspectratio]{chatgpt_plg_stack.png}
   \caption[Architectuur van de PLG-stack]{Architectuur van de PLG-stack voor dit onderzoek: de InControl2 API en SRT-encoderstatistieken worden via een Python custom exporter omgezet naar het Prometheus-formaat, opgeslagen in de Prometheus time-series database en gevisualiseerd via Grafana \autocite{ChatGPT2026}.}
   \label{fig:plg-stack}
 \end{figure}
+
+Voor dit onderzoek wordt daarom gekozen voor Prometheus als metrics-backend, Grafana als visualisatieplatform en Loki voor eventuele log-aggregatie. Custom Python exporters worden ontwikkeld om data uit de InControl2 API en SRT-encoders om te zetten naar het Prometheus-formaat.
 
 \subsection{Synthese}
 \label{sec:synthese-standvanzaken}
