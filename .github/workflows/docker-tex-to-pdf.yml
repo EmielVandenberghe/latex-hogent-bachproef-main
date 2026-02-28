@@ -34,3 +34,11 @@ jobs:
           output/*.pdf
           output/*.log
         if-no-files-found: error
+
+    - name: Commit built PDFs back to repo
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add output/*.pdf
+        git diff --cached --quiet || git commit -m "build: update compiled PDFs [skip ci]"
+        git push
