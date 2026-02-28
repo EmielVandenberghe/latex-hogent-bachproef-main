@@ -75,22 +75,18 @@ De meest gangbare open-source monitoring stacks zijn gebaseerd op Prometheus voo
 
 Alternatieven die werden overwogen zijn Zabbix, Nagios en commerciële platformen zoals Datadog en Splunk. Zabbix en Nagios zijn traditionele monitoringoplossingen met een lange staat van dienst in enterprise-omgevingen \autocite{Turnbull2016}. Deze tools zijn echter primair ontworpen voor server- en infrastructuurmonitoring en bieden minder flexibiliteit voor het integreren van custom metrics uit diverse bronnen zoals de InControl2 API of SRT-encoders. Commerciële oplossingen zoals Datadog bieden uitgebreide functionaliteit maar brengen aanzienlijke licentiekosten met zich mee, wat ze minder geschikt maakt voor een proof-of-concept in een bachelorproefcontext.
 
-De keuze voor de PLG-stack is gebaseerd op de volgende overwegingen:
-
-\begin{itemize}
-\item \textbf{Flexibiliteit}: Prometheus ondersteunt custom exporters, waardoor data uit de InControl2 API en SRT-statistieken eenvoudig kan worden geïntegreerd.
-\item \textbf{Kosteloos}: Alle componenten zijn open-source en kunnen zonder licentiekosten worden ingezet.
-\item \textbf{Actieve community}: Uitgebreide documentatie en community support verlagen de drempel voor implementatie.
-\item \textbf{Schaalbaarheid}: De architectuur is geschikt voor zowel kleinschalige proof-of-concepts als grotere productieomgevingen.
-\item \textbf{Industrie-standaard}: De PLG-stack wordt breed toegepast in vergelijkbare observability-projecten, wat overdraagbaarheid en herkenbaarheid ten goede komt.
-\end{itemize}
+De keuze voor de PLG-stack is gebaseerd op verschillende overwegingen. Ten eerste biedt Prometheus ondersteuning voor custom exporters, waardoor data uit de InControl2 API en SRT-statistieken eenvoudig kan worden geïntegreerd. Daarnaast zijn alle componenten open-source en kunnen ze zonder licentiekosten worden ingezet, wat belangrijk is voor een proof-of-concept in een bachelorproefcontext. De uitgebreide documentatie en actieve community verlagen de drempel voor implementatie. Tot slot is de architectuur geschikt voor zowel kleinschalige proof-of-concepts als grotere productieomgevingen, en wordt de PLG-stack breed toegepast in vergelijkbare observability-projecten, wat overdraagbaarheid en herkenbaarheid ten goede komt.
 
 Voor dit onderzoek wordt daarom gekozen voor Prometheus als metrics-backend, Grafana als visualisatieplatform en Loki voor eventuele log-aggregatie. Custom Python exporters worden ontwikkeld om data uit de InControl2 API en SRT-encoders om te zetten naar het Prometheus-formaat.
 
-\section{Synthese}
+\subsection{Synthese}
 \label{sec:synthese-standvanzaken}
 
-De literatuur toont dat audiovisuele workflows meerdere gespecialiseerde protocollen, netwerkcomponenten en afhankelijkheden combineren. NDI presteert optimaal binnen LAN-omgevingen, terwijl SRT ontworpen is voor WAN-transport. Peplink's PepVPN biedt een robuuste basis voor multi-WAN-routing tussen locaties. Naast deze besproken technologieën worden binnen Mediaventures talloze andere componenten ingezet (zoals camera's, switches en diverse end devices) die elk data genereren en waarin storingen kunnen optreden. Deze zullen tijdens het onderzoek in kaart worden gebracht.
+De literatuur toont dat audiovisuele workflows meerdere gespecialiseerde protocollen, netwerkcomponenten en afhankelijkheden combineren. NDI presteert optimaal binnen LAN-omgevingen voor lokale videodistributie, terwijl SRT ontworpen is voor betrouwbaar WAN-transport over onvoorspelbare internetverbindingen. Peplink's PepVPN biedt de netwerklaag die deze locaties verbindt via multi-WAN bonding over 5G, Starlink en glasvezel.
 
-Omdat geen enkel bestaand platform al deze lagen tegelijk monitort, is een geïntegreerde observability aanpak noodzakelijk. Dit onderzoek start met een afgebakende scope gericht op SRT, NDI en PepVPN-verbindingen. Wanneer deze kernprotocollen succesvol gemonitord worden en de tijd het toelaat, kunnen aanvullende componenten geleidelijk worden geïntegreerd. De bedoeling is om ook na afloop van deze bachelorproef verder te werken aan een alomvattende monitoringoplossing voor Mediaventures.
+Deze drie lagen zijn onlosmakelijk met elkaar verbonden: problemen in de WAN-laag (zoals packet loss op een 5G-verbinding) manifesteren zich direct in de SRT-statistieken (verhoogde RTT en retransmissies), wat uiteindelijk zichtbaar wordt als kwaliteitsverlies in de NDI-output op de venue. Omgekeerd kan overbelasting van de lokale NDI-mixer leiden tot verhoogde jitter in de SRT-stream, zelfs wanneer de onderliggende WAN-verbinding stabiel is. Zonder inzicht in alle lagen tegelijk is het voor techniekers moeilijk om de werkelijke oorzaak van problemen te achterhalen.
+
+Geen enkel bestaand platform monitort al deze lagen tegelijk. InControl2 biedt waardevolle WAN-metrics maar mist SRT- en NDI-inzichten. SRT-encoders rapporteren streamstatistieken maar kennen de toestand van de onderliggende netwerk\-infrastructuur niet. De observability-oplossing die in dit onderzoek wordt ontwikkeld, combineert daarom SRT-statistieken van de encoders met WAN-kwaliteitsmetrics uit de InControl2 API in één gecentraliseerd platform. Door deze databronnen te correleren in Grafana-dashboards kunnen techniekers in één oogopslag zien of een streamingprobleem veroorzaakt wordt door lokale netwerkbelasting, WAN-degradatie of encoder-issues.
+
+Dit onderzoek start met een afgebakende scope gericht op SRT en PepVPN-verbindingen. Wanneer deze kernprotocollen succesvol gemonitord worden en de tijd het toelaat, kunnen aanvullende componenten zoals NDI-statistieken en switch-monitoring geleidelijk worden geïntegreerd. De bedoeling is om ook na afloop van deze bachelorproef verder te werken aan een alomvattende monitoringoplossing voor Mediaventures.
 
