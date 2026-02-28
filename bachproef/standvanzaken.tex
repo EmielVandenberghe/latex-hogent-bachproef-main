@@ -51,7 +51,7 @@ Deze statistieken worden door SRT-encoders en -decoders beschikbaar gesteld via 
 \section{Peplink, PepVPN en de rol van multi-WAN-routing}
 \label{sec:peplink}
 
-De netwerkarchitectuur tussen de verschillende locaties wordt gerealiseerd met Peplink-routers die PepVPN gebruiken. Deze technologie creëert één logische VPN-tunnel die gelijktijdig over meerdere fysieke internetverbindingen (zoals 5G, Starlink of glasvezel) loopt \autocite{Peplink2023}. Omdat de tunnel gebruik maakt van alle beschikbare verbindingen tegelijk, blijft deze operationeel wanneer één link uitvalt: het verkeer wordt dan automatisch over de overgebleven verbindingen herverdeeld zonder dat de VPN-sessie verbroken wordt.
+De netwerkarchitectuur tussen de verschillende locaties wordt gerealiseerd met Peplink-routers die PepVPN gebruiken. Deze technologie creëert één logische VPN-tunnel die gelijktijdig over meerdere fysieke internetverbindingen (zoals 5G, Starlink of glasvezel) loopt \autocite{Peplink2023}. Omdat de tunnel gebruik maakt van alle beschikbare verbindingen tegelijk, blijft deze operationeel wanneer een link uitvalt: het verkeer wordt dan automatisch over de overgebleven verbindingen herverdeeld zonder dat de VPN-sessie verbroken wordt.
 
 De live-surgery locaties zijn uitgerust met Peplink 20X-routers die via USB-modems toegang hebben tot 5G-netwerken. De venues beschikken over krachtigere Peplink 380X-routers die hogere bandbreedtes kunnen verwerken. Ook in de centrale site in Bornem staat een Peplink-router die fungeert als tussenknooppunt wanneer verkeer niet rechtstreeks tussen locaties wordt gerouteerd \autocite{VanRenthergem2025}. Deze redundantie is cruciaal voor live-productieomgevingen waarin onderbrekingen direct merkbaar zijn.
 
