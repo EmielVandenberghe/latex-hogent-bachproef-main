@@ -24,13 +24,6 @@ Omdat NDI ontworpen is voor gebruik binnen een LAN en niet geschikt is voor tran
 
 Deze omzetting vormt een belangrijke overgang van LAN-gebaseerde videodistributie naar WAN-transmissie. Storingen in de NDI-laag (zoals haperingen of te hoge belasting) worden op dit punt direct doorgegeven aan de SRT-encoder, die ze niet altijd kan corrigeren. Dit maakt monitoring op deze overgang van bijzonder belang \autocite{VanRenthergem2025}.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=\linewidth,height=0.38\textheight,keepaspectratio]{chatgpt_srt_explanation.png}
-  \caption[NDI-naar-SRT-naar-NDI workflow]{Schematische weergave van de volledige AV-workflow: camera's op de surgery-locatie sturen via NDI naar een mixer-pc en SRT-encoder, waarna de stream via het internet naar de venue wordt getransporteerd en er opnieuw als NDI beschikbaar wordt gemaakt \autocite{ChatGPT2026}.}
-  \label{fig:srt-workflow}
-\end{figure}
-
 \subsection{De omzetting van SRT terug naar een lokaal formaat}
 
 Wanneer de SRT-stream aankomt op de venue of in Bornem (de centrale site), wordt deze opnieuw gedecodeerd. De ontvangende software zet de stream terug om in een videobron die binnen het lokale netwerk kan worden gebruikt. Volgens \textcite{Haivision2023} ondersteunt SRT dit decodeerproces zonder dat de oorspronkelijke kwaliteit onnodig wordt aangetast. In veel audiovisuele workflows wordt de gedecodeerde stream opnieuw als NDI beschikbaar gemaakt zodat deze lokaal op dezelfde manier kan worden gerouteerd als andere videobronnen. Dit zorgt voor een consistente end-to-end workflow waarin NDI wordt gebruikt voor interne distributie en SRT voor transmissie over grotere afstanden \autocite{VanRenthergem2025}.
@@ -40,6 +33,13 @@ Wanneer de SRT-stream aankomt op de venue of in Bornem (de centrale site), wordt
 Het SRT-protocol biedt uitgebreide mogelijkheden voor het monitoren van de verbindingskwaliteit in real-time. De protocolspecificatie definieert een reeks statistieken die zowel aan zenderzijde als aan ontvangerzijde beschikbaar zijn en inzicht geven in de gezondheid van de verbinding \autocite{SRTAlliance2024}.
 
 De belangrijkste parameters voor het beoordelen van de streamkwaliteit zijn:
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth,height=0.38\textheight,keepaspectratio]{chatgpt_srt_explanation.png}
+  \caption[NDI-naar-SRT-naar-NDI workflow]{Schematische weergave van de volledige AV-workflow: camera's op de surgery-locatie sturen via NDI naar een mixer-pc en SRT-encoder, waarna de stream via het internet naar de venue wordt getransporteerd en er opnieuw als NDI beschikbaar wordt gemaakt \autocite{ChatGPT2026}.}
+  \label{fig:srt-workflow}
+\end{figure}
 
 \begin{itemize}
 \item \textbf{Round-Trip Time (RTT)}: De tijd in milliseconden die een pakket nodig heeft om van zender naar ontvanger en terug te reizen. Deze waarde is cruciaal voor het berekenen van de optimale latency-instelling. De aanbevolen SRT-latency is minimaal drie tot vier keer de gemiddelde RTT \autocite{Sharabayko2023}.
@@ -71,7 +71,7 @@ De live-surgery locaties zijn uitgerust met Peplink 20X-routers die via USB-mode
 \section{InControl2 als platform voor routerobservatie}
 \label{sec:incontrol2}
 
-InControl2 is het cloudplatform waarmee Peplink beheerders toelaat om routers centraal te monitoren. Volgens de officiële documentatie biedt het platform inzicht in WAN-status, historische latenties, VPN-kwaliteit en configuratiebeheer \autocite{Peplink2023}. Hoewel InControl2 waardevolle routerinformatie biedt, vormt het geen complete observabilityoplossing. Het platform monitort geen audiovisuele protocollen zoals NDI en SRT, en integreert evenmin gegevens van andere netwerkcomponenten. Deze beperking wordt ook bevestigd in secundaire literatuur die benadrukt dat single-vendor monitoring platformen onvoldoende zicht bieden op heterogene AV-netwerken \autocite{Elradi2025}.
+InControl2 is het cloudplatform waarmee Peplink beheerders toelaat om routers centraal te monitoren. Volgens de officiële documentatie biedt het platform inzicht in WAN-status, historische latenties, VPN-kwaliteit en configuratiebeheer \autocite{Peplink2023}. Hoewel InControl2 waardevolle routerinformatie biedt, vormt het geen complete observabilityoplossing. Het platform monitort geen audiovisuele protocollen zoals NDI en SRT, en integreert evenmin gegevens van andere netwerkcomponenten. Deze beperking is inherent aan het single-vendor karakter van het platform: omdat InControl2 uitsluitend Peplink-apparatuur bewaakt, ontbreekt elk inzicht in de toestand van andere componenten in de keten.
 
 \section{Virtuele onderzoekomgeving via FusionHub}
 \label{sec:fusionhub}
