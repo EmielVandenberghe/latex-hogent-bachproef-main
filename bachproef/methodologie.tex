@@ -12,14 +12,14 @@ Het onderzoek verloopt over twee semesters en bestaat uit zeven fasen die samen 
 
 \textbf{Tijdstip:} september tot december 2025, semester 1
 
-In semester 1 wordt het bachelorproefvoorstel voorbereid. Dit omvat het afbakenen van de onderzoeksvraag in samenspraak met co-promotor Arne Van Renthergem, het verkennen van de infrastructuur bij Mediaventures en het opstellen van een eerste versie van de literatuurstudie. Ook wordt een planning opgemaakt en worden de deliverables per fase vastgelegd. Het resultaat van deze fase is het huidige voorstel dat dient als startpunt voor het eigenlijke onderzoek in semester 2.
+In semester 1 wordt het bachelorproefvoorstel voorbereid. Dit omvat het afbakenen van de onderzoeksvraag in samenspraak met co-promotor Arne Van Renterghem, het verkennen van de infrastructuur bij Mediaventures en het opstellen van een eerste versie van de literatuurstudie. Ook wordt een planning opgemaakt en worden de deliverables per fase vastgelegd. Het resultaat van deze fase is het huidige voorstel dat dient als startpunt voor het eigenlijke onderzoek in semester 2.
 
 \section{Fase 1: Analyse van de Mediaventures-infrastructuur}
 \label{sec:fase1}
 
 \textbf{Tijdstip:} februari 2026, weken 1 tot 3
 
-Bij aanvang van semester 2 wordt de bestaande infrastructuur bij Mediaventures in kaart gebracht. Dit gebeurt door configuratiebestanden en netwerkdiagrammen te verzamelen van de Peplink 20X- en 380X-routers, de Netgear AV-Line M4250-switches en de NDI-softwaremixers. Daarnaast worden interviews afgenomen met de technische medewerkers, waaronder co-promotor Arne Van Renthergem, om te achterhalen welke workflows gangbaar zijn en waar knelpunten zich bevinden. Tijdens een live-project wordt geobserveerd welke monitoringdata de apparaten aanbieden: statusberichten, prestatiemetingen en informatie over netwerkverkeer.
+Bij aanvang van semester 2 wordt de bestaande infrastructuur bij Mediaventures in kaart gebracht. Dit gebeurt door configuratiebestanden en netwerkdiagrammen te verzamelen van de Peplink 20X- en 380X-routers, de Netgear AV-Line M4250-switches en de NDI-softwaremixers. Daarnaast worden interviews afgenomen met de technische medewerkers, waaronder co-promotor Arne Van Renterghem, om te achterhalen welke workflows gangbaar zijn en waar knelpunten zich bevinden. Tijdens een live-project wordt geobserveerd welke monitoringdata de apparaten aanbieden: statusberichten, prestatiemetingen en informatie over netwerkverkeer.
 
 Het resultaat is een overzicht van alle databronnen die gemonitord kunnen worden en hoe deze data uit de apparaten kan worden gehaald. Dit vormt de basis voor de toolselectie in fase 3.
 
@@ -32,14 +32,14 @@ Parallel aan de infrastructuuranalyse wordt literatuuronderzoek gedaan naar obse
 
 Dit onderzoek moet duidelijk maken welke tools, protocollen en architectuurmodellen relevant zijn voor dit project. Ook wordt onderzocht welke parameters volgens de literatuur het meest duiding brengen voor kwaliteitsproblemen in live-streamingomgevingen. De bevindingen worden verwerkt in de draft van 2 maart 2026.
 
-\section{Fase 3: Vergelijkende studie van monitoringtools}
+\section{Fase 3: Validatie van de gekozen toolstack}
 \label{sec:fase3}
 
 \textbf{Tijdstip:} maart 2026, weken 5 tot 8
 
-De geselecteerde monitoringtools worden vergeleken aan de hand van vijf criteria: verwerkingstijd tussen data-ingang en visualisatie, volledigheid en betrouwbaarheid van metrics, logs en flows, schaalbaarheid, integratiemogelijkheden met de Peplink-, NDI- en Netgear-apparatuur, en resourcegebruik en onderhoudscomplexiteit.
+Op basis van de literatuurstudie in hoofdstuk~\ref{ch:stand-van-zaken} is gekozen voor de PLG-stack (Prometheus, Loki, Grafana) als observability-platform. In deze fase wordt die keuze concreet gevalideerd aan de hand van vijf criteria die specifiek zijn voor de Mediaventures-context: verwerkingstijd tussen data-ingang en visualisatie, volledigheid en betrouwbaarheid van metrics en logs, schaalbaarheid, integratiemogelijkheden met de Peplink- en SRT-apparatuur, en resourcegebruik en onderhoudscomplexiteit.
 
-De vergelijking gebeurt aan de hand van documentatieanalyse, technische specificaties en kleinschalige tests met gesimuleerde data. Per criterium wordt elke tool beoordeeld op een vijfpuntsschaal. De resultaten worden samengevat in een vergelijkingsmatrix. Tussen 2 en 20 maart vindt ook de mondelinge toelichting aan de promotor plaats.
+De validatie gebeurt aan de hand van documentatieanalyse, technische specificaties en kleinschalige tests met gesimuleerde data. Per criterium wordt beoordeeld of de PLG-stack voldoet aan de eisen van dit project, en waar nodig worden aanpassingen of aanvullende componenten geïdentificeerd. De bevindingen worden samengevat in een validatierapport. Tussen 2 en 20 maart vindt ook de mondelinge toelichting aan de promotor plaats.
 
 \section{Fase 4: Opbouw virtuele testomgeving}
 \label{sec:fase4}
@@ -107,7 +107,7 @@ Het onderzoek brengt verschillende risico's met zich mee:
 
 \textbf{Complexiteit multi-vendor integratie}: De infrastructuur combineert componenten van verschillende leveranciers (Peplink, Netgear, diverse NDI- en SRT-apparaten) met elk hun eigen managementprotocollen. In fase 1 wordt daarom uitgebreid onderzocht welke API's en exportmogelijkheden beschikbaar zijn. Wanneer bepaalde componenten geen standaard exportformaten ondersteunen, kunnen custom exporters worden ontwikkeld of alternatieve dataverzamelingsmethoden worden toegepast.
 
-\textbf{Beperkte toegang tot vergelijkbare onderzoekscontexten}: Audiovisuele livestreaming voor medische congressen is een nichemarkt met weinig publieke documentatie. Dit wordt opgevangen door nauwe samenwerking met co-promotor Arne Van Renthergem van Mediaventures, die praktijkervaring en inzicht in specifieke uitdagingen kan delen. Daarnaast wordt de literatuurstudie breder getrokken naar aanverwante domeinen zoals IP-video surveillance, live broadcasting en enterprise network monitoring.
+\textbf{Beperkte toegang tot vergelijkbare onderzoekscontexten}: Audiovisuele livestreaming voor medische congressen is een nichemarkt met weinig publieke documentatie. Dit wordt opgevangen door nauwe samenwerking met co-promotor Arne Van Renterghem van Mediaventures, die praktijkervaring en inzicht in specifieke uitdagingen kan delen. Daarnaast wordt de literatuurstudie breder getrokken naar aanverwante domeinen zoals IP-video surveillance, live broadcasting en enterprise network monitoring.
 
 \textbf{Tijdsmanagement}: Het onderzoek combineert theorie en praktische implementatie binnen een beperkt tijdsbestek. De planning is daarom opgedeeld in duidelijke fasen met concrete mijlpalen. Regelmatige voortgangsbesprekingen met de promotor en co-promotor zorgen voor tijdige feedback en bijsturing. De keuze voor open-source tools met actieve communities verkleint het risico op langdurige technische blokkades.
 

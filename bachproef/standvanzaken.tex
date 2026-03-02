@@ -13,7 +13,7 @@ In audiovisuele productieomgevingen is observability een essentieel concept om d
 
 NDI (Network Device Interface) is een AV-over-IP-technologie die ontworpen is voor situaties waarin meerdere videobronnen binnen een lokaal netwerk (LAN) beschikbaar moeten zijn. Volgens de officiële NDI-documentatie maakt het protocol gebruik van hoge bandbreedtes en lage latency om videobronnen vrijwel in realtime tussen apparaten te transporteren \autocite{NewTek2022}. NDI-apparaten kunnen elkaar automatisch ontdekken binnen hetzelfde subnet, waardoor videobronnen flexibel kunnen worden gerouteerd zonder bijkomende bekabeling.
 
-Binnen Mediaventures ontvangt een computer de verschillende NDI-streams en verwerkt deze via een softwarematige mixer tot één gecombineerd eindbeeld \autocite{VanRenthergem2025}. Dit mixstation vormt een kritisch punt in de workflow: omdat NDI-prestaties afhankelijk zijn van bandbreedte, multicastondersteuning en correcte VLAN-configuratie \autocite{NewTek2022}, heeft elke afwijking in de netwerkcondities of processorbelasting direct impact op het eindbeeld dat vervolgens via Secure Reliable Transport (SRT) wordt verzonden naar de ontvangende locatie.
+Binnen Mediaventures ontvangt een computer de verschillende NDI-streams en verwerkt deze via een softwarematige mixer tot één gecombineerd eindbeeld \autocite{VanRenterghem2025}. Dit mixstation vormt een kritisch punt in de workflow: omdat NDI-prestaties afhankelijk zijn van bandbreedte, multicastondersteuning en correcte VLAN-configuratie \autocite{NewTek2022}, heeft elke afwijking in de netwerkcondities of processorbelasting direct impact op het eindbeeld dat vervolgens via Secure Reliable Transport (SRT) wordt verzonden naar de ontvangende locatie.
 
 \section{SRT voor transport over grotere afstanden}
 \label{sec:srt}
@@ -22,11 +22,11 @@ Binnen Mediaventures ontvangt een computer de verschillende NDI-streams en verwe
 
 Omdat NDI ontworpen is voor gebruik binnen een LAN en niet geschikt is voor transmissie over grote afstanden, wordt de samengestelde NDI-output dus lokaal omgezet naar SRT (Secure Reliable Transport). Haivision, de organisatie achter SRT, beschrijft het protocol als een oplossing die storingen in internetverbindingen compenseert door middel van foutcorrectie en jitterbuffers \autocite{SRTspec2020}. Tijdens dit omzettingsproces wordt de NDI-stream gecodeerd naar een geschikt videocompressieformaat en verpakt in een SRT-stream.
 
-Deze omzetting vormt een belangrijke overgang van LAN-gebaseerde videodistributie naar WAN-transmissie. Storingen in de NDI-laag (zoals haperingen of te hoge belasting) worden op dit punt direct doorgegeven aan de SRT-encoder, die ze niet altijd kan corrigeren. Dit maakt monitoring op deze overgang van bijzonder belang \autocite{VanRenthergem2025}.
+Deze omzetting vormt een belangrijke overgang van LAN-gebaseerde videodistributie naar WAN-transmissie. Storingen in de NDI-laag (zoals haperingen of te hoge belasting) worden op dit punt direct doorgegeven aan de SRT-encoder, die ze niet altijd kan corrigeren. Dit maakt monitoring op deze overgang van bijzonder belang \autocite{VanRenterghem2025}.
 
 \subsection{De omzetting van SRT terug naar een lokaal formaat}
 
-Wanneer de SRT-stream aankomt op de venue of in Bornem (de centrale site), wordt deze opnieuw gedecodeerd. De ontvangende software zet de stream terug om in een videobron die binnen het lokale netwerk kan worden gebruikt. Volgens \textcite{SRTspec2020} ondersteunt SRT dit decodeerproces zonder dat de oorspronkelijke kwaliteit onnodig wordt aangetast. In veel audiovisuele workflows wordt de gedecodeerde stream opnieuw als NDI beschikbaar gemaakt zodat deze lokaal op dezelfde manier kan worden gerouteerd als andere videobronnen. Dit zorgt voor een consistente end-to-end workflow waarin NDI wordt gebruikt voor interne distributie en SRT voor transmissie over grotere afstanden \autocite{VanRenthergem2025}.
+Wanneer de SRT-stream aankomt op de venue of in Bornem (de centrale site), wordt deze opnieuw gedecodeerd. De ontvangende software zet de stream terug om in een videobron die binnen het lokale netwerk kan worden gebruikt. Volgens \textcite{SRTspec2020} ondersteunt SRT dit decodeerproces zonder dat de oorspronkelijke kwaliteit onnodig wordt aangetast. In veel audiovisuele workflows wordt de gedecodeerde stream opnieuw als NDI beschikbaar gemaakt zodat deze lokaal op dezelfde manier kan worden gerouteerd als andere videobronnen. Dit zorgt voor een consistente end-to-end workflow waarin NDI wordt gebruikt voor interne distributie en SRT voor transmissie over grotere afstanden \autocite{VanRenterghem2025}.
 
 \subsection{SRT-statistieken en monitoring van streamkwaliteit}
 
@@ -59,7 +59,7 @@ Deze statistieken worden door SRT-encoders en -decoders beschikbaar gesteld via 
 
 De netwerkarchitectuur tussen de verschillende locaties wordt gerealiseerd met Peplink-routers die PepVPN gebruiken. Deze technologie creëert één logische VPN-tunnel die gelijktijdig over meerdere fysieke internetverbindingen (zoals 5G, Starlink of glasvezel) loopt \autocite{Peplink2023}. Omdat de tunnel gebruik maakt van alle beschikbare verbindingen tegelijk, blijft deze operationeel wanneer een link uitvalt: het verkeer wordt dan automatisch over de overgebleven verbindingen herverdeeld zonder dat de VPN-sessie verbroken wordt.
 
-De live-surgery locaties zijn uitgerust met Peplink 20X-routers die via USB-modems toegang hebben tot 5G-netwerken. De venues beschikken over krachtigere Peplink 380X-routers die hogere bandbreedtes kunnen verwerken. Ook in de centrale site in Bornem staat een Peplink-router die fungeert als tussenknooppunt wanneer verkeer niet rechtstreeks tussen locaties wordt gerouteerd \autocite{VanRenthergem2025}. Deze redundantie is cruciaal voor live-productieomgevingen waarin onderbrekingen direct merkbaar zijn.
+De live-surgery locaties zijn uitgerust met Peplink 20X-routers die via USB-modems toegang hebben tot 5G-netwerken. De venues beschikken over krachtigere Peplink 380X-routers die hogere bandbreedtes kunnen verwerken. Ook in de centrale site in Bornem staat een Peplink-router die fungeert als tussenknooppunt wanneer verkeer niet rechtstreeks tussen locaties wordt gerouteerd \autocite{VanRenterghem2025}. Deze redundantie is cruciaal voor live-productieomgevingen waarin onderbrekingen direct merkbaar zijn.
 
 \begin{figure}[htbp]
   \centering
@@ -78,7 +78,7 @@ InControl2 is het cloudplatform waarmee Peplink beheerders toelaat om routers ce
 
 FusionHub is de virtuele router van Peplink, beschikbaar als VM-image voor deployment in cloudomgevingen zoals AWS of Google Cloud, maar ook lokaal via hypervisors zoals VirtualBox of VMware. FusionHub-instanties registreren zich bij InControl2, ondersteunen PepVPN-tunnels en bieden toegang tot de InControl2 API \autocite{Peplink2023}.
 
-Volgens \textcite{VanRenthergem2025} is de functionele overlap tussen FusionHub en fysieke Peplink-hardware circa 90 tot 95 procent. Verschillen bestaan voornamelijk in hardware-specifieke features zoals cellular modem statistics en fysieke WAN-interfaces, die op FusionHub niet aanwezig zijn.
+Volgens \textcite{VanRenterghem2025} is de functionele overlap tussen FusionHub en fysieke Peplink-hardware circa 90 tot 95 procent. Verschillen bestaan voornamelijk in hardware-specifieke features zoals cellular modem statistics en fysieke WAN-interfaces, die op FusionHub niet aanwezig zijn.
 
 \subsection{Keuze van observability-tooling}
 
