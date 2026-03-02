@@ -1,0 +1,43 @@
+%%=============================================================================
+%% Proof-of-Concept
+%%=============================================================================
+
+\chapter{Proof-of-Concept}
+\label{ch:poc}
+
+\section{GitHub-repository}
+\label{sec:poc-github}
+
+De volledige broncode van de PoC is publiek beschikbaar via de volgende GitHub-repository:
+
+\begin{center}
+% TODO: Vervang de URL hieronder door de correcte link naar de PoC-repository
+\href{https://github.com/EmielVandenberghe/TODO-poc-repo}{\texttt{github.com/EmielVandenberghe/TODO-poc-repo}}
+\end{center}
+
+\section{Structuur van de repository}
+\label{sec:poc-repo-structuur}
+
+Tabel~\ref{tab:repo-structuur} geeft een overzicht van de mappenstructuur van de GitHub-repository en de rol van elke map of elk bestand.
+
+% TODO: Pas de mappen/bestanden en beschrijvingen aan zodra de repo verder uitgebouwd is.
+\begin{table}[htbp]
+  \centering
+  \caption[Structuur van de PoC-repository]{Overzicht van de mappenstructuur van de GitHub-repository.}
+  \label{tab:repo-structuur}
+  \begin{tabular}{p{0.38\linewidth} p{0.55\linewidth}}
+    \hline
+    \textbf{Map / bestand} & \textbf{Beschrijving} \\
+    \hline
+    \texttt{README.md}                        & Algemene documentatie: installatie, vereisten en gebruiksaanwijzing \\
+    \texttt{docker-compose.yml}               & Definieert en start alle services in containers (Prometheus, Grafana, Loki, exporters) \\
+    \texttt{exporters/incontrol2-exporter/}   & Python-exporter die de InControl2 API bevraagt en WAN-/VPN-metrics omzet naar Prometheus-formaat \\
+    \texttt{exporters/srt-exporter/}          & Python-exporter die SRT-statistieken (RTT, packet loss, jitter, retransmissions) ophaalt en exporteert \\
+    \texttt{prometheus/}                      & Configuratiebestanden voor Prometheus (scrape-intervallen, targets, alerting rules) \\
+    \texttt{grafana/dashboards/}              & JSON-definitiebestanden van de Grafana-dashboards \\
+    \texttt{grafana/datasources/}             & Datasource-configuraties voor Prometheus en Loki in Grafana \\
+    \texttt{loki/}                            & Configuratie voor Loki (log-aggregatie) \\
+    \texttt{docs/}                            & Aanvullende documentatie, architectuurdiagrammen en validatierapporten \\
+    \hline
+  \end{tabular}
+\end{table}
