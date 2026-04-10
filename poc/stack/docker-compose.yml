@@ -13,6 +13,7 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
 
   grafana:
     image: grafana/grafana:11.5.0
@@ -43,17 +44,90 @@ services:
       - '--path.sysfs=/host/sys'
       - '--path.rootfs=/rootfs'
 
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
+    command:
+      - '--config.file=/etc/loki/config.yml'
+
+  promtail:
+    image: grafana/promtail:3.4.2
+    container_name: promtail
+    restart: unless-stopped
+    ports:
+      - "1514:1514/udp"
+    volumes:
+      - ./promtail.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - '--config.file=/etc/promtail/config.yml'
+    depends_on:
+      - loki
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./blackbox.yml:/etc/blackbox-exporter/config.yml:ro
+    command:
+      - '--config.file=/etc/blackbox-exporter/config.yml'
+
+  ping-exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile.ping
+    container_name: ping-exporter
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_RAW
+
   incontrol2-exporter:
     build: .
     container_name: incontrol2-exporter
     restart: unless-stopped
-    ports:
-      - "8080:8080"
+    network_mode: host
     env_file:
       - .env
+
+  srt-exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile.srt
+    container_name: srt-exporter
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      SRT_LISTEN_PORT: "9000"
+      EXPORTER_PORT: "9117"
+
+  srt-test-stream:
+    image: linuxserver/ffmpeg:latest
+    container_name: srt-test-stream
+    network_mode: host
+    restart: unless-stopped
+    entrypoint: >
+      ffmpeg -re
+        -f lavfi -i "testsrc=size=1280x720:rate=25"
+        -f lavfi -i "sine=frequency=1000:sample_rate=48000"
+        -c:v libx264 -preset ultrafast -tune zerolatency
+          -b:v 2000k -maxrate 2500k -bufsize 4000k
+          -g 50 -keyint_min 50
+        -c:a aac -b:a 128k
+        -f mpegts "srt://127.0.0.1:9000?pkt_size=1316&mode=caller"
     depends_on:
-      - prometheus
+      - srt-exporter
 
 volumes:
   prometheus_data:
   grafana_data:
+  loki_data:

@@ -1,107 +1,554 @@
 {
-  "title": "Peplink Infrastructure",
+  "title": "Mediaventures — Observability Dashboard",
   "uid": "peplink-infra",
   "tags": ["peplink", "incontrol2", "mediaventures"],
   "refresh": "15s",
   "time": {"from": "now-1h", "to": "now"},
   "panels": [
+
     {
+      "id": 1,
       "type": "text",
       "title": "",
       "gridPos": {"h": 2, "w": 24, "x": 0, "y": 0},
-      "options": {"content": "# Peplink Infrastructure Monitoring", "mode": "markdown"},
+      "options": {
+        "content": "# Mediaventures — Live Streaming Infrastructuur\nCentraliseerde monitoring van netwerk, VPN-tunnels, apparaten en logs voor alle locaties.",
+        "mode": "markdown"
+      },
       "transparent": true
     },
+
     {
+      "id": 2,
       "type": "row",
-      "title": "SNMP Direct Monitoring (Fast)",
+      "title": "1. Site Status Overzicht",
       "gridPos": {"h": 1, "w": 24, "x": 0, "y": 2},
       "collapsed": false
     },
     {
+      "id": 3,
       "type": "stat",
-      "title": "Bornem (SNMP)",
-      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 3},
+      "title": "Bornem",
+      "gridPos": {"h": 5, "w": 4, "x": 0, "y": 3},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Bornem\"}", "refId": "A"}],
+      "targets": [
+        {"expr": "probe_success{site=\"Bornem\"}", "legendFormat": "ICMP", "refId": "A"},
+        {"expr": "peplink_tunnel_up{device_name=\"Bornem\"}", "legendFormat": "PepVPN", "refId": "B"},
+        {"expr": "peplink_device_online{device_name=\"Bornem\"}", "legendFormat": "IC2", "refId": "C"}
+      ],
       "fieldConfig": {
         "defaults": {
-          "mappings": [{"type": "value", "options": {"0": {"text": "UNREACHABLE", "color": "red"}, "1": {"text": "REACHABLE", "color": "green"}}}],
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
           "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
         }
       },
-      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "vertical"}
     },
     {
+      "id": 4,
       "type": "stat",
-      "title": "Venue (SNMP)",
-      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 3},
+      "title": "Venue",
+      "gridPos": {"h": 5, "w": 4, "x": 4, "y": 3},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Venue\"}", "refId": "A"}],
+      "targets": [
+        {"expr": "probe_success{site=\"Venue\"}", "legendFormat": "ICMP", "refId": "A"},
+        {"expr": "peplink_tunnel_up{device_name=\"Venue\"}", "legendFormat": "PepVPN", "refId": "B"},
+        {"expr": "peplink_device_online{device_name=\"Venue\"}", "legendFormat": "IC2", "refId": "C"}
+      ],
       "fieldConfig": {
         "defaults": {
-          "mappings": [{"type": "value", "options": {"0": {"text": "UNREACHABLE", "color": "red"}, "1": {"text": "REACHABLE", "color": "green"}}}],
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
           "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
         }
       },
-      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "vertical"}
     },
     {
+      "id": 5,
       "type": "stat",
-      "title": "Surgery1 (SNMP)",
-      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 3},
+      "title": "Live1",
+      "gridPos": {"h": 5, "w": 4, "x": 8, "y": 3},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Live-Surgery1\"}", "refId": "A"}],
+      "targets": [
+        {"expr": "probe_success{site=\"Live1\"}", "legendFormat": "ICMP", "refId": "A"},
+        {"expr": "peplink_tunnel_up{device_name=\"Live1\"}", "legendFormat": "PepVPN", "refId": "B"},
+        {"expr": "peplink_device_online{device_name=\"Live1\"}", "legendFormat": "IC2", "refId": "C"}
+      ],
       "fieldConfig": {
         "defaults": {
-          "mappings": [{"type": "value", "options": {"0": {"text": "UNREACHABLE", "color": "red"}, "1": {"text": "REACHABLE", "color": "green"}}}],
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
           "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
         }
       },
-      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "vertical"}
     },
     {
+      "id": 6,
       "type": "stat",
-      "title": "Surgery2 (SNMP)",
-      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 3},
+      "title": "Live2",
+      "gridPos": {"h": 5, "w": 4, "x": 12, "y": 3},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Live-Surgery2\"}", "refId": "A"}],
+      "targets": [
+        {"expr": "probe_success{site=\"Live2\"}", "legendFormat": "ICMP", "refId": "A"},
+        {"expr": "peplink_tunnel_up{device_name=\"Live2\"}", "legendFormat": "PepVPN", "refId": "B"},
+        {"expr": "peplink_device_online{device_name=\"Live2\"}", "legendFormat": "IC2", "refId": "C"}
+      ],
       "fieldConfig": {
         "defaults": {
-          "mappings": [{"type": "value", "options": {"0": {"text": "UNREACHABLE", "color": "red"}, "1": {"text": "REACHABLE", "color": "green"}}}],
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
           "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
         }
       },
-      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "vertical"}
     },
     {
-      "type": "timeseries",
-      "title": "SNMP Response Time",
-      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 7},
+      "id": 7,
+      "type": "stat",
+      "title": "Balance 20X",
+      "description": "Fysieke Peplink Balance 20X — enterprise SNMP + lokale API",
+      "gridPos": {"h": 5, "w": 4, "x": 16, "y": 3},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "peplink_snmp_response_ms", "legendFormat": "{{device_name}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "ms", "custom": {"drawStyle": "line", "fillOpacity": 10}}},
-      "options": {"legend": {"displayMode": "table", "placement": "right"}}
+      "targets": [
+        {"expr": "probe_success{site=\"Balance20X\"}", "legendFormat": "ICMP", "refId": "A"},
+        {"expr": "peplink_snmp_reachable{device_name=\"Balance20X\"}", "legendFormat": "SNMP", "refId": "B"},
+        {"expr": "peplink_local_api_reachable{device_name=\"Balance20X\"}", "legendFormat": "API", "refId": "C"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "vertical"}
     },
+
     {
-      "type": "timeseries",
-      "title": "CPU Usage (SNMP)",
-      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 7},
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "peplink_snmp_cpu_percent", "legendFormat": "{{device_name}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "percent", "max": 100, "custom": {"drawStyle": "line", "fillOpacity": 20}}},
-      "options": {"legend": {"displayMode": "table", "placement": "right"}}
-    },
-    {
+      "id": 10,
       "type": "row",
-      "title": "InControl2 API Monitoring",
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 13},
+      "title": "2. Connectiviteit & Netwerkkwaliteit (ICMP)",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 8},
       "collapsed": false
     },
     {
+      "id": 11,
       "type": "stat",
-      "title": "Bornem (API)",
-      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 14},
+      "title": "RTT Bornem",
+      "gridPos": {"h": 3, "w": 4, "x": 0, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "probe_icmp_duration_seconds{phase=\"rtt\", site=\"Bornem\"} * 1000", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms", "decimals": 1,
+          "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 150}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "RTT Venue",
+      "gridPos": {"h": 3, "w": 4, "x": 4, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "probe_icmp_duration_seconds{phase=\"rtt\", site=\"Venue\"} * 1000", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms", "decimals": 1,
+          "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 150}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "RTT Live1",
+      "gridPos": {"h": 3, "w": 4, "x": 8, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "probe_icmp_duration_seconds{phase=\"rtt\", site=\"Live1\"} * 1000", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms", "decimals": 1,
+          "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 150}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "RTT Live2",
+      "gridPos": {"h": 3, "w": 4, "x": 12, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "probe_icmp_duration_seconds{phase=\"rtt\", site=\"Live2\"} * 1000", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms", "decimals": 1,
+          "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 150}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "RTT Balance20X",
+      "gridPos": {"h": 3, "w": 4, "x": 16, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "probe_icmp_duration_seconds{phase=\"rtt\", site=\"Balance20X\"} * 1000", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms", "decimals": 1,
+          "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 150}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "RTT Latency over tijd",
+      "description": "Round-trip time via ICMP naar elke site. Hoge latency kan impact hebben op SRT/NDI streamingkwaliteit.",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "probe_icmp_duration_seconds{phase=\"rtt\", job=\"blackbox_icmp\"} * 1000", "legendFormat": "{{site}}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {"steps": [{"color": "green"}, {"color": "yellow", "value": 50}, {"color": "red", "value": 150}]},
+          "custom": {"drawStyle": "line", "fillOpacity": 15, "lineWidth": 2, "showPoints": "never"}
+        }
+      },
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["mean", "max", "last"]}}
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Packet Loss %",
+      "description": "Percentage mislukte ICMP probes over 5 minuten. Boven 5% = risico op stotteringen in livestream.",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "(1 - avg_over_time(probe_success{job=\"blackbox_icmp\"}[5m])) * 100", "legendFormat": "{{site}}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100,
+          "thresholds": {"steps": [{"color": "green"}, {"color": "yellow", "value": 1}, {"color": "red", "value": 5}]},
+          "custom": {"drawStyle": "line", "fillOpacity": 20, "lineWidth": 2, "showPoints": "never"}
+        }
+      },
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["mean", "max", "last"]}}
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Jitter per site (ping mdev)",
+      "description": "Jitter via 'ping -c 10 -i 0.2': mdev = mean deviation. Hoge jitter veroorzaakt onregelmatige SRT-buffers en NDI framerate-problemen.",
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 20},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "ping_jitter_ms{job=\"ping_jitter\"}", "legendFormat": "{{site}}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {"steps": [{"color": "green"}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]},
+          "custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2, "showPoints": "never"}
+        }
+      },
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["mean", "max", "last"]}}
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "Jitter Bornem",
+      "gridPos": {"h": 3, "w": 4, "x": 0, "y": 26},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "ping_jitter_ms{site=\"Bornem\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms", "decimals": 2, "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 20,
+      "type": "stat",
+      "title": "Jitter Venue",
+      "gridPos": {"h": 3, "w": 4, "x": 4, "y": 26},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "ping_jitter_ms{site=\"Venue\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms", "decimals": 2, "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 21,
+      "type": "stat",
+      "title": "Jitter Live1",
+      "gridPos": {"h": 3, "w": 4, "x": 8, "y": 26},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "ping_jitter_ms{site=\"Live1\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms", "decimals": 2, "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 22,
+      "type": "stat",
+      "title": "Jitter Live2",
+      "gridPos": {"h": 3, "w": 4, "x": 12, "y": 26},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "ping_jitter_ms{site=\"Live2\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms", "decimals": 2, "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 23,
+      "type": "stat",
+      "title": "Jitter Balance20X",
+      "gridPos": {"h": 3, "w": 4, "x": 16, "y": 26},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "ping_jitter_ms{site=\"Balance20X\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms", "decimals": 2, "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+
+    {
+      "id": 100,
+      "type": "row",
+      "title": "3. WAN Multi-Link Status (Enterprise SNMP)",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 29},
+      "collapsed": false
+    },
+    {
+      "id": 101,
+      "type": "table",
+      "title": "WAN Interface Status — Balance 20X",
+      "description": "Realtime WAN-status via Peplink enterprise SNMP OIDs. Status: 1=disabled, 2=disconnected, 3=connected. Link: 1=up, 0=down.",
+      "gridPos": {"h": 7, "w": 16, "x": 0, "y": 30},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "peplink_snmp_wan_status{device_name=\"Balance20X\"}", "legendFormat": "Status", "refId": "A", "format": "table", "instant": true},
+        {"expr": "peplink_snmp_wan_link_up{device_name=\"Balance20X\"}", "legendFormat": "Link", "refId": "B", "format": "table", "instant": true},
+        {"expr": "peplink_snmp_wan_signal_dbm{device_name=\"Balance20X\"}", "legendFormat": "Signaal", "refId": "C", "format": "table", "instant": true},
+        {"expr": "peplink_snmp_wan_healthcheck{device_name=\"Balance20X\"}", "legendFormat": "Health Check", "refId": "D", "format": "table", "instant": true}
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Value #A"}, "properties": [{"id": "displayName", "value": "Status"}, {"id": "mappings", "value": [{"type": "value", "options": {"1": {"text": "Disabled", "color": "text"}, "2": {"text": "Disconnected", "color": "orange"}, "3": {"text": "Connected", "color": "green"}}}]}]},
+          {"matcher": {"id": "byName", "options": "Value #B"}, "properties": [{"id": "displayName", "value": "Link"}, {"id": "mappings", "value": [{"type": "value", "options": {"0": {"text": "Down", "color": "red"}, "1": {"text": "Up", "color": "green"}}}]}]},
+          {"matcher": {"id": "byName", "options": "Value #C"}, "properties": [{"id": "displayName", "value": "Signaal (dBm)"}]},
+          {"matcher": {"id": "byName", "options": "Value #D"}, "properties": [{"id": "displayName", "value": "Health Check"}, {"id": "mappings", "value": [{"type": "value", "options": {"-1": {"text": "N/A"}}}]}]}
+        ]
+      },
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {"id": "organize", "options": {"excludeByName": {"Time": true, "device_name": true, "ip": true, "__name__": true}, "renameByName": {"wan_name": "WAN Interface"}}}
+      ]
+    },
+    {
+      "id": 102,
+      "type": "stat",
+      "title": "WAN Connected",
+      "description": "Aantal WAN interfaces met status 'connected' (3)",
+      "gridPos": {"h": 3, "w": 8, "x": 16, "y": 30},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "count(peplink_snmp_wan_status{device_name=\"Balance20X\"} == 3)", "refId": "A"}],
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 103,
+      "type": "stat",
+      "title": "WiFi Clients (SNMP)",
+      "description": "Aantal verbonden WiFi clients via enterprise SNMP",
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 33},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_wifi_client_count{device_name=\"Balance20X\"}", "legendFormat": "{{ssid}}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "thresholds": {"steps": [{"color": "blue", "value": null}]}}},
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 104,
+      "type": "timeseries",
+      "title": "WAN Link Status — geschiedenis",
+      "description": "Historiek van WAN link up/down per interface. Drops = failover events.",
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 37},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_wan_link_up", "legendFormat": "{{device_name}} — {{wan_name}}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short", "min": 0, "max": 1,
+          "mappings": [{"type": "value", "options": {"0": {"text": "Down"}, "1": {"text": "Up"}}}],
+          "custom": {"drawStyle": "line", "fillOpacity": 30, "lineWidth": 2, "showPoints": "never", "lineInterpolation": "stepAfter"}
+        }
+      },
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["last"]}}
+    },
+
+    {
+      "id": 110,
+      "type": "row",
+      "title": "4. Device Health — Lokale API & CPU",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 42},
+      "collapsed": false
+    },
+    {
+      "id": 111,
+      "type": "gauge",
+      "title": "CPU Load — Balance 20X",
+      "description": "Live CPU load via lokale REST API (status.cpu)",
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 43},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_local_cpu_load_percent{device_name=\"Balance20X\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100, "decimals": 1,
+          "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 60}, {"color": "red", "value": 85}]}
+        }
+      }
+    },
+    {
+      "id": 112,
+      "type": "timeseries",
+      "title": "CPU Load over tijd",
+      "description": "CPU-gebruik over tijd voor alle devices met lokale API toegang.",
+      "gridPos": {"h": 6, "w": 10, "x": 8, "y": 43},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_local_cpu_load_percent", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100,
+          "thresholds": {"steps": [{"color": "green"}, {"color": "yellow", "value": 60}, {"color": "red", "value": 85}]},
+          "custom": {"drawStyle": "line", "fillOpacity": 20, "lineWidth": 2, "showPoints": "never"}
+        }
+      },
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["mean", "max", "last"]}}
+    },
+    {
+      "id": 113,
+      "type": "stat",
+      "title": "WiFi AP Status",
+      "description": "WiFi Access Point aan/uit via lokale API",
+      "gridPos": {"h": 3, "w": 6, "x": 18, "y": 43},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_local_ap_up", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "UIT", "color": "red"}, "1": {"text": "AAN", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 114,
+      "type": "stat",
+      "title": "Lokale API Bereikbaarheid",
+      "description": "Welke devices bereikbaar zijn via de lokale REST API",
+      "gridPos": {"h": 3, "w": 6, "x": 18, "y": 46},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_local_api_reachable", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "OK", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "vertical"}
+    },
+
+    {
+      "id": 120,
+      "type": "row",
+      "title": "5. PepVPN Tunnels",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 49},
+      "collapsed": false
+    },
+    {
+      "id": 121,
+      "type": "stat",
+      "title": "Bornem Tunnel",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 50},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_tunnel_up{device_name=\"Bornem\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 122,
+      "type": "stat",
+      "title": "Venue Tunnel",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 50},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_tunnel_up{device_name=\"Venue\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 123,
+      "type": "stat",
+      "title": "Live1 Tunnel",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 50},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_tunnel_up{device_name=\"Live1\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 124,
+      "type": "stat",
+      "title": "Live2 Tunnel",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 50},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_tunnel_up{device_name=\"Live2\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 125,
+      "type": "timeseries",
+      "title": "PepVPN Tunnel Status — geschiedenis",
+      "description": "Tijdlijn van tunnelopbouw en -verbreking. Drops naar 0 = onderbrekingen.",
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 54},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_tunnel_up", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short", "min": 0, "max": 1,
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN"}, "1": {"text": "UP"}}}],
+          "custom": {"drawStyle": "line", "fillOpacity": 30, "lineWidth": 2, "showPoints": "never", "lineInterpolation": "stepAfter"}
+        }
+      },
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["last"]}}
+    },
+
+    {
+      "id": 130,
+      "type": "row",
+      "title": "6. Device Health (InControl2 API)",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 59},
+      "collapsed": false
+    },
+    {
+      "id": 131,
+      "type": "stat",
+      "title": "Bornem (IC2)",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 60},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [{"expr": "peplink_device_online{device_name=\"Bornem\"}", "refId": "A"}],
       "fieldConfig": {
@@ -113,9 +560,10 @@
       "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
     },
     {
+      "id": 132,
       "type": "stat",
-      "title": "Venue (API)",
-      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 14},
+      "title": "Venue (IC2)",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 60},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [{"expr": "peplink_device_online{device_name=\"Venue\"}", "refId": "A"}],
       "fieldConfig": {
@@ -127,11 +575,12 @@
       "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
     },
     {
+      "id": 133,
       "type": "stat",
-      "title": "Surgery1 (API)",
-      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 14},
+      "title": "Live1 (IC2)",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 60},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "peplink_device_online{device_name=\"Live-Surgery1\"}", "refId": "A"}],
+      "targets": [{"expr": "peplink_device_online{device_name=\"Live1\"}", "refId": "A"}],
       "fieldConfig": {
         "defaults": {
           "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "ONLINE", "color": "green"}}}],
@@ -141,11 +590,12 @@
       "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
     },
     {
+      "id": 134,
       "type": "stat",
-      "title": "Surgery2 (API)",
-      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 14},
+      "title": "Live2 (IC2)",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 60},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "peplink_device_online{device_name=\"Live-Surgery2\"}", "refId": "A"}],
+      "targets": [{"expr": "peplink_device_online{device_name=\"Live2\"}", "refId": "A"}],
       "fieldConfig": {
         "defaults": {
           "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "ONLINE", "color": "green"}}}],
@@ -155,63 +605,241 @@
       "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
     },
     {
+      "id": 135,
       "type": "timeseries",
-      "title": "Device Uptime",
-      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 18},
+      "title": "Uptime per device",
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 64},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [{"expr": "peplink_device_uptime_seconds / 3600", "legendFormat": "{{device_name}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "h", "custom": {"drawStyle": "line", "fillOpacity": 20}}},
-      "options": {"legend": {"displayMode": "table", "placement": "right"}}
-    },
-    {
-      "type": "timeseries",
-      "title": "Connected Clients",
-      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 18},
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "targets": [{"expr": "peplink_device_client_count", "legendFormat": "{{device_name}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "line", "fillOpacity": 20}}},
+      "fieldConfig": {"defaults": {"unit": "h", "custom": {"drawStyle": "line", "fillOpacity": 20, "showPoints": "never"}}},
       "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["last"]}}
     },
     {
+      "id": 136,
       "type": "timeseries",
-      "title": "Bandwidth (TX/RX)",
-      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 24},
+      "title": "Verbonden clients per device",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 64},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_device_client_count", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "line", "fillOpacity": 20, "showPoints": "never"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["last"]}}
+    },
+    {
+      "id": 137,
+      "type": "timeseries",
+      "title": "Bandbreedte (TX/RX via InControl2)",
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 70},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [
         {"expr": "peplink_device_tx_bytes", "legendFormat": "TX {{device_name}}", "refId": "A"},
         {"expr": "peplink_device_rx_bytes", "legendFormat": "RX {{device_name}}", "refId": "B"}
       ],
-      "fieldConfig": {"defaults": {"unit": "decbytes", "custom": {"drawStyle": "line", "fillOpacity": 10}}},
+      "fieldConfig": {"defaults": {"unit": "decbytes", "custom": {"drawStyle": "line", "fillOpacity": 10, "showPoints": "never"}}},
       "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["mean", "max"]}}
     },
+
     {
+      "id": 140,
       "type": "row",
-      "title": "Exporter Health",
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 30},
+      "title": "7. SNMP Direct Monitoring",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 76},
       "collapsed": false
     },
     {
+      "id": 141,
       "type": "stat",
-      "title": "Scrape Duration",
-      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 31},
+      "title": "Bornem (SNMP)",
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 77},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Bornem\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "OK", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 142,
+      "type": "stat",
+      "title": "Venue (SNMP)",
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 77},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Venue\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "OK", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 143,
+      "type": "stat",
+      "title": "Live1 (SNMP)",
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 77},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Live1\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "OK", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 144,
+      "type": "stat",
+      "title": "Live2 (SNMP)",
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 77},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Live2\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "OK", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 145,
+      "type": "stat",
+      "title": "Balance20X (SNMP)",
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 77},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_reachable{device_name=\"Balance20X\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "OFFLINE", "color": "red"}, "1": {"text": "OK", "color": "green"}}}],
+          "thresholds": {"steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 146,
+      "type": "timeseries",
+      "title": "SNMP Response Tijd",
+      "description": "Hoe snel het device reageert op SNMP polls.",
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 81},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_snmp_response_ms", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms", "custom": {"drawStyle": "line", "fillOpacity": 10, "showPoints": "never"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right"}}
+    },
+    {
+      "id": 147,
+      "type": "timeseries",
+      "title": "Interface Verkeer (SNMP bytes in/out)",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 81},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "peplink_snmp_interface_in_bytes", "legendFormat": "RX {{device_name}} {{interface}}", "refId": "A"},
+        {"expr": "peplink_snmp_interface_out_bytes", "legendFormat": "TX {{device_name}} {{interface}}", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "decbytes", "custom": {"drawStyle": "line", "fillOpacity": 10, "showPoints": "never"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right"}}
+    },
+
+    {
+      "id": 150,
+      "type": "row",
+      "title": "8. Systeemlogboek (Loki)",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 87},
+      "collapsed": false
+    },
+    {
+      "id": 151,
+      "type": "logs",
+      "title": "FusionHub & Peplink Syslog",
+      "description": "Syslog berichten van alle Peplink devices via rsyslog/Loki.",
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 88},
+      "datasource": {"type": "loki", "uid": "loki"},
+      "targets": [{"expr": "{job=\"fusionhub_syslog\"}", "refId": "A"}],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": false,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none",
+        "enableLogDetails": true
+      }
+    },
+    {
+      "id": 152,
+      "type": "logs",
+      "title": "Docker Container Logs (Observability Stack)",
+      "description": "Logs van alle containers in de observability stack.",
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 98},
+      "datasource": {"type": "loki", "uid": "loki"},
+      "targets": [{"expr": "{job=~\"docker_containers|system\"}", "refId": "A"}],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": false,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none",
+        "enableLogDetails": true
+      }
+    },
+
+    {
+      "id": 160,
+      "type": "row",
+      "title": "9. Events (InControl2)",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 108},
+      "collapsed": false
+    },
+    {
+      "id": 161,
+      "type": "timeseries",
+      "title": "Aantal recente events per device",
+      "description": "Events in de laatste event log response per device. Piek = recent incident.",
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 109},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "peplink_recent_event_count", "legendFormat": "{{device_name}}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "bars", "fillOpacity": 60, "showPoints": "never"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["last"]}}
+    },
+
+    {
+      "id": 170,
+      "type": "row",
+      "title": "10. Observability Stack Status",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 114},
+      "collapsed": false
+    },
+    {
+      "id": 171,
+      "type": "stat",
+      "title": "Scrape Duur",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 115},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [{"expr": "peplink_scrape_duration_seconds", "refId": "A"}],
       "fieldConfig": {"defaults": {"unit": "s", "thresholds": {"steps": [{"color": "green"}, {"color": "yellow", "value": 5}, {"color": "red", "value": 10}]}}},
       "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
     },
     {
+      "id": 172,
       "type": "stat",
       "title": "Exporter Status",
-      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 31},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 115},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [{"expr": "peplink_scrape_success", "refId": "A"}],
-      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "FAILED", "color": "red"}, "1": {"text": "OK", "color": "green"}}}], "thresholds": {"steps": [{"color": "red"}, {"color": "green", "value": 1}]}}},
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "FOUT", "color": "red"}, "1": {"text": "OK", "color": "green"}}}], "thresholds": {"steps": [{"color": "red"}, {"color": "green", "value": 1}]}}},
       "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
     },
     {
+      "id": 173,
       "type": "stat",
-      "title": "API/SNMP Errors",
-      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 31},
+      "title": "API / SNMP Fouten",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 115},
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [
         {"expr": "sum(peplink_api_errors_total)", "legendFormat": "API", "refId": "A"},
@@ -219,7 +847,18 @@
       ],
       "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green"}, {"color": "yellow", "value": 5}, {"color": "red", "value": 10}]}}},
       "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 174,
+      "type": "stat",
+      "title": "Local API Fouten",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 115},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sum(peplink_local_api_errors_total)", "legendFormat": "Local API", "refId": "A"}],
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green"}, {"color": "yellow", "value": 5}, {"color": "red", "value": 10}]}}},
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
     }
+
   ],
   "schemaVersion": 39
 }

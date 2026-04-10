@@ -1,0 +1,48 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Systeemlogboek van de observability VM
+  - job_name: system_logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: system
+          host: observability-vm
+          __path__: /var/log/messages
+
+  # Docker container logs (Prometheus, Grafana, exporters)
+  - job_name: docker_containers
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: container
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: stream
+
+  # FusionHub syslog — rsyslog ontvangt op UDP 514 en schrijft naar bestand
+  # Configureer op elke FusionHub: System → Event Log → Remote Syslog → 10.1.1.100:514
+  - job_name: fusionhub_syslog
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: fusionhub_syslog
+          __path__: /var/log/fusionhub_syslog.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\S+\s+\d+\s+\d+:\d+:\d+)\s+(?P<device>\S+)\s+(?P<app>[^:]+):\s*(?P<message>.*)$'
+      - labels:
+          device:
+          app:

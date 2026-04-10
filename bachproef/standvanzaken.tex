@@ -65,12 +65,12 @@ Deze statistieken worden door SRT-encoders en -decoders beschikbaar gesteld via 
 
 De netwerkarchitectuur tussen de verschillende locaties wordt gerealiseerd met Peplink-routers die PepVPN gebruiken. Deze technologie creëert één logische VPN-tunnel die gelijktijdig over meerdere fysieke internetverbindingen (zoals 5G, Starlink of glasvezel) loopt \autocite{Peplink2023}. Omdat de tunnel gebruik maakt van alle beschikbare verbindingen tegelijk, blijft deze operationeel wanneer een link uitvalt: het verkeer wordt dan automatisch over de overgebleven verbindingen herverdeeld zonder dat de VPN-sessie verbroken wordt.
 
-De live-surgery locaties zijn uitgerust met Peplink 20X-routers die via USB-modems toegang hebben tot 5G-netwerken. De venues beschikken over krachtigere Peplink 380X-routers die hogere bandbreedtes kunnen verwerken. Ook in de centrale site in Bornem staat een Peplink-router die fungeert als tussenknooppunt wanneer verkeer niet rechtstreeks tussen locaties wordt gerouteerd \autocite{VanRenterghem2025}. Deze redundantie is cruciaal voor live-productieomgevingen waarin onderbrekingen direct merkbaar zijn.
+De live-surgery locaties zijn uitgerust met Peplink 20X-routers die via USB-modems toegang hebben tot 5G-netwerken. De venues beschikken over krachtigere Peplink 380X-routers die hogere bandbreedtes kunnen verwerken. Ook in de centrale site in Bornem staat een Peplink-router die fungeert als centrale hub voor monitoring en beheer. Videostreams worden bij voorkeur rechtstreeks van de surgery-locaties naar de venue gestuurd via een directe PepVPN-tunnel, zonder via Bornem te passeren. Dit minimaliseert latency en vermindert de belasting op de centrale site. Bornem blijft wel het eindpunt voor monitoring en fungeert als fallback wanneer de directe verbinding niet beschikbaar is \autocite{VanRenterghem2025}. Deze redundantie is cruciaal voor live-productieomgevingen waarin onderbrekingen direct merkbaar zijn.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.82\linewidth,height=0.40\textheight,keepaspectratio]{chatgpt_topology_mediav.png}
-  \caption[Netwerktopologie van de Mediaventures-infrastructuur]{Schematische weergave van de Peplink-netwerktopologie bij Mediaventures: Bornem fungeert als centrale hub (380X) en is via PepVPN-tunnels verbonden met twee surgery-locaties (20X) en een venue (380X) \autocite{ChatGPT2026}.}
+  \includegraphics[width=0.82\linewidth,height=0.40\textheight,keepaspectratio]{topology_mediav.png}
+  \caption[Netwerktopologie van de Mediaventures-infrastructuur]{Schematische weergave van de Peplink-netwerktopologie bij Mediaventures in een gedeeltelijke mesh-topologie: Bornem fungeert als centrale hub (380X) voor monitoring en is via PepVPN-tunnels verbonden met twee surgery-locaties (20X) en een venue (380X). Daarnaast zijn er directe PepVPN-tunnels tussen de surgery-locaties en de venue, zodat videostreams rechtstreeks kunnen worden verstuurd zonder via Bornem te passeren \autocite{VandenbergheTopologie2026}.}
   \label{fig:topology-mediav}
 \end{figure}
 

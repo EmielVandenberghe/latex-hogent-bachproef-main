@@ -1,0 +1,291 @@
+{
+  "title": "11. SRT Stream Kwaliteit",
+  "uid": "srt-stream-kwaliteit",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "15s",
+  "time": { "from": "now-30m", "to": "now" },
+  "timezone": "browser",
+  "tags": ["srt", "streaming", "poc"],
+  "panels": [
+
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Stream Active",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "OFFLINE", "color": "red"   } } },
+            { "type": "value", "options": { "1": { "text": "LIVE",    "color": "green" } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "red"   },
+              { "value": 1,    "color": "green" }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "srt_stream_active{stream_name=~\"$stream\"}",
+          "legendFormat": "{{stream_name}}"
+        }
+      ]
+    },
+
+    {
+      "id": 2,
+      "type": "gauge",
+      "title": "Bitrate (kbps)",
+      "gridPos": { "x": 4, "y": 0, "w": 5, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kbits",
+          "min": 0,
+          "max": 5000,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "red"    },
+              { "value": 500,  "color": "yellow" },
+              { "value": 1500, "color": "green"  }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "srt_bitrate_kbps{stream_name=~\"$stream\"}",
+          "legendFormat": "{{stream_name}}"
+        }
+      ]
+    },
+
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "Packet Loss (%)",
+      "gridPos": { "x": 9, "y": 0, "w": 5, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green"  },
+              { "value": 1,    "color": "yellow" },
+              { "value": 5,    "color": "red"    }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "srt_packet_loss_percent{stream_name=~\"$stream\"}",
+          "legendFormat": "{{stream_name}}"
+        }
+      ]
+    },
+
+    {
+      "id": 4,
+      "type": "gauge",
+      "title": "RTT (ms)",
+      "gridPos": { "x": 14, "y": 0, "w": 5, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "min": 0,
+          "max": 500,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green"  },
+              { "value": 50,   "color": "yellow" },
+              { "value": 150,  "color": "red"    }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "srt_rtt_ms{stream_name=~\"$stream\"}",
+          "legendFormat": "{{stream_name}}"
+        }
+      ]
+    },
+
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "RTT & Jitter over tijd",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "RTT" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#5794F2", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Jitter" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#FF9830", "mode": "fixed" } }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "srt_rtt_ms{stream_name=~\"$stream\"}",
+          "legendFormat": "RTT"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "srt_jitter_ms{stream_name=~\"$stream\"}",
+          "legendFormat": "Jitter"
+        }
+      ]
+    },
+
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Packet Loss (%) over tijd",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "options": {
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green"  },
+              { "value": 1,    "color": "yellow" },
+              { "value": 5,    "color": "red"    }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "srt_packet_loss_percent{stream_name=~\"$stream\"}",
+          "legendFormat": "{{stream_name}}"
+        }
+      ]
+    },
+
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Retransmit Rate over tijd",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 7 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "srt_retransmit_rate{stream_name=~\"$stream\"}",
+          "legendFormat": "{{stream_name}}"
+        }
+      ]
+    }
+
+  ],
+
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "label": "Datasource",
+        "hide": 0,
+        "refresh": 1
+      },
+      {
+        "name": "stream",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": "label_values(srt_stream_active, stream_name)",
+        "label": "Stream",
+        "hide": 0,
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*"
+      }
+    ]
+  }
+}

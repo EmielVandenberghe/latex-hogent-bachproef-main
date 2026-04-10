@@ -1,0 +1,238 @@
+apiVersion: 1
+
+# Contact point: standaard Grafana notificatie (zichtbaar in Alerting UI)
+contactPoints:
+  - orgId: 1
+    name: mediaventures-default
+    receivers:
+      - uid: mv-default
+        type: email
+        settings:
+          addresses: admin@mediaventures.be
+          singleEmail: false
+        disableResolveMessage: false
+
+# Notification policy
+policies:
+  - orgId: 1
+    receiver: mediaventures-default
+    group_by: ['alertname', 'device_name', 'site']
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 1h
+
+# Alert rules
+groups:
+  - orgId: 1
+    name: Peplink Infrastructure
+    folder: Mediaventures Alerts
+    interval: 1m
+    rules:
+
+      # Device offline via InControl2 API
+      - uid: alert-device-offline
+        title: "[CRITICAL] Device Offline"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - peplink_device_online) > 0
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "Device {{ $labels.device_name }} is offline"
+          description: "Device {{ $labels.device_name }} rapporteert offline via InControl2 API voor meer dan 1 minuut."
+        labels:
+          severity: critical
+
+      # PepVPN tunnel down
+      - uid: alert-tunnel-down
+        title: "[CRITICAL] PepVPN Tunnel Down"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - peplink_tunnel_up) > 0
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "PepVPN tunnel down op {{ $labels.device_name }}"
+          description: "De PepVPN tunnel op {{ $labels.device_name }} is al meer dan 1 minuut verbroken. Monitoringverbinding met deze locatie riskeert te vallen."
+        labels:
+          severity: critical
+
+      # ICMP probe failing (site onbereikbaar)
+      - uid: alert-icmp-unreachable
+        title: "[WARNING] Site onbereikbaar via ICMP"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - probe_success{job="blackbox_icmp"}) > 0
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "Site {{ $labels.site }} reageert niet op ICMP"
+          description: "ICMP probe naar {{ $labels.instance }} ({{ $labels.site }}) faalt al meer dan 2 minuten. Mogelijke netwerkonderbreking."
+        labels:
+          severity: warning
+
+      # Hoge latency (> 150ms)
+      - uid: alert-high-latency
+        title: "[WARNING] Hoge VPN-latency"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: probe_icmp_duration_seconds{phase="rtt", job="blackbox_icmp"} * 1000 > 150
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Hoge latency naar {{ $labels.site }}: {{ $value | printf \"%.0f\" }}ms"
+          description: "ICMP RTT naar {{ $labels.site }} overschrijdt 150ms al meer dan 5 minuten. Impact op live-streaming kwaliteit mogelijk."
+        labels:
+          severity: warning
+
+      # Hoog packet loss (> 5%)
+      - uid: alert-high-packetloss
+        title: "[WARNING] Hoog packet loss"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - avg_over_time(probe_success{job="blackbox_icmp"}[5m])) * 100 > 5
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Hoog packet loss naar {{ $labels.site }}: {{ $value | printf \"%.1f\" }}%"
+          description: "Packet loss naar {{ $labels.site }} overschrijdt 5% over de laatste 5 minuten. SRT/NDI kwaliteit kan degraderen."
+        labels:
+          severity: warning
+
+      # WAN link down (enterprise SNMP — fysieke hardware)
+      - uid: alert-wan-link-down
+        title: "[WARNING] WAN Link Down"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - peplink_snmp_wan_link_up{wan_name="WAN"}) > 0
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "WAN link down op {{ $labels.device_name }}"
+          description: "De primaire WAN-verbinding op {{ $labels.device_name }} ({{ $labels.ip }}) is al meer dan 2 minuten down."
+        labels:
+          severity: warning
+
+      # Hoge CPU load (lokale API)
+      - uid: alert-high-cpu
+        title: "[WARNING] Hoge CPU Load"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: peplink_local_cpu_load_percent > 85
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Hoge CPU op {{ $labels.device_name }}: {{ $value | printf \"%.0f\" }}%"
+          description: "CPU-gebruik op {{ $labels.device_name }} overschrijdt 85% al meer dan 5 minuten."
+        labels:
+          severity: warning
+
+      # Exporter down
+      - uid: alert-exporter-down
+        title: "[CRITICAL] Observability Exporter Down"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - peplink_scrape_success) > 0
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "InControl2 exporter scrape mislukt"
+          description: "De InControl2 exporter rapporteert scrape-fouten al meer dan 2 minuten. Controleer API credentials en netwerkverbinding."
+        labels:
+          severity: critical

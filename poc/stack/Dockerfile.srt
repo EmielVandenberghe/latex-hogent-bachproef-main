@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        srt-tools coreutils \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY srt_exporter.py .
+
+ENV SRT_LISTEN_PORT=9000
+ENV EXPORTER_PORT=9117
+
+EXPOSE 9117/tcp
+EXPOSE 9000/udp
+
+CMD ["python", "-u", "srt_exporter.py"]

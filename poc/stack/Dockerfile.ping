@@ -1,0 +1,10 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends iputils-ping && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY ping_exporter.py .
+
+EXPOSE 9116
+
+CMD ["python", "-u", "ping_exporter.py"]

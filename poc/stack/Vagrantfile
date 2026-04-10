@@ -9,9 +9,14 @@ Vagrant.configure("2") do |config|
   config.vm.box = "almalinux/9"
   config.vm.hostname = "observability"
 
-  config.vm.network "private_network", 
+  config.vm.network "private_network",
     ip: "10.1.1.100",
     virtualbox__intnet: "intnet-bornem"
+
+  # Bridged adapter voor fysieke Peplink (192.168.1.0/24)
+  # Bridged op WiFi-adapter (PEPLINK_2622) — VM krijgt IP via DHCP
+  config.vm.network "public_network",
+    bridge: "Intel(R) Wi-Fi 6E AX211 160MHz"
 
   config.vm.provider "virtualbox" do |vb|
     vb.name = "Observability-Stack"
