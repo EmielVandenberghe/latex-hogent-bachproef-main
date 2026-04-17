@@ -28,9 +28,11 @@ scrape_configs:
       - targets: ['10.1.4.2']
         labels:
           site: 'Live2'
+      # Live3 = fysieke Balance 20X, bereikbaar via WiFi-direct (192.168.1.1).
+      # PepVPN-tunnel opgegeven wegens PrimeCare-catch-22 — zie primecare_pepvpn_blocker.md.
       - targets: ['192.168.1.1']
         labels:
-          site: 'Balance20X'
+          site: 'Live3'
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

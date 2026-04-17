@@ -5,15 +5,75 @@
 \chapter{Conclusie}%
 \label{ch:conclusie}
 
-% TODO: Dit hoofdstuk bevat momenteel de verwachte resultaten uit het voorstel.
-% Na afronding van het onderzoek moeten deze vervangen worden door de werkelijke
-% conclusies en antwoorden op de onderzoeksvragen.
+Dit hoofdstuk formuleert een antwoord op de onderzoeksvragen uit Hoofdstuk~\ref{ch:inleiding}, vat de belangrijkste bevindingen van het proof-of-concept samen, bespreekt de beperkingen van het huidige werk en reikt enkele aanbevelingen en pistes voor toekomstig onderzoek aan.
 
-Dit onderzoek zal resulteren in een onderbouwde aanbeveling voor een monitoringoplossing die geschikt is voor de audiovisuele infrastructuur van Mediaventures. De toolvergelijking zal duidelijk maken welke combinatie van monitoring- en observabilitysoftware het best aansluit bij de specifieke eisen van live-surgeryprojecten en medische congressen. De aanbeveling zal gebaseerd zijn op concrete testresultaten uit de virtuele omgeving en de vergelijking met bestaande oplossingen uit de literatuur.
+\section{Antwoord op de onderzoeksvragen}
+\label{sec:conclusie-antwoord}
 
-Het proof-of-concept zal naar verwachting aantonen dat gecentraliseerde monitoring de tijd tussen het ontstaan van een probleem en de detectie ervan aanzienlijk verkort. Waar techniekers momenteel handmatig moeten inloggen op afzonderlijke apparaten om relevante statusinformatie te verzamelen, zal een gecentraliseerd monitoringplatform alle beschikbare metingen, logbestanden en netwerkgegevens gebundeld presenteren via dashboards. Concreet wordt verwacht dat de detectietijd voor veelvoorkomende problemen zoals packetloss, vertragingspieken en netwerkoverbelasting opmerkelijk afneemt ten opzichte van de huidige werkwijze.
+De centrale onderzoeksvraag luidde: \emph{Hoe kan Mediaventures een geïntegreerde monitoring- en observabilityoplossing inzetten om de volledige audiovisuele infrastructuur end-to-end op te volgen en storingen sneller te detecteren?} Het onderzoek toont dat een open-source PLG-stack (Prometheus, Loki, Grafana), aangevuld met een custom Python-exporter, hiervoor een werkbare basis biedt. Door metrics uit vier onafhankelijke bronnen --- de InControl2-cloud-API, directe SNMP-polling, de lokale Peplink REST-API en de SRT-stream-statistieken --- op één gecentraliseerd dashboard te brengen, ontstaat voor het eerst een gedeeld beeld van de volledige keten. De vijf uitgevoerde testscenario's (sectie~\ref{sec:poc-tests}) tonen dat realistische storingen op netwerk-, device- en applicatielaag binnen 1~tot~5~minuten zichtbaar zijn, met een gemeten time-to-detect van ongeveer twee minuten voor de SRT packet-loss-alert.
 
-Het onderzoek zal ook duidelijk maken welke meetwaarden het belangrijkst zijn om kwaliteitsproblemen te detecteren. Deze inzichten kunnen techniekers helpen om sneller en gerichter te reageren op problemen.
+Op de deelvraag over het \textbf{probleemdomein} (welke parameters cruciaal zijn om kwaliteitsproblemen vroegtijdig te detecteren) biedt het PoC een concreet antwoord: naast de klassieke netwerkparameters RTT, packet loss en jitter blijken vooral de \emph{SRT-retransmit-rate} en \emph{WAN-health-check}-status veelzeggende early-warning-indicatoren. Zo liet scenario~4a zien dat \texttt{srt\_packet\_loss\_percent} dankzij SRT's ARQ pas laat reageert, terwijl \texttt{srt\_retransmit\_rate} onmiddellijk stijgt. Op de deelvraag over het \textbf{oplossingsdomein} (welke tools het best aansluiten bij de infrastructuur) bevestigt de literatuurstudie en de praktijkvalidatie dat de PLG-stack het beste compromis vormt tussen kostprijs, flexibiliteit en uitbreidbaarheid. De combinatie laat toe om via custom exporters gelijk welke API te integreren --- voor deze bachelorproef de InControl2-API en \texttt{srt-live-transmit}, maar in de toekomst even goed BirdDog NDI of NDI-telemetry.
 
-Tot slot wordt verwacht dat de virtuele testomgeving met FusionHub een reproduceerbare basis biedt voor verdere ontwikkeling. De configuraties en dashboards die tijdens het onderzoek worden ontwikkeld, kunnen na afloop worden overgedragen aan Mediaventures voor integratie in hun dagelijkse werking. De meerwaarde voor het bedrijf bestaat dus niet alleen uit een aanbeveling, maar ook uit een werkend prototype dat als startpunt dient voor verdere uitbouw.
+\section{Meerwaarde voor Mediaventures}
+\label{sec:conclusie-meerwaarde}
 
+Tabel~\ref{tab:conclusie-vergelijking} vat de belangrijkste praktische verbeteringen ten opzichte van de huidige werkwijze samen.
+
+\begin{table}[htbp]
+  \centering
+  \caption[Vergelijking met de huidige werkwijze]{Vergelijking tussen de huidige werkwijze bij Mediaventures en het PoC.}
+  \label{tab:conclusie-vergelijking}
+  \begin{tabular}{p{0.27\linewidth} p{0.33\linewidth} p{0.33\linewidth}}
+    \hline
+    \textbf{Aspect} & \textbf{Huidige werkwijze} & \textbf{Met PoC} \\
+    \hline
+    Detectietijd         & Handmatig inloggen per toestel & Dashboard-update binnen 15~s \\
+    Packet loss          & Niet zichtbaar zonder actieve test & Continue meting, grafiek over 30~dagen \\
+    Alerting             & Geen --- techniekers merken het via kijkerklachten & Automatisch binnen 1--5~min \\
+    Multi-site overzicht & 4~afzonderlijke logins en handmatig vergelijken & Eén dashboard met alle sites \\
+    Historiek            & Beperkt tot lokale toestel-logs & 30~dagen in Prometheus en Loki \\
+    \hline
+  \end{tabular}
+\end{table}
+
+De grootste niet-kwantificeerbare meerwaarde is de vermindering van de afhankelijkheid van lokale expertise op live-surgery-locaties. Techniekers ter plaatse zijn tijdens een congres volledig bezig met de operationele uitvoering; een gecentraliseerd dashboard in Bornem laat een ondersteunend team toe om proactief mee te kijken en bij te sturen zonder de lokale crew te onderbreken.
+
+\section{Belangrijkste bevindingen}
+\label{sec:conclusie-bevindingen}
+
+Naast de directe functionele resultaten leverde het onderzoek een aantal inzichten op die ook voor toekomstige observability-projecten bruikbaar zijn.
+
+\begin{itemize}
+  \item \textbf{Multi-bron monitoring is geen luxe.} Scenario~5 toonde aan dat een verlopen PrimeCare-licentie \texttt{peplink\_device\_online} op~0 zet, terwijl SNMP, ICMP en de lokale API correct groen blijven rapporteren. Een single-source aanpak had hier een vals negatief gegeven. Meerdere onafhankelijke bronnen fungeren dus niet enkel als redundantie, maar ook als cross-validatie.
+  \item \textbf{Default-to-healthy is een observability-antipattern.} De zelf-gevonden blind-spot in \texttt{peplink\_tunnel\_up} (sectie~\ref{sec:poc-blindspot}) bewijst hoe gevaarlijk het is om een lege respons als "alles oké" te interpreteren. De oplossing in vier lagen (semantiek, staleness, dashboard, alerting) is als patroon generaliseerbaar naar elke observability-stack.
+  \item \textbf{Applicatielaag en netwerklaag tonen verschillende verhalen.} Scenario~4b illustreerde dat een eenvoudige latency-injectie SRT als 35\% packet loss ziet, terwijl ICMP gewoon hogere RTT rapporteert. Alleen door beide lagen in dezelfde Grafana-view (het cross-layer-panel) te tonen, konden deze twee narratieven gelijktijdig geïnterpreteerd worden.
+  \item \textbf{Reproduceerbaarheid vereist strikte versie-pinning.} De compatibiliteit van \texttt{pysnmp 4.4.12} met Python~3.11 is geen detail maar een expliciete ontwerpkeuze in de \texttt{Dockerfile}. Zonder die pinning zou de exporter bij elke build breken.
+\end{itemize}
+
+\section{Beperkingen}
+\label{sec:conclusie-beperkingen}
+
+Een eerlijke afbakening van het PoC is belangrijk voor de verdedigbaarheid. De belangrijkste beperkingen --- reeds uitgebreid besproken in sectie~\ref{sec:poc-scope} --- zijn: \emph{(i)} de afwezigheid van echte NAT-traversal in de testomgeving, \emph{(ii)} de opgegeven PepVPN-tunnel tussen de fysieke Balance~20X en FH-Bornem (opgelost via WiFi-direct, maar zonder tunnel-validatie op deze fysieke spoke), \emph{(iii)} de niet-geconfigureerde SMTP voor alert-notificaties, en \emph{(iv)} de uitsluiting van NDI-monitoring uit de huidige scope. Geen van deze beperkingen raakt de kernclaim van het onderzoek --- multi-bron end-to-end observability werkt en detecteert storingen aantoonbaar sneller --- maar elk van hen is een concrete vervolgstap.
+
+\section{Aanbevelingen voor Mediaventures}
+\label{sec:conclusie-aanbevelingen}
+
+Voor een eventuele uitrol naar productie worden volgende stappen aanbevolen:
+
+\begin{enumerate}
+  \item \textbf{Plaats de observability-host op een vast IP of een eigen PepVPN-tunnel.} Dat lost zowel de syslog-locatieafhankelijkheid op als het risico dat monitoring uitvalt wanneer het hoofduitgaande netwerk hapert (zie scenario~5-cascade).
+  \item \textbf{Voorzie een redundante uplink voor de monitoringhost.} Scenario~5 bewees dat een monitoringhost zonder redundantie false positives voor andere sites kan triggeren.
+  \item \textbf{Vervang het email-contactpoint door een webhook naar Teams of Slack.} SMTP in een AV-productieomgeving vereist vaak firewall-uitzonderingen; een webhook is eenvoudiger op te zetten en sneller in notificatie.
+  \item \textbf{Pas het principe "onderscheid geen data van alles is goed" toe op elke nieuwe exporter.} Concreet: elke metric die een gezondheidsstatus uitdrukt moet vergezeld worden van een teller of count-metric die expliciet aangeeft hoeveel onderliggende objecten bewaakt worden.
+  \item \textbf{Integreer de SRT-encoders in productie als callers naar de \texttt{srt-exporter}.} De metrics en alerts die in het PoC zijn ontworpen zijn identiek bruikbaar zodra de productie-encoders poort~9000 van de observability-host aanspreken.
+\end{enumerate}
+
+\section{Toekomstig onderzoek}
+\label{sec:conclusie-toekomst}
+
+Dit werk vormt een basis waarop meerdere pistes kunnen verdergebouwd worden. Een eerste voor de hand liggende uitbreiding is \textbf{NDI-monitoring}: via de BirdDog Connect REST-API of het NDI SDK kan een exporter gebouwd worden die resolution, framerate, codec en drop-count per NDI-bron exporteert. Een tweede piste is \textbf{geautomatiseerde correlatie}: waar Grafana vandaag visueel correleert, kan een regel-gebaseerde of machine-learning-laag bovenop Prometheus verdachte patronen oppikken (bijvoorbeeld een stijging van \texttt{srt\_retransmit\_rate} die gecorreleerd is met \texttt{peplink\_snmp\_wan\_healthcheck} op een specifieke WAN). Een derde piste is de \textbf{integratie van switches en AV-apparatuur} (Netgear M4250, audio-mengtafels); elk van deze toestellen heeft een eigen telemetry-bron die binnen hetzelfde dashboard-concept past. Tot slot verdient \textbf{kwantitatieve kwaliteitsbeoordeling} van videostreams (bijvoorbeeld PSNR of SSIM gemeten op decoder-niveau) een plaats als extra metric-familie, zodat observability zich ook uitstrekt tot de perceptuele eindbeeldkwaliteit.
+
+\section{Slotbeschouwing}
+\label{sec:conclusie-slot}
+
+De uitdaging om de volledige audiovisuele keten van Mediaventures end-to-end zichtbaar te maken is groot: multi-vendor hardware, proprietary protocollen, geografisch gescheiden locaties en live-productiekritieke tijdsvensters maken elke monitoringpoging broos. Dit onderzoek toont aan dat de combinatie van een open-source stack, custom exporters en een iteratieve, kritische opbouw volstaat om die uitdaging aan te pakken. Belangrijker dan de cijfers uit de testscenario's is misschien wel de houding waarmee het PoC opgebouwd is: elk metric wantrouwen, elke aanname expliciteren en elke blind-spot openlijk rapporteren. Precies die houding --- eerder dan een specifieke tool --- is de werkelijke overdracht die deze bachelorproef aan Mediaventures nalaat.

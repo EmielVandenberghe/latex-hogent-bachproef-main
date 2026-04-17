@@ -159,6 +159,32 @@ groups:
         labels:
           severity: warning
 
+      # SRT stream packet loss (streaming-applicatielaag)
+      - uid: alert-srt-packetloss
+        title: "[WARNING] SRT Stream Packet Loss"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: srt_packet_loss_percent{stream_name=~".*"} > 5
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "SRT stream packet loss: {{ $value | printf \"%.1f\" }}%"
+          description: "SRT stream packet loss overschrijdt 5% voor meer dan 1 minuut. Streamkwaliteit degradeert merkbaar."
+        labels:
+          severity: warning
+
       # WAN link down (enterprise SNMP — fysieke hardware)
       - uid: alert-wan-link-down
         title: "[WARNING] WAN Link Down"
@@ -208,6 +234,36 @@ groups:
         annotations:
           summary: "Hoge CPU op {{ $labels.device_name }}: {{ $value | printf \"%.0f\" }}%"
           description: "CPU-gebruik op {{ $labels.device_name }} overschrijdt 85% al meer dan 5 minuten."
+        labels:
+          severity: warning
+
+      # PepVPN: geen profielen geconfigureerd
+      # Hardening tegen de historische blind-spot waarin een lege tunnel-lijst foutief als
+      # "all healthy" werd gerapporteerd. Zie poc/monitoring_blindspot.md voor volledige analyse.
+      # Deze regel firet zodra geen enkel device nog een PepVPN-profiel heeft — wat betekent dat
+      # de tunnel-gezondheidsclaim van de observability stack niet meer geldig is.
+      - uid: alert-pepvpn-no-profiles
+        title: "[WARNING] Geen PepVPN profielen geconfigureerd"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: max(peplink_tunnel_count) < 1
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Geen PepVPN profielen aanwezig op enig device"
+          description: "De InControl2 API rapporteert 0 PepVPN-profielen voor alle devices. Tunnel-gezondheidsmonitoring is niet valideerbaar zolang er geen profielen bestaan. Controleer InControl2 → SpeedFusion VPN."
         labels:
           severity: warning
 

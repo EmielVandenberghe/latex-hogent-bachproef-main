@@ -13,7 +13,7 @@
 
 ## Dashboardstructuur
 
-Het dashboard "Mediaventures — Observability Dashboard" heeft **10 secties** die van boven naar beneden de volledige infrastructuurstatus tonen.
+Het dashboard "Mediaventures — Observability Dashboard" heeft **11 secties** die van boven naar beneden de volledige infrastructuurstatus tonen.
 
 ---
 
@@ -173,18 +173,20 @@ Zie `poc/snmp_fysieke_peplink.md` voor de volledige OID-mapping.
 
 ---
 
-## Alert Rules (8 regels)
+## Alert Rules (10 regels)
 
 | Alert | Severity | For | Trigger |
 |-------|----------|-----|---------|
 | Device Offline | CRITICAL | 1min | `peplink_device_online == 0` |
 | PepVPN Tunnel Down | CRITICAL | 1min | `peplink_tunnel_up == 0` |
+| PepVPN No Profiles Configured | WARNING | 5min | `max(peplink_tunnel_count) < 1` |
 | Site onbereikbaar ICMP | WARNING | 2min | `probe_success == 0` |
 | Hoge latency > 150ms | WARNING | 5min | `probe_icmp_duration_seconds * 1000 > 150` |
 | Hoog packet loss > 5% | WARNING | 5min | Packet loss > 5% over 5 min |
 | WAN Link Down | WARNING | 2min | `peplink_snmp_wan_link_up{wan_name="WAN"} == 0` |
 | Hoge CPU Load > 85% | WARNING | 5min | `peplink_local_cpu_load_percent > 85` |
 | Exporter Down | CRITICAL | 2min | `peplink_scrape_success == 0` |
+| SRT Stream Packet Loss > 5% | WARNING | 1min | `srt_packet_loss_percent > 5` |
 
 ---
 

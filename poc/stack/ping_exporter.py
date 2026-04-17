@@ -19,7 +19,9 @@ SITES = {
     "Venue":      "10.1.2.2",
     "Live1":      "10.1.3.2",
     "Live2":      "10.1.4.2",
-    "Balance20X": "192.168.1.1",
+    # Live3 = fysieke Balance 20X via WiFi-direct (192.168.1.1).
+    # PepVPN-tunnel opgegeven wegens PrimeCare-blocker — zie primecare_pepvpn_blocker.md.
+    "Live3":      "192.168.1.1",
 }
 
 # Opgeslagen meetresultaten (gedeeld geheugen)

@@ -84,7 +84,10 @@ local_ap_status = Gauge('peplink_local_ap_up', 'WiFi AP enabled (1) or disabled 
 local_api_reachable = Gauge('peplink_local_api_reachable', 'Local API reachable (1=yes, 0=no)', ['device_name', 'ip'])
 
 # PepVPN Tunnel Metrics
-tunnel_up = Gauge('peplink_tunnel_up', 'PepVPN tunnels healthy (1=ok, 0=error/unknown)', ['device_id', 'device_name'])
+# Belangrijk: tunnel_up is enkel betekenisvol als tunnel_count > 0. Zie monitoring_blindspot.md
+# voor de historische bug waarbij een lege tunnel-lijst foutief als "all healthy" werd getoond.
+tunnel_up = Gauge('peplink_tunnel_up', 'PepVPN tunnels healthy (1=ok, 0=error/no-profiles/unknown)', ['device_id', 'device_name'])
+tunnel_count = Gauge('peplink_tunnel_count', 'Number of PepVPN tunnels configured on device', ['device_id', 'device_name'])
 recent_event_count = Gauge('peplink_recent_event_count', 'Number of events in latest event log response', ['device_id', 'device_name'])
 
 # Exporter metrics
@@ -154,25 +157,42 @@ class InControl2Client:
         return []
 
     def get_tunnel_stat(self, org_id, group_id, device_id):
-        """Poll PepVPN tunnel status. Returns True=all ok, False=error, None=pending/unknown."""
+        """Poll PepVPN tunnel status.
+
+        Returns a (count, all_ok) tuple:
+          - count: aantal geconfigureerde PepVPN-profielen op dit device (0 = geen profielen)
+          - all_ok: True als alle profielen stat=ok, False als minstens één in error, None als onbepaald
+            (count==0, PENDING, HTTP-fout)
+
+        Semantiek (hardening tegen monitoring_blindspot.md):
+          - count=0, all_ok=None   → geen profielen; tunnel_up moet 0 zijn en tunnel_count 0
+          - count>0, all_ok=True   → alle profielen gezond
+          - count>0, all_ok=False  → minstens één profiel in error
+          - count=None             → scrape mislukt; laat vorige waardes staan (scrape_success wordt 0)
+        """
         endpoint = f"/rest/o/{org_id}/g/{group_id}/d/{device_id}/pepvpn/tunnel_stat"
         try:
             result = self.get(endpoint)
             code = result.get("resp_code")
-            if code == "SUCCESS":
-                data = result.get("data", {})
-                # data can be a dict (single) or list (multiple tunnels)
-                if isinstance(data, list):
-                    if not data:
-                        return True  # no tunnels configured = no errors
-                    return all(t.get("stat") == "ok" for t in data if isinstance(t, dict))
-                elif isinstance(data, dict):
-                    return data.get("stat") == "ok"
-            # PENDING - skip update this cycle
-            return None
+            if code != "SUCCESS":
+                # PENDING of andere niet-success: niets updaten deze cyclus
+                return (None, None)
+            data = result.get("data", {})
+            if isinstance(data, list):
+                count = len(data)
+                if count == 0:
+                    # BELANGRIJK: geen profielen != alle profielen healthy.
+                    # Zie monitoring_blindspot.md voor de historische bug.
+                    return (0, None)
+                all_ok = all(t.get("stat") == "ok" for t in data if isinstance(t, dict))
+                return (count, all_ok)
+            if isinstance(data, dict):
+                # Enkele tunnel als dict terugverpakt
+                return (1, data.get("stat") == "ok")
+            return (None, None)
         except Exception as e:
             log.warning("tunnel_stat failed for device %s: %s", device_id, e)
-            return False
+            return (None, None)
 
     def get_event_count(self, org_id, group_id, device_id):
         """Haal event log op en geef aantal terug."""
@@ -519,7 +539,21 @@ def collect_local_api_metrics():
 def collect_metrics(client, org_id):
     start_time = time.time()
     success = True
-    
+
+    # Stale-label opruiming vóór nieuwe scrape.
+    # Voorkomt dat devices die uit de IC2 response verdwijnen (offline, ge-unenrolled,
+    # verwijderd) hun laatste bekende waardes voor altijd in de Prometheus registry laten staan.
+    # Zie monitoring_blindspot.md laag 2 voor de verantwoording.
+    device_online.clear()
+    device_uptime.clear()
+    device_clients.clear()
+    device_usage.clear()
+    device_tx.clear()
+    device_rx.clear()
+    tunnel_up.clear()
+    tunnel_count.clear()
+    recent_event_count.clear()
+
     # InControl2 API metrics
     try:
         log.info("Collecting InControl2 API metrics...")
@@ -551,14 +585,21 @@ def collect_metrics(client, org_id):
             d_id = str(device.get("id", ""))
             d_name = device.get("name", "unknown")
 
-            stat = client.get_tunnel_stat(org_id, IC_GROUP_ID, d_id)
-            if stat is not None:
-                tunnel_up.labels(d_id, d_name).set(1 if stat else 0)
-                log.debug("Tunnel %s (%s): %s", d_name, d_id, "ok" if stat else "error")
+            t_count, t_ok = client.get_tunnel_stat(org_id, IC_GROUP_ID, d_id)
+            if t_count is not None:
+                tunnel_count.labels(d_id, d_name).set(t_count)
+                if t_count == 0:
+                    # Geen profielen configureerbaar → expliciet 0.
+                    # Voorheen werd dit foutief als 1 ("all healthy") gerapporteerd.
+                    tunnel_up.labels(d_id, d_name).set(0)
+                    log.debug("Tunnel %s (%s): no profiles configured (tunnel_up=0)", d_name, d_id)
+                elif t_ok is not None:
+                    tunnel_up.labels(d_id, d_name).set(1 if t_ok else 0)
+                    log.debug("Tunnel %s (%s): %d profiles, %s", d_name, d_id, t_count, "ok" if t_ok else "error")
 
-            count = client.get_event_count(org_id, IC_GROUP_ID, d_id)
-            if count is not None:
-                recent_event_count.labels(d_id, d_name).set(count)
+            evt_count = client.get_event_count(org_id, IC_GROUP_ID, d_id)
+            if evt_count is not None:
+                recent_event_count.labels(d_id, d_name).set(evt_count)
 
     except Exception as e:
         log.error("API collection failed: %s", e)

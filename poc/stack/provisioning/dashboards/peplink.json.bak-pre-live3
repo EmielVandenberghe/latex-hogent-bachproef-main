@@ -1,5 +1,5 @@
 {
-  "title": "Mediaventures \u2014 Observability Dashboard",
+  "title": "Mediaventures — Observability Dashboard",
   "uid": "peplink-infra",
   "tags": [
     "peplink",
@@ -23,7 +23,7 @@
         "y": 0
       },
       "options": {
-        "content": "### Observability PoC \u2014 Mediaventures\n**Sites:** Bornem (hub), Venue, Live1, Live2, **Live3** (fysieke Balance 20X via WiFi-direct).\n\nLive3 = de fysieke Balance 20X router, bereikbaar via WiFi-direct op `192.168.1.1`. ICMP-, ping-, SNMP- en lokale-API-metrics van Live3 meten dit toestel rechtstreeks over het WiFi-pad (geen PepVPN-tunnel \u2014 zie scope-verantwoording i.v.m. PrimeCare). Secties **3 en 4** tonen bijkomende metrics die enkel op fysieke Peplink-hardware beschikbaar zijn (enterprise SNMP WAN/WiFi + lokale REST API voor CPU-load) \u2014 deze secties bewijzen dat de stack ook op productiehardware werkt.",
+        "content": "# Mediaventures — Live Streaming Infrastructuur\nCentraliseerde monitoring van netwerk, VPN-tunnels, apparaten en logs voor alle locaties.",
         "mode": "markdown"
       },
       "transparent": true
@@ -61,9 +61,14 @@
           "refId": "A"
         },
         {
+          "expr": "peplink_tunnel_up{device_name=\"Bornem\"}",
+          "legendFormat": "PepVPN",
+          "refId": "B"
+        },
+        {
           "expr": "peplink_device_online{device_name=\"Bornem\"}",
           "legendFormat": "IC2",
-          "refId": "B"
+          "refId": "C"
         }
       ],
       "fieldConfig": {
@@ -129,9 +134,14 @@
           "refId": "A"
         },
         {
+          "expr": "peplink_tunnel_up{device_name=\"Venue\"}",
+          "legendFormat": "PepVPN",
+          "refId": "B"
+        },
+        {
           "expr": "peplink_device_online{device_name=\"Venue\"}",
           "legendFormat": "IC2",
-          "refId": "B"
+          "refId": "C"
         }
       ],
       "fieldConfig": {
@@ -197,9 +207,14 @@
           "refId": "A"
         },
         {
+          "expr": "peplink_tunnel_up{device_name=\"Live1\"}",
+          "legendFormat": "PepVPN",
+          "refId": "B"
+        },
+        {
           "expr": "peplink_device_online{device_name=\"Live1\"}",
           "legendFormat": "IC2",
-          "refId": "B"
+          "refId": "C"
         }
       ],
       "fieldConfig": {
@@ -265,9 +280,14 @@
           "refId": "A"
         },
         {
+          "expr": "peplink_tunnel_up{device_name=\"Live2\"}",
+          "legendFormat": "PepVPN",
+          "refId": "B"
+        },
+        {
           "expr": "peplink_device_online{device_name=\"Live2\"}",
           "legendFormat": "IC2",
-          "refId": "B"
+          "refId": "C"
         }
       ],
       "fieldConfig": {
@@ -315,8 +335,8 @@
     {
       "id": 7,
       "type": "stat",
-      "title": "Live3 (Balance 20X fysiek)",
-      "description": "Live3 is de fysieke Balance 20X router, bereikbaar via WiFi-direct (192.168.1.1). De PepVPN-tunnel-variant werd opgegeven wegens een PrimeCare-licentiebeperking; WiFi-direct volstaat voor de observability-validatie. Deze rol bewijst dat de observability-stack ook op productiehardware werkt (enterprise SNMP + lokale API \u2014 zie secties 3 en 4).",
+      "title": "Balance 20X",
+      "description": "Fysieke Peplink Balance 20X — enterprise SNMP + lokale API",
       "gridPos": {
         "h": 5,
         "w": 4,
@@ -329,17 +349,17 @@
       },
       "targets": [
         {
-          "expr": "probe_success{site=\"Live3\"}",
+          "expr": "probe_success{site=\"Balance20X\"}",
           "legendFormat": "ICMP",
           "refId": "A"
         },
         {
-          "expr": "peplink_snmp_reachable{device_name=\"Live3\"}",
+          "expr": "peplink_snmp_reachable{device_name=\"Balance20X\"}",
           "legendFormat": "SNMP",
           "refId": "B"
         },
         {
-          "expr": "peplink_local_api_reachable{device_name=\"Live3\"}",
+          "expr": "peplink_local_api_reachable{device_name=\"Balance20X\"}",
           "legendFormat": "API",
           "refId": "C"
         }
@@ -609,7 +629,7 @@
     {
       "id": 15,
       "type": "stat",
-      "title": "RTT Live3",
+      "title": "RTT Balance20X",
       "gridPos": {
         "h": 3,
         "w": 4,
@@ -622,7 +642,7 @@
       },
       "targets": [
         {
-          "expr": "probe_icmp_duration_seconds{phase=\"rtt\", site=\"Live3\"} * 1000",
+          "expr": "probe_icmp_duration_seconds{phase=\"rtt\", site=\"Balance20X\"} * 1000",
           "refId": "A"
         }
       ],
@@ -1051,7 +1071,7 @@
     {
       "id": 23,
       "type": "stat",
-      "title": "Jitter Live3",
+      "title": "Jitter Balance20X",
       "gridPos": {
         "h": 3,
         "w": 4,
@@ -1064,7 +1084,7 @@
       },
       "targets": [
         {
-          "expr": "ping_jitter_ms{site=\"Live3\"}",
+          "expr": "ping_jitter_ms{site=\"Balance20X\"}",
           "refId": "A"
         }
       ],
@@ -1103,7 +1123,7 @@
     {
       "id": 100,
       "type": "row",
-      "title": "3. WAN Multi-Link Status \u2014 Live3 (fysieke Balance 20X, Enterprise SNMP)",
+      "title": "3. WAN Multi-Link Status (Enterprise SNMP)",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1115,7 +1135,7 @@
     {
       "id": 101,
       "type": "table",
-      "title": "WAN Interface Status \u2014 Balance 20X",
+      "title": "WAN Interface Status — Balance 20X",
       "description": "Realtime WAN-status via Peplink enterprise SNMP OIDs. Status: 1=disabled, 2=disconnected, 3=connected. Link: 1=up, 0=down.",
       "gridPos": {
         "h": 7,
@@ -1129,28 +1149,28 @@
       },
       "targets": [
         {
-          "expr": "peplink_snmp_wan_status{device_name=\"Live3\"}",
+          "expr": "peplink_snmp_wan_status{device_name=\"Balance20X\"}",
           "legendFormat": "Status",
           "refId": "A",
           "format": "table",
           "instant": true
         },
         {
-          "expr": "peplink_snmp_wan_link_up{device_name=\"Live3\"}",
+          "expr": "peplink_snmp_wan_link_up{device_name=\"Balance20X\"}",
           "legendFormat": "Link",
           "refId": "B",
           "format": "table",
           "instant": true
         },
         {
-          "expr": "peplink_snmp_wan_signal_dbm{device_name=\"Live3\"}",
+          "expr": "peplink_snmp_wan_signal_dbm{device_name=\"Balance20X\"}",
           "legendFormat": "Signaal",
           "refId": "C",
           "format": "table",
           "instant": true
         },
         {
-          "expr": "peplink_snmp_wan_healthcheck{device_name=\"Live3\"}",
+          "expr": "peplink_snmp_wan_healthcheck{device_name=\"Balance20X\"}",
           "legendFormat": "Health Check",
           "refId": "D",
           "format": "table",
@@ -1163,9 +1183,13 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Status"
+              "options": "Value #A"
             },
             "properties": [
+              {
+                "id": "displayName",
+                "value": "Status"
+              },
               {
                 "id": "mappings",
                 "value": [
@@ -1187,19 +1211,19 @@
                     }
                   }
                 ]
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-text"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Link"
+              "options": "Value #B"
             },
             "properties": [
+              {
+                "id": "displayName",
+                "value": "Link"
+              },
               {
                 "id": "mappings",
                 "value": [
@@ -1217,19 +1241,31 @@
                     }
                   }
                 ]
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-text"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Health Check"
+              "options": "Value #C"
             },
             "properties": [
+              {
+                "id": "displayName",
+                "value": "Signaal (dBm)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #D"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Health Check"
+              },
               {
                 "id": "mappings",
                 "value": [
@@ -1249,51 +1285,20 @@
       },
       "transformations": [
         {
-          "id": "labelsToFields",
-          "options": {
-            "mode": "columns",
-            "source": "labels"
-          }
-        },
-        {
-          "id": "joinByField",
-          "options": {
-            "byField": "wan_name",
-            "mode": "outer"
-          }
+          "id": "merge",
+          "options": {}
         },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
-              "Time 1": true,
-              "Time 2": true,
-              "Time 3": true,
               "device_name": true,
-              "device_name 1": true,
-              "device_name 2": true,
-              "device_name 3": true,
-              "instance": true,
-              "instance 1": true,
-              "instance 2": true,
-              "instance 3": true,
               "ip": true,
-              "ip 1": true,
-              "ip 2": true,
-              "ip 3": true,
-              "job": true,
-              "job 1": true,
-              "job 2": true,
-              "job 3": true,
               "__name__": true
             },
             "renameByName": {
-              "wan_name": "WAN Interface",
-              "Value #A": "Status",
-              "Value #B": "Link",
-              "Value #C": "Signaal (dBm)",
-              "Value #D": "Health Check"
+              "wan_name": "WAN Interface"
             }
           }
         }
@@ -1316,7 +1321,7 @@
       },
       "targets": [
         {
-          "expr": "count(peplink_snmp_wan_status{device_name=\"Live3\"} == 3)",
+          "expr": "count(peplink_snmp_wan_status{device_name=\"Balance20X\"} == 3)",
           "refId": "A"
         }
       ],
@@ -1363,7 +1368,7 @@
       },
       "targets": [
         {
-          "expr": "peplink_snmp_wifi_client_count{device_name=\"Live3\"}",
+          "expr": "peplink_snmp_wifi_client_count{device_name=\"Balance20X\"}",
           "legendFormat": "{{ssid}}",
           "refId": "A"
         }
@@ -1395,7 +1400,7 @@
     {
       "id": 104,
       "type": "timeseries",
-      "title": "WAN Link Status \u2014 geschiedenis",
+      "title": "WAN Link Status — geschiedenis",
       "description": "Historiek van WAN link up/down per interface. Drops = failover events.",
       "gridPos": {
         "h": 5,
@@ -1410,7 +1415,7 @@
       "targets": [
         {
           "expr": "peplink_snmp_wan_link_up",
-          "legendFormat": "{{device_name}} \u2014 {{wan_name}}",
+          "legendFormat": "{{device_name}} — {{wan_name}}",
           "refId": "A"
         }
       ],
@@ -1454,7 +1459,7 @@
     {
       "id": 110,
       "type": "row",
-      "title": "4. Device Health \u2014 Lokale API & CPU (alle sites)",
+      "title": "4. Device Health — Lokale API & CPU",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1466,7 +1471,7 @@
     {
       "id": 111,
       "type": "gauge",
-      "title": "CPU Load \u2014 Balance 20X",
+      "title": "CPU Load — Balance 20X",
       "description": "Live CPU load via lokale REST API (status.cpu)",
       "gridPos": {
         "h": 6,
@@ -1480,7 +1485,7 @@
       },
       "targets": [
         {
-          "expr": "peplink_local_cpu_load_percent{device_name=\"Live3\"}",
+          "expr": "peplink_local_cpu_load_percent{device_name=\"Balance20X\"}",
           "refId": "A"
         }
       ],
@@ -1711,31 +1716,14 @@
       "collapsed": false
     },
     {
-      "id": 184,
-      "type": "text",
-      "title": "",
-      "gridPos": {
-        "h": 3,
-        "w": 24,
-        "x": 0,
-        "y": 50
-      },
-      "options": {
-        "content": "**Actieve profielen (FusionHub):** `Bornem-star` \u2014 Bornem hub \u2192 Venue / Live1 / Live2 \u00a0|\u00a0 `live1-venue` \u2014 Live1 \u2194 Venue \u00a0|\u00a0 `live2-venue` \u2014 Live2 \u2194 Venue\n\n**Niet-operationeel:** `Live3-Bornem` \u2014 Balance\\_2622 \u2194 Bornem (PepVPN voor de fysieke Balance 20X werd opgegeven wegens PrimeCare-licentiebeperking; Live3 wordt gemonitord via WiFi-direct \u2014 zie scope-verantwoording).\n\n_tunnel\\_up=0 = minstens 1 profiel op dat device disconnected_\n\n**Live3 (Balance 20X fysiek)** wordt gemonitord via WiFi-direct (192.168.1.1) \u2014 enterprise SNMP (sectie 3) + lokale API/CPU (sectie 4).",
-        "mode": "markdown"
-      },
-      "transparent": true
-    },
-    {
       "id": 121,
       "type": "stat",
-      "title": "Bornem-star (hub)",
-      "description": "Profiel: Bornem-star (Star). Bornem is de centrale hub met 3 spoke-verbindingen: Venue, Live1, Live2. tunnel_up=1 als alle 3 spokes connected zijn.",
+      "title": "Bornem Tunnel",
       "gridPos": {
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 53
+        "y": 50
       },
       "datasource": {
         "type": "prometheus",
@@ -1744,7 +1732,6 @@
       "targets": [
         {
           "expr": "peplink_tunnel_up{device_name=\"Bornem\"}",
-          "legendFormat": "Bornem \u2192 Venue/Live1/Live2",
           "refId": "A"
         }
       ],
@@ -1792,13 +1779,12 @@
     {
       "id": 122,
       "type": "stat",
-      "title": "live1-venue (P2P)",
-      "description": "Profiel: live1-venue (Point-to-Point). Live1 \u2194 Venue. Live1 heeft 2 profielen (Bornem-star spoke + live1-venue). tunnel_up=0 als minstens 1 profiel disconnected.",
+      "title": "Venue Tunnel",
       "gridPos": {
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 53
+        "y": 50
       },
       "datasource": {
         "type": "prometheus",
@@ -1806,8 +1792,7 @@
       },
       "targets": [
         {
-          "expr": "peplink_tunnel_up{device_name=\"Live1\"}",
-          "legendFormat": "Live1 \u2194 Venue",
+          "expr": "peplink_tunnel_up{device_name=\"Venue\"}",
           "refId": "A"
         }
       ],
@@ -1855,13 +1840,12 @@
     {
       "id": 123,
       "type": "stat",
-      "title": "live2-venue (P2P)",
-      "description": "Profiel: live2-venue (Point-to-Point). Live2 \u2194 Venue. Live2 heeft 2 profielen (Bornem-star spoke + live2-venue). tunnel_up=0 als minstens 1 profiel disconnected.",
+      "title": "Live1 Tunnel",
       "gridPos": {
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 53
+        "y": 50
       },
       "datasource": {
         "type": "prometheus",
@@ -1869,8 +1853,7 @@
       },
       "targets": [
         {
-          "expr": "peplink_tunnel_up{device_name=\"Live2\"}",
-          "legendFormat": "Live2 \u2194 Venue",
+          "expr": "peplink_tunnel_up{device_name=\"Live1\"}",
           "refId": "A"
         }
       ],
@@ -1916,15 +1899,14 @@
       }
     },
     {
-      "id": 127,
+      "id": 124,
       "type": "stat",
-      "title": "Totaal PepVPN-profielen",
-      "description": "Som van alle geconfigureerde PepVPN-profielen over alle devices. Blindspot-harding: als count=0 terwijl tunnels UP getoond worden, is er een meetfout. Verwacht >= 10 (som over alle devices bij volledige topologie).",
+      "title": "Live2 Tunnel",
       "gridPos": {
-        "x": 0,
-        "y": 62,
+        "h": 4,
         "w": 6,
-        "h": 4
+        "x": 18,
+        "y": 50
       },
       "datasource": {
         "type": "prometheus",
@@ -1932,13 +1914,27 @@
       },
       "targets": [
         {
-          "expr": "sum(peplink_tunnel_count) or vector(0)",
-          "legendFormat": "Profielen (som)",
+          "expr": "peplink_tunnel_up{device_name=\"Live2\"}",
           "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              }
+            }
+          ],
           "thresholds": {
             "steps": [
               {
@@ -1946,19 +1942,15 @@
                 "value": null
               },
               {
-                "color": "yellow",
-                "value": 1
-              },
-              {
                 "color": "green",
-                "value": 8
+                "value": 1
               }
             ]
           }
         }
       },
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "reduceOptions": {
           "calcs": [
@@ -1970,13 +1962,13 @@
     {
       "id": 125,
       "type": "timeseries",
-      "title": "PepVPN Tunnel Status \u2014 geschiedenis",
-      "description": "Tijdlijn van tunnelopbouw en -verbreking per device. Drops naar 0 = minstens 1 profiel op dat device disconnected.",
+      "title": "PepVPN Tunnel Status — geschiedenis",
+      "description": "Tijdlijn van tunnelopbouw en -verbreking. Drops naar 0 = onderbrekingen.",
       "gridPos": {
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 57
+        "y": 54
       },
       "datasource": {
         "type": "prometheus",
@@ -2044,7 +2036,7 @@
       "title": "Bornem (IC2)",
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 5,
         "x": 0,
         "y": 60
       },
@@ -2105,8 +2097,8 @@
       "title": "Venue (IC2)",
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 6,
+        "w": 5,
+        "x": 5,
         "y": 60
       },
       "datasource": {
@@ -2166,8 +2158,8 @@
       "title": "Live1 (IC2)",
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 12,
+        "w": 5,
+        "x": 10,
         "y": 60
       },
       "datasource": {
@@ -2227,8 +2219,8 @@
       "title": "Live2 (IC2)",
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 18,
+        "w": 5,
+        "x": 15,
         "y": 60
       },
       "datasource": {
@@ -2238,6 +2230,68 @@
       "targets": [
         {
           "expr": "peplink_device_online{device_name=\"Live2\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OFFLINE",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "ONLINE",
+                  "color": "green"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "id": 148,
+      "type": "stat",
+      "title": "Balance_2622 (IC2)",
+      "description": "InControl2-status fysieke Balance 20X. OFFLINE verwacht: PrimeCare-licentie ontbreekt waardoor status-pushes naar InControl2 worden geblokkeerd. Lokale API + SNMP bevestigen in secties 3/4 dat het toestel operationeel is.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 60
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "peplink_device_online{device_name=\"Balance_2622\"}",
           "refId": "A"
         }
       ],
@@ -2671,7 +2725,7 @@
     {
       "id": 145,
       "type": "stat",
-      "title": "Live3 (SNMP)",
+      "title": "Balance20X (SNMP)",
       "gridPos": {
         "h": 4,
         "w": 4,
@@ -2684,68 +2738,7 @@
       },
       "targets": [
         {
-          "expr": "peplink_snmp_reachable{device_name=\"Live3\"}",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "OFFLINE",
-                  "color": "red"
-                },
-                "1": {
-                  "text": "OK",
-                  "color": "green"
-                }
-              }
-            }
-          ],
-          "thresholds": {
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          }
-        }
-      },
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        }
-      }
-    },
-    {
-      "id": 149,
-      "type": "stat",
-      "title": "Live3 (SNMP via WiFi-direct)",
-      "gridPos": {
-        "x": 20,
-        "y": 77,
-        "w": 4,
-        "h": 4
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "targets": [
-        {
-          "expr": "peplink_snmp_reachable{device_name=\"Live3\"}",
+          "expr": "peplink_snmp_reachable{device_name=\"Balance20X\"}",
           "refId": "A"
         }
       ],
@@ -3698,7 +3691,7 @@
       "id": 183,
       "type": "timeseries",
       "title": "Cross-layer RTT: SRT-applicatielaag vs. ICMP-netwerklaag",
-      "description": "Vergelijking van SRT-applicatielaag RTT (oranje) met ICMP-netwerklaag RTT per site. Gelijktijdige pieken bevestigen dat netwerkverstoring de stream be\u00efnvloedt.",
+      "description": "Vergelijking van SRT-applicatielaag RTT (oranje) met ICMP-netwerklaag RTT per site. Gelijktijdige pieken bevestigen dat netwerkverstoring de stream beïnvloedt.",
       "gridPos": {
         "x": 0,
         "y": 140,
@@ -3760,114 +3753,20 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byFrameRefID",
-              "options": "A"
+              "id": "byName",
+              "options": "SRT RTT"
             },
             "properties": [
               {
                 "id": "color",
                 "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#FF9830"
+                  "fixedColor": "#FF9830",
+                  "mode": "fixed"
                 }
-              },
-              {
-                "id": "displayName",
-                "value": "SRT RTT (applicatielaag)"
               },
               {
                 "id": "custom.lineWidth",
                 "value": 3
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*Bornem.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#5794F2"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*Venue.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#73BF69"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*Live1.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#B877D9"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*Live2.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#F2CC0C"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*Live3.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#37872D"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*Live3.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#8F3BB8"
-                }
               }
             ]
           }

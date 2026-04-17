@@ -110,9 +110,14 @@ services:
       SRT_LISTEN_PORT: "9000"
       EXPORTER_PORT: "9117"
 
+  # Synthetische SRT-bron voor demo/scenario's — NIET deel van de observability stack zelf.
+  # Opt-in via profile zodat baseline-metingen (CPU/RAM) de stack representeren zonder werklast.
+  # Activeren: docker compose --profile demo up -d
+  # In productie draait de encoder op dedicated hardware (camera/mixer), niet op de obs VM.
   srt-test-stream:
     image: linuxserver/ffmpeg:latest
     container_name: srt-test-stream
+    profiles: ["demo"]
     network_mode: host
     restart: unless-stopped
     entrypoint: >

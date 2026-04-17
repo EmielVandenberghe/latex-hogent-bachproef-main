@@ -1,0 +1,46 @@
+# docker-compose.srt.yml
+# Voeg toe aan je bestaande stack via:
+#   docker compose -f docker-compose.yml -f docker-compose.srt.yml up -d
+#
+# Of plak de twee services direct in je bestaande docker-compose.yml.
+
+services:
+
+  # ── SRT Prometheus exporter ─────────────────────────────────────────────────
+  srt-exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile.srt
+    container_name: srt-exporter
+    network_mode: host          # consistent met bestaande exporters
+    restart: unless-stopped
+    environment:
+      SRT_LISTEN_PORT: "9000"   # poort waarop SRT stream binnenkomt
+      EXPORTER_PORT:   "9117"   # /metrics endpoint
+    # Geen ports: blok nodig bij network_mode: host
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:9117/metrics')"]
+      interval: 30s
+      timeout:  5s
+      retries:  3
+
+  # ── SRT test-stream generator ───────────────────────────────────────────────
+  # Genereert een SMPTE-kleurenbalk + 1 kHz toon als SRT stream naar localhost:9000
+  # Stop dit als je een echte encoder gebruikt.
+  srt-test-stream:
+    image: linuxserver/ffmpeg:latest
+    container_name: srt-test-stream
+    network_mode: host
+    restart: unless-stopped
+    entrypoint: >
+      ffmpeg -re
+        -f lavfi -i "testsrc=size=1280x720:rate=25"
+        -f lavfi -i "sine=frequency=1000:sample_rate=48000"
+        -c:v libx264 -preset ultrafast -tune zerolatency
+          -b:v 2000k -maxrate 2500k -bufsize 4000k
+          -g 50 -keyint_min 50
+        -c:a aac -b:a 128k
+        -f mpegts "srt://127.0.0.1:9000?pkt_size=1316&mode=caller"
+    depends_on:
+      - srt-exporter

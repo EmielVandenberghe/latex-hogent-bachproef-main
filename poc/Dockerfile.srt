@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+# ── system deps ────────────────────────────────────────────────────────────────
+# libsrt-dev  → C library (needed by python-srt to build)
+# ffmpeg      → available as fallback / test-stream tool inside container
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libsrt1.5 \
+        libsrt-dev \
+        ffmpeg \
+        gcc \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── python deps ───────────────────────────────────────────────────────────────
+# python-srt wraps libsrt via cffi
+RUN pip install --no-cache-dir srt || true
+# "|| true" → if python-srt fails (e.g. libsrt version mismatch) the exporter
+# falls back to the raw UDP path automatically.
+
+WORKDIR /app
+COPY srt_exporter.py .
+
+ENV SRT_LISTEN_PORT=9000
+ENV EXPORTER_PORT=9117
+
+EXPOSE 9117/tcp
+EXPOSE 9000/udp
+
+CMD ["python", "-u", "srt_exporter.py"]

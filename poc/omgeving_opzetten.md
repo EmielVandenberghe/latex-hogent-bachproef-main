@@ -440,7 +440,7 @@ Alle bestanden staan in `poc/stack/`:
 | Bestand | Functie |
 |---------|---------|
 | `Vagrantfile` | AlmaLinux 9 VM op 10.1.1.100, installeert Docker, start stack |
-| `docker-compose.yml` | 8 containers: Prometheus, Loki, Grafana, node-exporter, incontrol2-exporter, blackbox-exporter, promtail, **ping-exporter** |
+| `docker-compose.yml` | 10 containers: Prometheus, Loki, Grafana, node-exporter, incontrol2-exporter, blackbox-exporter, promtail, ping-exporter, **srt-exporter**, **srt-test-stream** |
 | `Dockerfile` | Python 3.11 image voor de incontrol2-exporter |
 | `Dockerfile.ping` | Python 3.11 + iputils-ping image voor de ping-jitter exporter |
 | `incontrol2_exporter.py` | Custom Prometheus exporter (InControl2 API + SNMP + lokale API) |
@@ -452,7 +452,7 @@ Alle bestanden staan in `poc/stack/`:
 | `.env` | API credentials en SNMP config |
 | `provisioning/datasources/` | Grafana datasource provisioning (Prometheus + Loki) |
 | `provisioning/dashboards/` | Grafana dashboard JSON auto-provisioning |
-| `provisioning/alerting/` | Grafana alert rules provisioning (8 regels) |
+| `provisioning/alerting/` | Grafana alert rules provisioning (9 regels) |
 
 ### 11.2 .env configureren
 
@@ -584,6 +584,19 @@ Zonder deze regel is Grafana niet bereikbaar via http://192.168.137.10:3000 vanu
 
 Peplink enterprise SNMP OIDs (`1.3.6.1.4.1.23695.200.*`) voor CPU en geheugen worden door FusionHub **niet** ondersteund. Ze zijn enkel beschikbaar op fysieke Peplink routers (20X, 380X). Dit is een relevant verschil tussen de virtuele testomgeving en de productieomgeving bij Mediaventures.
 
+**NAT-traversal — scope-afbakening**
+
+De PoC valideert **geen echte site-to-site NAT-traversal**. In de virtuele testomgeving hebben alle FusionHubs directe routeerbare IP-adressen (10.1.x.2) en bereiken ze elkaar via VyOS-routing — er zit geen NAT tussen de spokes. In een productieomgeving staat elk Peplink-device typisch achter een ISP-NAT-router (CGNAT, dubbele NAT bij klanten). PepVPN gebruikt daarvoor NAT-T (NAT traversal via UDP 4500 + keepalives) om tunnels te onderhouden door NAT-staten heen.
+
+De tunnel-UP/DOWN-monitoring en alle bijbehorende alert-regels zijn gevalideerd op directe verbindingen. De verwachting is dat de InControl2 API-metrics (`peplink_tunnel_up`) identiek zijn achter NAT — dat is een ingebouwde Peplink-guarantee — maar dit is binnen de PoC-scope niet experimenteel bevestigd.
+
+**Implicaties voor productie:**
+- NAT rebinding (ISP wisselt external port) kan een korte tunnelonderbreking veroorzaken die als flap zichtbaar is in de `peplink_tunnel_up` timeseries. De alerting-drempel van 1 minuut absorbeert kortdurende flaps.
+- Bij CGNAT (meerdere klanten op één publiek IP) werkt PepVPN via SpeedFusion's eigen hole-punching via de Peplink fusionhub.net relay — dit pad is qua monitoringgedrag identiek aan directe NAT-T.
+- De observability stack hoeft voor NAT-T geen aanpassing: de metrics komen via de InControl2 cloud API of via directe SNMP/API op het LAN-adres — NAT beïnvloedt dit pad niet.
+
+**Waarom niet getest in de PoC:** VirtualBox NAT-adapter ondersteunt geen inbound verkeer (vereist voor PepVPN UDP 4500); de gekozen ICS + Host-Only + VyOS-topologie geeft stabiele directe routering die reproduceerbaar is ongeacht locatie. Het toevoegen van een extra NAT-laag (bijv. dubbele VyOS + NAT voor spokes) viel buiten de tijdsbudget en had geen meerwaarde voor de kernvraag: bewijs dat de observability stack alle relevante Peplink-metrics zichtbaar maakt en alerts correct genereert.
+
 ### 11.6 Verzamelde metrics — overzicht
 
 | Metric | Bron | Beschrijving |
@@ -667,7 +680,7 @@ Herhaal voor alle 4 FusionHubs. Logs verschijnen daarna in het Grafana dashboard
 | Lokale API | Grafana → Device Health sectie | Balance20X CPU load, AP status |
 | Tunnel status | Grafana → PepVPN Tunnels sectie | Alle tunnels UP |
 | ICMP latency | Grafana → Connectiviteit sectie | RTT < 10ms (lokale VM) |
-| Alert rules | Grafana → Alerting → Alert rules | 8 regels zichtbaar |
+| Alert rules | Grafana → Alerting → Alert rules | 9 regels zichtbaar |
 | InControl2 | Devices overzicht | 4 devices ONLINE |
 
 ---
@@ -716,14 +729,40 @@ Naast de virtuele FusionHub-omgeving is er ook een fysieke Peplink Balance 20X b
 
 **Aansluiting:** Verbind een ethernetkabel van een LAN-poort van de bestaande router naar de **WAN-poort** van de Balance 20X (niet LAN, anders IP-conflict). Verbind via WiFi met `PEPLINK_2622` en surf naar `https://192.168.1.1`.
 
-### Waarom een fysieke Peplink?
+> **Let op — IP-conflict met thuisrouter:** De Balance 20X gebruikt standaard `192.168.1.1` als LAN-IP. Veel thuisrouters (ook het appartement) gebruiken hetzelfde `192.168.1.1`. Dit veroorzaakt een routingconflict: je browser weet niet of `192.168.1.1` de Peplink of de thuisrouter is.
+>
+> **Oplossing — doe dit vóór je de WAN-kabel insteekt:**
+> 1. Verbind via WiFi met `PEPLINK_2622` (wachtwoord: `fysiekepep`)
+> 2. Surf naar `https://192.168.1.1` → login (`admin` / `Balance20x`)
+> 3. Ga naar **Network → LAN** → verander LAN IP van `192.168.1.1` naar bijv. **`192.168.2.1`**
+> 4. Pas ook het DHCP-bereik aan naar `192.168.2.x`
+> 5. Sla op → het device herstart met het nieuwe IP
+> 6. Opnieuw verbinden via WiFi → surf naar `https://192.168.2.1`
+> 7. Steek daarna pas de WAN-kabel in de thuisrouter
+>
+> Na deze stap is de Balance 20X bereikbaar op `192.168.2.1` en is er geen conflict meer.
 
-FusionHub (virtueel) heeft twee grote beperkingen die op fysieke hardware **niet** bestaan:
+### Waarom een fysieke Peplink? (Live3 hybride-validatie)
 
-1. **Peplink enterprise SNMP OIDs** (`1.3.6.1.4.1.23695.*`) voor CPU-gebruik, geheugen, gedetailleerde WAN-info → op FusionHub niet beschikbaar, op Balance 20X wél
-2. **Lokale REST API** → op FusionHub gaf elke call "unknown function", op fysieke hardware zou dit wél moeten werken
+FusionHub (virtueel) heeft twee structurele beperkingen die op fysieke hardware **niet** bestaan:
 
-De fysieke Balance 20X laat toe om te valideren dat de observability stack ook werkt met de extra datapunten die in de productieomgeving bij Mediaventures beschikbaar zullen zijn.
+1. **Peplink enterprise SNMP OIDs** (`1.3.6.1.4.1.23695.*`) voor gedetailleerde WAN-status, WiFi clients, signal strength → op FusionHub niet beschikbaar, op Balance 20X wél.
+2. **Lokale REST API** (`/cgi-bin/MANGA/api.cgi`) met `status.cpu` en `status.ap` → FusionHub antwoordt met "unknown function", Balance 20X levert deze datapunten rechtstreeks.
+
+De fysieke Balance 20X is in de PoC opgenomen als **Live3 — hybride fysiek↔virtueel spoke**. Het toestel vormt een P2P PepVPN-tunnel (`Bornem-Live3`) met FH-Bornem en fungeert zo als een vijfde volwaardige site in de topologie. Deze keuze levert twee bewijsdoelen tegelijk:
+
+1. **Observability-dekking op fysieke hardware** — alle metrics (ICMP, SNMP MIB-II, enterprise SNMP, lokale API, ping-jitter, Loki syslog) worden in dezelfde dashboard-secties en met dezelfde alert-regels gevalideerd tegen een fysiek toestel. Als de stack virtueel én fysiek werkt zonder aparte code-paden, dekt hij het volledige Peplink-spectrum.
+2. **Hybride PepVPN-validatie** — de tunnel tussen een virtuele FusionHub-hub en een fysieke Balance 20X-spoke reproduceert de realistische productiesituatie bij Mediaventures, waar SpeedFusion-tunnels tussen FusionHub-cloud en fysieke veldunits lopen. Tunnel-down scenario's, tc netem latency-injecties en packet-loss tests kunnen rechtstreeks tegen Live3 worden uitgevoerd en bewijzen dat de observability stack fysiek↔virtueel identiek reageert.
+
+Live3 wordt **buiten het bestaande `MediaVentures-Hub` Star-profiel** gehouden en bereikt de observability stack via **WiFi-direct** (192.168.1.1 op de bridged adapter van de obs VM). Er is geen actieve PepVPN-tunnel tussen Balance 20X en FH-Bornem — de tunnelpoging is op 16 april 2026 opgegeven (zie scopeverantwoording hieronder).
+
+> **Scopeverantwoording voor poc.tex:** de 4 FusionHub-VMs modelleren de productie-topologie (Bornem-hub, Venue-mixing, Live1/Live2-spokes) en vormen een **symmetrische, reproduceerbare** testomgeving voor tunnel- en site-scenario's. De Balance 20X is als Live3 toegevoegd om expliciet te bewijzen dat de observability stack werkt op fysieke Peplink-hardware — met metrics die FusionHub niet biedt (enterprise SNMP WAN/WiFi, lokale REST API CPU). De 4 FusionHub PepVPN-profielen (Bornem-star + 2 P2P) leveren het bewijs voor tunnel-monitoring; de Balance 20X levert het bewijs voor fysieke hardware-observability. Beide bewijsdoelen zijn gedekt zonder dat een werkende Balance 20X↔FusionHub-tunnel vereist is.
+>
+> **PrimeCare-voetnoot:** PrimeCare verlopen → InControl2 rapporteert device_online=0 voor Balance 20X, terwijl SNMP/lokale API/ICMP normaal werken. Dit mismatch-patroon is zelf een argument voor de multi-bron aanpak: geen enkele single-source monitoring had hier het correcte beeld gegeven.
+>
+> **PepVPN-tunnel Balance 20X — opgegeven 16 april 2026:** Een P2P-profiel `Bornem-Live3` was aangemaakt in IC2 maar de tunnel bleef steken in een auth-cyclus (PSK correct, maar FH-Bornem-profiel IC2-locked en niet debugbaar). Na meerdere pogingen is de tunnel-aanpak opgegeven wegens deadline-druk en marginale meerwaarde bovenop de 4 werkende FusionHub-tunnels. De Balance 20X is daarna overgeschakeld naar WiFi-direct monitoring. Zie ook LIVE3-DEPLOY-NOTES.md.
+>
+> **Syslog-limitatie (open):** zonder werkende PepVPN-tunnel is syslog van de Balance 20X locatie-afhankelijk (bridged WiFi-IP van obs VM — DHCP). Zie Stap 2 Syslog forwarding hieronder voor details.
 
 ### Setup-stappen fysieke Balance 20X
 
@@ -738,22 +777,33 @@ De fysieke Balance 20X laat toe om te valideren dat de observability stack ook w
 **Doel:** Valideren welke Peplink enterprise OIDs beschikbaar zijn op fysieke hardware.
 **Resultaat:** Zie `poc/snmp_fysieke_peplink.md` — 200+ enterprise OIDs gevonden (WAN status, bandwidth, WiFi AP). CPU/geheugen OIDs niet beschikbaar op dit model.
 
-#### Stap 2 — Syslog forwarding instellen ✅
+#### Stap 2 — Syslog forwarding instellen ⚠️ (gedocumenteerde limitatie)
 
 1. Ga naar `https://192.168.1.1` → **System → Event Log**
 2. Stel een **Remote Syslog Server** in
-   - IP: `192.168.1.54` (bridged IP van de observability VM)
-   - Poort: `514` (UDP)
+   - IP: bridged IP van de observability VM (controleer via `ip -4 addr show eth2` op de obs VM)
+   - Poort: `1514` (UDP — Promtail luistert op 1514)
 3. Sla op → "Changes Applied"
 
-**Resultaat:** Syslog berichten van `balance-2622` komen binnen in `/var/log/fusionhub_syslog.log` en worden door Promtail naar Loki gestuurd. Geverifieerd op 2026-03-23.
+**Resultaat:** Syslog berichten van `balance-2622` komen binnen via de bridged WiFi-adapter (`eth2`) van de obs VM en worden door Promtail naar Loki gestuurd.
 
-#### Stap 3 — InControl2 registratie
+> **Bekende limitatie — locatie-afhankelijk syslog-IP:**
+> De obs VM ontvangt syslog via haar bridged WiFi-adapter (`eth2`), die een DHCP-adres krijgt van het lokale WiFi-netwerk. Dit IP verandert per locatie (thuis, school, hotspot). De Balance 20X moet telkens handmatig naar het nieuwe IP worden geconfigureerd als de laptop van netwerk wisselt.
+>
+> **Oorsprong:** Er was een plan om de PepVPN-tunnel `Bornem-Live3` op te zetten zodat syslog via `10.1.1.100:1514` (tunnel-IP, locatie-onafhankelijk) kon worden verstuurd. Die tunnel is op 16 april 2026 opgegeven wegens PrimeCare-beperkingen (zie sectie 11.5 en de scopeverantwoording). Daarmee blijft de locatie-afhankelijkheid van het syslog-IP een openstaande limitatie.
+>
+> **Impact in productie:** In een echte productieomgeving heeft de obs-server een vast IP (statisch of via PepVPN-tunnel). Dit probleem is dus PoC-specifiek en geen structureel obstakel voor uitrol.
+
+#### Stap 3 — InControl2 registratie ✅
 
 1. Ga naar **System → InControl2** (of **Cloud Management**)
 2. Zorg dat InControl2 management **ingeschakeld** is
 3. Het toestel verschijnt in je bestaande organisatie (`a1pokv`) of registreer het handmatig via serienummer
 4. Voeg het toe aan groep `MediaVentures` (group ID 4)
+
+**Resultaat (14 april 2026):** Balance 20X verschijnt in InControl2 als `Balance_2622` met device_id=25. `peplink_device_online` rapporteert echter `0` ondanks dat het device bereikbaar is.
+
+> **Bekende limitatie — PrimeCare verlopen:** De PrimeCare-licentie van de Balance 20X is verlopen. Dit beperkt de InControl2 API-data voor dit device (device_online=0 ondanks werkende verbinding). SNMP, lokale REST API en ICMP werken ongehinderd verder. Dit illustreert de **meerwaarde van de multi-bron aanpak**: zelfs als één databron (IC2 API) wegvalt door een licentiekwestie, blijven de overige drie databronnen volledig operationeel. Zie bap-schrijfpunten in MEMORY.md.
 
 **Doel:** De incontrol2-exporter kan dan ook deze fysieke device monitoren via de API.
 
