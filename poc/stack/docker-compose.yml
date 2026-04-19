@@ -110,6 +110,49 @@ services:
       SRT_LISTEN_PORT: "9000"
       EXPORTER_PORT: "9117"
 
+  ndi-exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile.ndi
+    container_name: ndi-exporter
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      # NDI discovery vereist mDNS (Avahi). Host avahi-daemon via DBus/unix-socket exposen
+      # aan de container zodat libavahi-client in de NDI SDK bronnen ziet.
+      - /var/run/dbus:/var/run/dbus:ro
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
+    environment:
+      NDI_SOURCE_NAME: "NDI Test Stream"
+      EXPORTER_PORT: "9118"
+      COLLECT_INTERVAL: "5"
+      NDI_EXTRA_IPS: "127.0.0.1"
+
+  # Synthetische NDI-bron voor demo/scenario's — NIET deel van de observability stack zelf.
+  # Vereist NDI SDK (Install_NDI_SDK_v5_Linux.tar.gz in poc/stack/).
+  # Activeren: docker compose --profile demo up -d
+  ndi-test-stream:
+    build:
+      context: .
+      dockerfile: Dockerfile.ndi
+    container_name: ndi-test-stream
+    profiles: ["demo"]
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      # Sender publiceert via mDNS; host avahi-daemon toegankelijk maken.
+      - /var/run/dbus:/var/run/dbus:ro
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
+    environment:
+      NDI_SOURCE_NAME: "NDI Test Stream"
+      NDI_WIDTH: "1280"
+      NDI_HEIGHT: "720"
+      NDI_FPS_N: "25"
+      NDI_FPS_D: "1"
+    command: ["python", "-u", "ndi_sender.py"]
+    depends_on:
+      - ndi-exporter
+
   # Synthetische SRT-bron voor demo/scenario's — NIET deel van de observability stack zelf.
   # Opt-in via profile zodat baseline-metingen (CPU/RAM) de stack representeren zonder werklast.
   # Activeren: docker compose --profile demo up -d

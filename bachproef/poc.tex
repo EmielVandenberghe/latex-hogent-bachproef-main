@@ -32,7 +32,7 @@ Tabel~\ref{tab:repo-structuur} geeft een overzicht van de mappenstructuur van de
     \textbf{Map / bestand} & \textbf{Beschrijving} \\
     \hline
     \texttt{poc/stack/Vagrantfile}                 & Provisioning van de AlmaLinux 9 observability-VM \\
-    \texttt{poc/stack/docker-compose.yml}          & Definitie van 10 containers (Prometheus, Grafana, Loki, exporters, SRT) \\
+    \texttt{poc/stack/docker-compose.yml}          & Definitie van 12 containers (Prometheus, Grafana, Loki, exporters, SRT, NDI) \\
     \texttt{poc/stack/Dockerfile}                  & Python-image voor de \texttt{incontrol2-exporter} (pysnmp 4.4.12 gepind) \\
     \texttt{poc/stack/Dockerfile.ping}             & Image met \texttt{iputils-ping} voor de jitter-exporter \\
     \texttt{poc/stack/Dockerfile.srt}              & Image met \texttt{srt-live-transmit} voor de SRT-exporter \\
@@ -85,11 +85,11 @@ De gekozen ICS~+~Host-Only~+~VyOS-topologie werd bewust boven VirtualBox' NAT-ad
 \section{Observability-stack}
 \label{sec:poc-stack}
 
-De stack draait als tien Docker-containers op de observability-VM, georkestreerd via Docker Compose. De keuze voor containers garandeert reproduceerbaarheid en isoleert elke functie in een eigen eenheid. Tabel~\ref{tab:containers} geeft een overzicht.
+De stack draait als twaalf Docker-containers op de observability-VM, georkestreerd via Docker Compose. De keuze voor containers garandeert reproduceerbaarheid en isoleert elke functie in een eigen eenheid. Tabel~\ref{tab:containers} geeft een overzicht.
 
 \begin{table}[htbp]
   \centering
-  \caption[Containers in de observability-stack]{De tien containers van de observability-stack en hun rol.}
+  \caption[Containers in de observability-stack]{De twaalf containers van de observability-stack en hun rol.}
   \label{tab:containers}
   \begin{tabular}{l l p{0.54\linewidth}}
     \hline
@@ -105,11 +105,13 @@ De stack draait als tien Docker-containers op de observability-VM, georkestreerd
     node-exporter         & 9100      & Systeemmetrics van de VM \\
     srt-exporter          & 9117      & Parser van \texttt{srt-live-transmit} CSV-stats \\
     srt-test-stream       & --        & FFmpeg-testsignaal als SRT-caller naar \texttt{srt-exporter} \\
+    ndi-exporter          & 9118      & \texttt{ctypes}-binding op de NDI SDK; frame-level metrics per NDI-bron \\
+    ndi-test-stream       & --        & Synthetische NDI-bron (SMPTE-kleurbalken 1280$\times$720 @ 25~fps) \\
     \hline
   \end{tabular}
 \end{table}
 
-Drie containers draaien met \texttt{network\_mode: host} omdat ze rechtstreeks moeten kunnen communiceren met netwerkinterfaces van de VM: de \texttt{incontrol2-exporter} voor SNMP- en lokale-API-polling, de \texttt{blackbox-exporter} voor ICMP, en de \texttt{ping-exporter} voor raw-sockets. Een gevolg is dat Prometheus deze exporters adresseert via het VM-IP (\texttt{10.1.1.100}), niet via de containernaam.
+Vijf containers draaien met \texttt{network\_mode: host} omdat ze rechtstreeks moeten kunnen communiceren met netwerkinterfaces van de VM: de \texttt{incontrol2-exporter} voor SNMP- en lokale-API-polling, de \texttt{blackbox-exporter} voor ICMP, de \texttt{ping-exporter} voor raw-sockets, de \texttt{srt-exporter} die een UDP-listener op de loopback opzet, en de \texttt{ndi-exporter} die via mDNS/Avahi NDI-bronnen ontdekt. Een gevolg is dat Prometheus deze exporters adresseert via het VM-IP (\texttt{10.1.1.100}), niet via de containernaam. De SRT- en NDI-teststream-containers staan bovendien achter een Docker-Compose-profile (\texttt{demo}) zodat ze enkel meelopen tijdens scenario-metingen en niet tijdens baseline-resource-metingen.
 
 \subsection{Technische bevindingen tijdens integratie}
 
@@ -120,6 +122,8 @@ Tijdens de implementatie kwamen verschillende praktijkbevindingen naar boven die
   \item \textbf{CPU- en geheugen-OIDs zijn niet beschikbaar op FusionHub.} De Peplink enterprise-OIDs onder \texttt{.1.3.6.1.4.1.23695.200.*} bestaan enkel op fysieke hardware. Dit verschil is een structureel gevolg van het virtuele karakter van FusionHub en wordt in de observability-stack opgevangen door de lokale REST-API te gebruiken: \texttt{status.cpu} werkt op beide platformen en levert de unieke bron voor CPU-belasting.
   \item \textbf{Statische routes vereist op de observability-VM.} Omdat de VM standaard enkel \texttt{10.1.1.0/24} kent, moeten de subnetten van Venue, Live1 en Live2 expliciet via VyOS als gateway toegevoegd worden. Zonder deze routes tonen de overige sites ICMP~DOWN in Grafana.
   \item \textbf{Docker Compose leest \texttt{.env} niet opnieuw bij restart.} Een klassieke valkuil: \texttt{docker compose restart} behoudt de oude environment. Enkel \texttt{docker compose up -d --force-recreate} past een gewijzigde \texttt{.env} effectief toe.
+  \item \textbf{NDI-discovery vereist een bereikbare Avahi-daemon, niet enkel \texttt{libavahi-client}.} Het NDI-protocol gebruikt mDNS (\texttt{\_ndi.\_tcp.local.}) om bronnen te ontdekken. \texttt{libavahi-client3} in de container installeren is niet voldoende --- die library heeft een dráaiende \texttt{avahi-daemon} nodig om mee te praten, anders geeft \texttt{NDIlib\_find\_get\_current\_sources()} nul bronnen (óók met \texttt{NDI\_EXTRA\_IPS=127.0.0.1}, omdat die parameter alsnog mDNS-resolutie vereist). Opgelost door \texttt{avahi} op de observability-VM te installeren en de DBus- en Avahi-socket van de host via bind-mounts door te geven aan beide NDI-containers.
+  \item \textbf{NDI-receivers moeten continu gedraind worden.} Een eerste versie van de \texttt{ndi-exporter} riep \texttt{NDIlib\_recv\_capture\_v2()} één keer per scrape-interval aan. Daardoor liep de interne NDI-queue vol en werd ongeveer de helft van de binnenkomende frames weggegooid, zichtbaar als een kunstmatige \texttt{frame\_drop\_rate} van ca.\ 50\%. De uiteindelijke implementatie gebruikt een tight drain-loop met een 5~ms-timeout die continu frames ophaalt; de performance- en queue-statistieken worden apart uitgelezen. De restdrop-rate in loopback-situatie (\textasciitilde{}10\%) is een eigenschap van de synthetische Python-sender en blijft in productie afwezig wanneer een hardware-encoder de bron levert.
 \end{itemize}
 
 \section{Datacollectie en verzamelde metrics}
@@ -133,6 +137,7 @@ De stack combineert vier databronnen die elkaar complementeren. Elke laag dekt e
   \item[Lokale Peplink REST-API.] Via het endpoint \texttt{/cgi-bin/MANGA/api.cgi} wordt \texttt{status.cpu} en \texttt{status.ap} opgehaald; die leveren respectievelijk \texttt{peplink\_local\_cpu\_load\_percent} en \texttt{peplink\_local\_ap\_up}. Een metric \texttt{peplink\_local\_api\_reachable} fungeert als zelfbewaking van deze bron.
   \item[ICMP en jitter.] De blackbox-exporter levert \texttt{probe\_success} en \texttt{probe\_icmp\_duration\_seconds}, terwijl de ping-exporter via \texttt{ping -c 20} nauwkeurige waardes voor \texttt{ping\_jitter\_ms}, \texttt{ping\_rtt\_avg\_ms} en \texttt{ping\_packet\_loss\_percent} berekent. Jitter via \texttt{mdev} is substantieel nauwkeuriger dan een PromQL-benadering met \texttt{stddev\_over\_time}.
   \item[SRT-stream.] De \texttt{srt-exporter} start \texttt{srt-live-transmit} als listener op UDP~9000 en parsed de CSV-statistieken. Dat levert \texttt{srt\_stream\_active}, \texttt{srt\_bitrate\_kbps}, \texttt{srt\_rtt\_ms}, \texttt{srt\_packet\_loss\_percent}, \texttt{srt\_jitter\_ms}, \texttt{srt\_retransmit\_rate} en \texttt{srt\_retransmit\_total}.
+  \item[NDI-stream.] De \texttt{ndi-exporter} spreekt via een \texttt{ctypes}-binding rechtstreeks met \texttt{libndi.so.6} uit het NDI SDK. Hij abonneert zich op een bronnaam (standaard \emph{``NDI Test Stream''}) en levert \texttt{ndi\_stream\_active}, \texttt{ndi\_frames\_received\_total}, \texttt{ndi\_frames\_dropped\_total}, \texttt{ndi\_frame\_drop\_rate}, \texttt{ndi\_video\_fps}, \texttt{ndi\_video\_width}, \texttt{ndi\_video\_height} en \texttt{ndi\_queue\_depth\_frames}. Daarnaast publiceert hij \texttt{ndi\_sdk\_available} en \texttt{ndi\_sources\_detected} als zelf-bewaking: als de SDK ontbreekt schakelt de exporter automatisch over op een discovery-only modus op basis van zeroconf.
   \item[Logs.] FusionHub- en Peplink-syslog wordt via UDP~1514 naar Promtail verstuurd en opgeslagen in Loki, samen met de \texttt{stdout}-logs van de containers zelf.
 \end{description}
 
@@ -141,7 +146,7 @@ In totaal leveren de exporters meer dan 35 metrics per scrape, wat toelaat om ge
 \section{Grafana-dashboard}
 \label{sec:poc-dashboard}
 
-Het centrale dashboard \emph{Mediaventures --- Observability Dashboard} is opgebouwd uit elf secties die van boven naar beneden de volledige keten tonen. Het dashboard wordt via JSON-provisioning geladen, zodat elke wijziging versiebeheerbaar is en niet verloren gaat bij een restart.
+Het centrale dashboard \emph{Mediaventures --- Observability Dashboard} is opgebouwd uit twaalf secties die van boven naar beneden de volledige keten tonen. Het dashboard wordt via JSON-provisioning geladen, zodat elke wijziging versiebeheerbaar is en niet verloren gaat bij een restart.
 
 \begin{figure}[htbp]
   \centering
@@ -196,6 +201,8 @@ Het centrale dashboard \emph{Mediaventures --- Observability Dashboard} is opgeb
   \caption[Sectie 11: SRT stream kwaliteit]{Baseline van de SRT-teststream: \textasciitilde{}1\,695 kbps, RTT $\approx$ 1~ms op loopback, 0\% loss.}
   \label{fig:baseline-srt}
 \end{figure}
+
+\paragraph{Sectie 12 --- NDI stream kwaliteit.} Analoog aan sectie~11 voor SRT bevat deze sectie stat- en gauge-panels voor \texttt{ndi\_stream\_active}, \texttt{ndi\_video\_fps}, \texttt{ndi\_frame\_drop\_rate}, \texttt{ndi\_sources\_detected} en \texttt{ndi\_sdk\_available}, aangevuld met tijdreeksen voor de framerate, de receiver-queue-diepte, het aantal ontvangen versus gedropte frames per seconde, en de drop-rate doorheen de tijd. Het toevoegen van deze sectie bewijst dat dezelfde observability-aanpak die voor SRT werkt (één exporter die de applicatielaag vertaalt naar Prometheus-metrics) ook op het dominante IP-videoprotocol binnen productie-LANs van Mediaventures van toepassing is. De \texttt{queue\_depth}-metric is bijzonder waardevol: een stijgende bufferbezetting vormt een vroeg signaal van congestie of receiver-saturatie, nog vóór frame drops zich manifesteren.
 
 \section{Alerting}
 \label{sec:poc-alerting}
@@ -348,7 +355,7 @@ Op 15 april werd het resourceverbruik van de volledige stack gemeten op een 2~vC
     \textbf{Resource} & \textbf{Gebruik} & \textbf{Capaciteit} \\
     \hline
     RAM (alle containers samen) & 977 MiB & 3\,892 MiB (25\%) \\
-    CPU (totaal 10 containers)  & $\sim$126\% van 1~vCPU & 200\% (2 vCPU) \\
+    CPU (totaal 12 containers)  & $\sim$130\% van 1~vCPU & 200\% (2 vCPU) \\
     Disk (Loki + Prometheus)    & $<$250 MiB & 19 GB \\
     \hline
   \end{tabular}
@@ -369,7 +376,7 @@ Om de verdedigbaarheid van de PoC transparant te houden, worden de belangrijkste
 
 \paragraph{SMTP voor alert-notificaties.} De Grafana-alerting is gekoppeld aan een email-contactpoint, maar er is in het PoC geen SMTP-server geconfigureerd. Alerts zijn dus zichtbaar in de Grafana-UI maar worden niet effectief verzonden. Voor productie volstaat het toevoegen van \texttt{GF\_SMTP\_*}-variabelen, of een Teams/Slack-webhook.
 
-\paragraph{NDI uit scope.} Het onderzoek focust op SRT en PepVPN; NDI-monitoring is opgenomen als optionele uitbreiding maar niet volledig uitgewerkt. De bijbehorende onderzoeksresultaten en exporters kunnen na de bachelorproef alsnog toegevoegd worden aan dezelfde stack.
+\paragraph{NDI geïntegreerd, wel met virtuele bron.} NDI-monitoring is niet langer een toekomstige uitbreiding: de \texttt{ndi-exporter} draait volledig operationeel en exporteert frame-level metrics via de officiële NDI SDK. De bron in het PoC is wél een synthetische Python-sender (SMPTE-kleurbalken) op dezelfde observability-VM, niet een hardware-encoder in een productie-LAN. Dat wijzigt niets aan de code van de exporter --- hij abonneert zich op een bronnaam, ongeacht of die van een camera, een mixer of een testscript komt --- maar levert wel twee nuances op. Ten eerste is mDNS in de PoC enkel link-local getest; voor cross-VLAN-detectie biedt NDI de \emph{Discovery Server} aan, die in Mediaventures een vervolgtraject is. Ten tweede vertoont de synthetische loopback-opstelling een restdrop-rate van ongeveer 10\% die te wijten is aan de timing-precisie van de Python-sender en niet aan de meting zelf; in een productiescenario met een hardware-encoder verdwijnt die baseline.
 
 \section{Synthese}
 \label{sec:poc-synthese}

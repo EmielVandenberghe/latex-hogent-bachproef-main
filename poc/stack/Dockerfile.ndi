@@ -1,0 +1,57 @@
+FROM python:3.11-slim
+
+# Runtime deps: Avahi voor mDNS NDI-discovery, libstdc++ voor libndi.so.6
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libavahi-client3 \
+        libavahi-common3 \
+        libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# ─── NDI SDK installatie ──────────────────────────────────────────────────────
+# Vereist: Install_NDI_SDK_v6_Linux.tar.gz (of v5) in poc/stack/ naast dit bestand.
+# Download gratis op: https://ndi.video/for-developers/ndi-sdk/
+# Zonder het bestand start de exporter in mDNS-discovery-modus (beperkte metrics).
+# ─────────────────────────────────────────────────────────────────────────────
+COPY . /build_ctx/
+
+RUN set -e; \
+    SDK_TAR=$(ls /build_ctx/Install_NDI_SDK_v*_Linux.tar.gz 2>/dev/null | head -1); \
+    if [ -n "$SDK_TAR" ]; then \
+        echo "==> NDI SDK tar gevonden: $SDK_TAR"; \
+        tar -xzf "$SDK_TAR" -C /tmp/; \
+        INSTALLER=$(find /tmp -name "Install_NDI_SDK_v*_Linux.sh" -maxdepth 2 | head -1); \
+        if [ -n "$INSTALLER" ]; then \
+            chmod +x "$INSTALLER"; \
+            cd /tmp && printf 'y\ny\n' | bash "$INSTALLER"; \
+            ARCH=$(uname -m); \
+            LIBDIR="/tmp/NDI SDK for Linux/lib/${ARCH}-linux-gnu"; \
+            if [ -d "$LIBDIR" ]; then \
+                cp "$LIBDIR"/libndi.so* /usr/local/lib/; \
+                ldconfig; \
+                echo "==> NDI SDK klaar: $(ls /usr/local/lib/libndi*)"; \
+            else \
+                echo "WAARSCHUWING: $LIBDIR niet gevonden — discovery-only modus"; \
+            fi; \
+        else \
+            echo "WAARSCHUWING: geen .sh installer in tar — discovery-only modus"; \
+        fi; \
+        rm -rf /tmp/Install_NDI_SDK_v* "/tmp/NDI SDK for Linux"; \
+    else \
+        echo "==> NDI SDK niet aanwezig — exporter start in discovery-only modus"; \
+        echo "    Download: https://ndi.video/for-developers/ndi-sdk/"; \
+    fi; \
+    rm -rf /build_ctx
+
+# Python dependencies
+RUN pip install --no-cache-dir zeroconf numpy
+
+WORKDIR /app
+COPY ndi_exporter.py ndi_sender.py ./
+
+ENV NDI_SOURCE_NAME="NDI Test Stream"
+ENV EXPORTER_PORT=9118
+ENV COLLECT_INTERVAL=5
+
+EXPOSE 9118
+
+CMD ["python", "-u", "ndi_exporter.py"]
