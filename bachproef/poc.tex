@@ -381,14 +381,14 @@ De methodologie (sectie~\ref{sec:fase5}) benoemt drie connectiviteitsscenarios a
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.95\linewidth,height=0.22\textheight,keepaspectratio]{scenario_7_vyos_nat_rule.png}
+  \includegraphics[width=0.8\textwidth,keepaspectratio]{scenario_7_vyos_nat_rule.png}
   \caption[Scenario 7: VyOS nft counter]{\texttt{nft list chain ip vyos\_nat POSTROUTING}: rule~310 telt actief verkeer van \texttt{10.1.3.0/24} naar \texttt{10.1.1.0/24}, bewijs dat de SNAT-masquerade werkelijk geraakt wordt.}
   \label{fig:scenario-7-nft}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.95\linewidth,height=0.22\textheight,keepaspectratio]{scenario_7_vyos_conntrack.png}
+  \includegraphics[width=0.8\textwidth,keepaspectratio]{scenario_7_vyos_conntrack.png}
   \caption[Scenario 7: conntrack masquerade-entry]{\texttt{conntrack -L} toont de bidirectionele UDP~4500-flow tussen \texttt{10.1.1.2} en \texttt{10.1.3.2}; de reply-tuple met \texttt{dport=24249} (in plaats van 4500) bewijst dat VyOS het bron-IP en de bronpoort masquereert.}
   \label{fig:scenario-7-conntrack}
 \end{figure}
@@ -467,7 +467,7 @@ Om de verdedigbaarheid van de PoC transparant te houden, worden de belangrijkste
 
 \paragraph{SMTP voor alert-notificaties.} De Grafana-alerting is gekoppeld aan een email-contactpoint, maar er is in het PoC geen SMTP-server geconfigureerd. Alerts zijn dus zichtbaar in de Grafana-UI maar worden niet effectief verzonden. Voor productie volstaat het toevoegen van \texttt{GF\_SMTP\_*}-variabelen, of een Teams/Slack-webhook.
 
-\paragraph{NDI geïntegreerd, wel met virtuele bron.} NDI-monitoring is niet langer een toekomstige uitbreiding: de \texttt{ndi-exporter} draait volledig operationeel en exporteert frame-level metrics via de officiële NDI SDK. De bron in het PoC is wél een synthetische Python-sender (SMPTE-kleurbalken) op dezelfde observability-VM, niet een hardware-encoder in een productie-LAN. Dat wijzigt niets aan de code van de exporter --- hij abonneert zich op een bronnaam, ongeacht of die van een camera, een mixer of een testscript komt --- maar levert wel twee nuances op. Ten eerste is mDNS in de PoC enkel link-local getest; voor cross-VLAN-detectie biedt NDI de \emph{Discovery Server} aan, die in Mediaventures een vervolgtraject is. Ten tweede vertoont de synthetische loopback-opstelling een restdrop-rate van 10--15\% die te wijten is aan de timing-precisie van de Python-sender en niet aan de meting zelf; in een productiescenario met een hardware-encoder verdwijnt die baseline.
+\paragraph{NDI geïntegreerd, wel met virtuele bron.} NDI-monitoring is niet langer een toekomstige uitbreiding: de \texttt{ndi-exporter} draait volledig operationeel en exporteert frame-level metrics via de officiële NDI SDK. De bron in het PoC is wél een synthetische Python-sender (SMPTE-kleurbalken) op dezelfde observability-VM, niet een hardware-encoder in een productie-LAN. Dat wijzigt niets aan de code van de exporter --- hij abonneert zich op een bronnaam, ongeacht of die van een camera, een mixer of een testscript komt --- maar levert wel twee nuances op. Ten eerste is mDNS in de PoC enkel link-local getest; voor cross-VLAN-detectie biedt NDI de \emph{Discovery Server} aan, die in Mediaventures een vervolgtraject is. Ten tweede vertoont de synthetische loopback-opstelling een restdrop-rate van 10--15\% die te wijten is aan de timing-precisie van de Python-sender en niet aan de meting zelf; in een productiescenario met een hardware-encoder verdwijnt die baseline grotendeels.
 
 \section{Synthese}
 \label{sec:poc-synthese}
