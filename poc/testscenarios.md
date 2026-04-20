@@ -15,6 +15,7 @@ Het voorstel beschrijft drie validatiescenario's voor fase 6, aangevuld met twee
 | **3 — Overbelasting** | Meerdere gelijktijdige datastromen |
 | **4 — SRT Streamkwaliteit** | Packet loss en latency impact op SRT |
 | **5 — Fysieke hardware (Balance 20X)** | Connectiviteitsverlies Live3 via WiFi-disconnect |
+| **6 — NDI Stream Onderbreking** | Sender gestopt → stream_active=0, alert firet, recovery |
 
 Elk scenario wordt uitgevoerd op de VyOS router via `tc netem` (Linux Traffic Control). De effecten zijn zichtbaar in het Grafana dashboard.
 
@@ -319,6 +320,138 @@ WiFi AP terug ingeschakeld → obs VM herverbindt → route naar 192.168.1.1 her
 - `scenario_5a_live3_offline_alerts-pending.png` — alerts pending
 - `scenario_5a_live3_offline_alerts.png` — alerts firing (incl. cascade PepVPN)
 - `scenario_5b_live3_herstel.png` — na herstel volledig groen
+
+---
+
+## Scenario 6 — NDI Stream Onderbreking
+
+**Uitgevoerd op:** 20 april 2026
+
+**Doel:** Valideer dat de observability-stack een plotse onderbreking van een NDI-bron binnen seconden detecteert, en dat de kritieke alert (`ndi_stream_active == 0`) effectief firet. Analoog aan scenario 4 voor SRT, maar op de NDI-laag (frame-level, mDNS discovery).
+
+**Context:** NDI-monitoring draait volledig via de `ndi-exporter` (ctypes-binding op NDI SDK v6) met als bron de synthetische `ndi-test-stream` (Python-sender, SMPTE-kleurbalken 1280×720 @ 25 fps). Discovery verloopt via Avahi/mDNS (`_ndi._tcp.local.`).
+
+### 6a — Stream offline (sender gestopt)
+
+**Commando op de observability VM:**
+```bash
+cd /opt/observability
+docker compose --profile demo stop ndi-test-stream
+```
+
+**Verwacht resultaat (binnen ~15 s):**
+- `ndi_stream_active` → 0 (stat-panel "Stream Active" wordt **OFFLINE** rood)
+- `ndi_sources_detected` → 0 (mDNS-advertisement verdwijnt binnen enkele seconden)
+- `ndi_video_fps`, `ndi_queue_depth_frames`, `ndi_frame_drop_rate` → 0 (gauges expliciet gereset door exporter-fix 20 april, anders behoudt Prometheus de laatste waarde tot de scrape stale wordt)
+- `rate(ndi_frames_received_total[1m])` → 0 (zichtbaar als flatline in timeseries "Frames ontvangen vs. gedropt")
+- Alert **[CRITICAL] NDI Stream Inactief** gaat naar Pending → Firing (1 min `for`-duur)
+
+**Screenshot:** `scenario_6a_ndi_outage.png` — sectie 12 volledig rood, alle timeseries op 0.
+
+### 6b — Stream recovery
+
+**Commando:**
+```bash
+docker compose --profile demo start ndi-test-stream
+```
+
+**Verwacht resultaat (binnen ~15–30 s):**
+- Stream Active → **LIVE** (groen)
+- Frame Rate → 25 fps
+- Bronnen gedetecteerd → 2 (Finder ziet de NDI-advertisement + de sender-zelfreferentie)
+- Frame Drop Rate stabiliseert op de ~10–15% baseline van de synthetische Python-sender
+- Alert zakt terug naar Normal
+- Timeseries tonen een duidelijke **stapfunctie** van 0 → normale werking — visueel bewijs van recovery
+
+**Screenshot:** `scenario_6b_ndi_recovery.png` — duidelijke spike van 0 naar 25 fps in "Framerate over tijd".
+
+### Bevindingen
+
+1. **Detectietijd stream_active:** ~15 s (één Prometheus scrape-interval). `ndi_sources_detected` volgt enkele seconden later wanneer het mDNS-record effectief verdwijnt.
+2. **Gauge staleness bug (gevonden tijdens uitvoering):** initieel bleef `ndi_video_fps` op 25 staan na stop, omdat de exporter die gauge niet resette in de "geen bron"-branch. Fix in `ndi_exporter.py`: `video_fps`, `queue_depth`, `video_width/height` en `frame_drop_rate` expliciet op 0 zetten wanneer target verdwijnt. Dit is een algemeen Prometheus-gauge-patroon en wordt in de .tex als technische bevinding meegenomen.
+3. **Alert voor NDI toegevoegd:** `(1 - ndi_stream_active) > 0`, label `{source}` (niet `stream_name` zoals bij SRT), severity **critical**, `for: 1m`. Sluit de 11e regel van de provisioned alerts-set.
+
+---
+
+## Scenario 7 — Asymmetrische NAT (NAT-traversal validatie)
+
+Uitgevoerd: 2026-04-20. Volledig plan: [nat_traversal_plan.md](nat_traversal_plan.md).
+
+### Doel
+
+De methodologie (§Fase 5) benoemt drie connectiviteitsscenarios als productcontext voor PepVPN (publiek IP, één NAT, dubbele NAT). De PoC-basisomgeving test geen van die drie empirisch: alle spokes delen dezelfde VyOS-router en communiceren direct. Dit scenario voegt één expliciet asymmetrisch NAT-geval toe om de kernclaim van de observability-laag te valideren:
+
+> Zolang `peplink_tunnel_up=1` blijft de stack routing-agnostisch — alle exporters werken op tunneladressen (10.1.x.x), ongeacht hoeveel NAT-lagen onder de tunnel zitten.
+
+Wat dit scenario **niet** bewijst: PepVPN's eigen NAT-T onder CGNAT, hole-punching, of keepalive-tuning. Dat is commerciële productfunctionaliteit van Peplink en valt buiten de observability-scope.
+
+### Opstelling
+
+Eén extra `source NAT`-regel op VyOS masquereert verkeer van FH-Live1 (10.1.3.0/24) richting Bornem-subnet (10.1.1.0/24). Vanuit FH-Bornem lijkt Live1 plots afkomstig van 10.1.1.1 (VyOS-eth1) in plaats van 10.1.3.2 — asymmetrische NAT vanuit Bornem's perspectief. De P2P-tunnel Live1↔Venue blijft ongewijzigd.
+
+### Uitvoering
+
+Via obs VM → sshpass → VyOS:
+
+```
+configure
+set nat source rule 310 description "Scenario 7 asymmetric NAT FH-Live1"
+set nat source rule 310 source address 10.1.3.0/24
+set nat source rule 310 destination address 10.1.1.0/24
+set nat source rule 310 outbound-interface name eth1
+set nat source rule 310 translation address masquerade
+commit
+save
+```
+
+Verificatie in kernel:
+
+```
+sudo nft list chain ip vyos_nat POSTROUTING | grep 310
+# oifname "eth1" ip saddr 10.1.3.0/24 ip daddr 10.1.1.0/24 counter packets N masquerade comment "SRC-NAT-310"
+```
+
+**Belangrijke nuance:** omdat de bestaande Bornem↔Live1 tunnel al door Bornem was geïnitieerd, zat er een conntrack-entry in de originele richting (Bornem→Live1). De SNAT-regel werd daardoor initieel niet geraakt door het tunnelverkeer. Pas na het flushen van die entry (`sudo conntrack -D -p udp --sport 4500 --dport 4500 ...`) initieerde Live1 een verse outbound flow die wél onder rule 310 valt. In productie doet de initiatie-kant zich vanzelf voor omdat de spoke-router (Live1) outbound initieert naar een hub met publiek IP. Dit is een artefact van de lab-setup, niet van het scenario zelf.
+
+### Bevindingen
+
+Gemeten in Prometheus na commit van rule 310 en conntrack-flush:
+
+| Metric | Voor | Tijdens | Na 60 s |
+|--------|------|---------|---------|
+| `peplink_tunnel_up{device_name="Live1"}` | 1 | 1 | 1 |
+| `peplink_tunnel_up{device_name="Bornem"}` | 1 | 1 | 1 |
+| `probe_success{site="Live1"}` | 1 | 1 | 1 |
+| `peplink_device_online{device_name="Live1"}` | 1 | 1 | 1 |
+| Firing alerts | 0 | 0 | 0 |
+| Rule 310 counter | 0 pkt | 2 pkt | >3 pkt (groeit) |
+
+De tunnel vertoonde **geen zichtbare flap** op scrape-resolutie (15 s) — consistent met PepVPN's ontwerp dat NAT-rebinding transparant opvangt via serial-based peer-identificatie in plaats van IP-based. Indien een flap wél optreedt, is hij korter dan de alert-drempel van 1 minuut.
+
+**Aanvullende bevinding (bevestigd via FH-Bornem webadmin Status → SpeedFusion VPN):** FH-Bornem toont als peer-IP nog steeds **10.1.3.2** voor conn_to_Live1, niet 10.1.1.1. Dit is correct gedrag: PepVPN registreert de *inner* tunnel-endpoint die tijdens de IC2-handshake is onderhandeld (10.1.3.2/32), niet het *transport*-laag bron-IP dat door VyOS SNAT gemasqueerd wordt (UDP 4500 outer header). PepVPN identificeert peers via serial-number, waardoor de transport-laag masquerade transparant is voor de applicatielaag. Het bewijs van de actieve masquerade zit in VyOS nft/conntrack-output (counter rule 310 groeit, masquerade-entry voor UDP 4500 aanwezig), niet in de PepVPN-UI.
+
+### Conclusie
+
+Scenario 7 bevestigt dat de observability-laag routing-agnostisch is: ondanks de SNAT-masquerade op de transport-laag (UDP 4500) blijven alle drie monitoringsbronnen — ICMP probes (blackbox-exporter), InControl2-API en PepVPN-tunnelstatus — correct rapporteren dat Live1 gezond is, en vertoont de tunnel geen flap. PepVPN's serial-based peer-identificatie maakt het ontwerp inherent NAT-tolerant. De observability-stack is daarmee niet afhankelijk van een specifiek transport-IP maar van de tunneladressering (10.1.x.x), wat de routing-agnostische claim valideert.
+
+### Screenshots (nog te maken door gebruiker)
+
+- `scenario_7_post_nat_steady.png` — Grafana sectie 5 (alle tunnels groen, live na NAT-ingreep)
+- `scenario_7_vyos_nat_rule.png` — terminal: `sudo nft list chain ip vyos_nat POSTROUTING` (counter rule 310 zichtbaar)
+- `scenario_7_vyos_conntrack.png` — terminal: `sudo conntrack -L | grep -E "10\.1\.3\.2.*4500|4500.*10\.1\.1\.1"` (masquerade-bindings)
+
+Plaatsing: `poc/screenshots/` én (na selectie) ook in `bachproef/`.
+
+### Rollback (optioneel)
+
+```
+configure
+delete nat source rule 310
+commit
+save
+```
+
+Alternatief: rule 310 blijft staan als permanente uitbreiding van de PoC; scenario 7 wordt dan de "default-state" voor Live1 en de bachproef is aantoonbaar robuuster.
 
 ---
 

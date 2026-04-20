@@ -199,8 +199,15 @@ def ndi_receiver_loop(lib):
                 if recv_inst:
                     lib.NDIlib_recv_destroy(recv_inst)
                     recv_inst = None
+                    prev_total = 0
+                    prev_dropped = 0
                 with _lock:
                     _metrics['stream_active'] = 0
+                    _metrics['video_fps'] = 0.0
+                    _metrics['video_width'] = 0
+                    _metrics['video_height'] = 0
+                    _metrics['queue_depth'] = 0
+                    _metrics['frame_drop_rate'] = 0.0
                 time.sleep(COLLECT_INTERVAL)
                 continue
 

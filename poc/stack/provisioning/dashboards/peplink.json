@@ -1721,7 +1721,7 @@
         "y": 50
       },
       "options": {
-        "content": "**Actieve profielen (FusionHub):** `Bornem-star` \u2014 Bornem hub \u2192 Venue / Live1 / Live2 \u00a0|\u00a0 `live1-venue` \u2014 Live1 \u2194 Venue \u00a0|\u00a0 `live2-venue` \u2014 Live2 \u2194 Venue\n\n**Niet-operationeel:** `Live3-Bornem` \u2014 Balance\\_2622 \u2194 Bornem (PepVPN voor de fysieke Balance 20X werd opgegeven wegens PrimeCare-licentiebeperking; Live3 wordt gemonitord via WiFi-direct \u2014 zie scope-verantwoording).\n\n_tunnel\\_up=0 = minstens 1 profiel op dat device disconnected_\n\n**Live3 (Balance 20X fysiek)** wordt gemonitord via WiFi-direct (192.168.1.1) \u2014 enterprise SNMP (sectie 3) + lokale API/CPU (sectie 4).",
+        "content": "**Actieve profielen (FusionHub):** `Bornem-star` \u2014 Bornem hub \u2192 Venue / Live1 / Live2 \u00a0|\u00a0 `live1-venue` \u2014 Live1 \u2194 Venue \u00a0|\u00a0 `live2-venue` \u2014 Live2 \u2194 Venue\n\n_tunnel\\_up=0 = minstens 1 profiel op dat device disconnected_",
         "mode": "markdown"
       },
       "transparent": true
@@ -4101,6 +4101,7 @@
       "id": 207,
       "type": "stat",
       "title": "Bronnen gedetecteerd (mDNS)",
+      "description": "Aantal NDI-bronnen dat de NDI-finder via mDNS/Avahi ontdekt op het lokale netwerksegment. Groen zodra er minstens 1 bron is; rood bij 0 (duidt op mDNS-uitval of geen actieve sender). In deze PoC-opstelling kunnen meerdere entries zichtbaar zijn doordat de Avahi-daemon de eigen publicatie ook terugadverteert via loopback; het absolute getal is daarom minder relevant dan de drempel >=1.",
       "gridPos": {
         "x": 14,
         "y": 150,

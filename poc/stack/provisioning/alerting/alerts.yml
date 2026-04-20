@@ -185,6 +185,32 @@ groups:
         labels:
           severity: warning
 
+      # NDI stream inactief (streaming-applicatielaag)
+      - uid: alert-ndi-stream-down
+        title: "[CRITICAL] NDI Stream Inactief"
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - ndi_stream_active) > 0
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "NDI stream {{ $labels.source }} inactief"
+          description: "De NDI-bron {{ $labels.source }} levert al meer dan 1 minuut geen frames. Controleer de sender of de mDNS-discovery."
+        labels:
+          severity: critical
+
       # WAN link down (enterprise SNMP — fysieke hardware)
       - uid: alert-wan-link-down
         title: "[WARNING] WAN Link Down"
