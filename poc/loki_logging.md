@@ -1,12 +1,12 @@
 # Loki & Promtail — Log Aggregatie
 
-**Bachelorproef Mediaventures Observability POC — maart 2026**
+Loki is de logaggregator in de PLG-stack. In combinatie met Promtail worden logs van drie bronnen verzameld: FusionHub syslog, Docker container logs en het VM-systeemlogboek.
 
 ---
 
 ## Overzicht
 
-Loki is de logaggregator in de PLG-stack (Prometheus + **Loki** + Grafana). In combinatie met Promtail (de log-collector agent) worden logs van drie bronnen verzameld:
+Drie bronnen:
 
 1. **FusionHub syslog** — apparaatgebeurtenissen van alle 4 FusionHub VMs via UDP syslog op poort 514
 2. **Docker container logs** — logs van alle containers in de observability stack
@@ -17,14 +17,14 @@ Loki is de logaggregator in de PLG-stack (Prometheus + **Loki** + Grafana). In c
 ## Architectuur
 
 ```
-[FusionHub Bornem]  ──UDP:514──┐
-[FusionHub Venue]   ──UDP:514──┤
-[FusionHub Live1]   ──UDP:514──┤──> [rsyslog :514] ──> /var/log/fusionhub_syslog.log
-[FusionHub Live2]   ──UDP:514──┘                              ↓
+[FusionHub Bornem]  --UDP:514--+
+[FusionHub Venue]   --UDP:514--+
+[FusionHub Live1]   --UDP:514--+--> [rsyslog :514] --> /var/log/fusionhub_syslog.log
+[FusionHub Live2]   --UDP:514--+                              |
                                                     [Promtail file tail]
-                                                              ↓
-[Docker logs /var/run/docker.sock] ──────────────> [Loki :3100] ──> [Grafana]
-[/var/log/messages] ─────────────────────────────>
+                                                              |
+[Docker logs /var/run/docker.sock] -----------------> [Loki :3100] --> [Grafana]
+[/var/log/messages] -------------------------------->
 ```
 
 > **Waarom rsyslog als tussenstap?** FusionHub stuurt RFC 3164 (oud BSD syslog formaat). Promtail's syslog listener verwacht RFC 5424. rsyslog ontvangt op UDP 514, schrijft naar `/var/log/fusionhub_syslog.log`, en Promtail leest het bestand — zo omzeilen we het formatprobleem.
@@ -82,11 +82,11 @@ sudo tail -f /var/log/fusionhub_syslog.log
 
 ### Events triggeren (als bestand leeg is)
 FusionHub stuurt syslog alleen bij events (geen heartbeat). Trigger via:
-- Save klikken op een FusionHub pagina → admin login event
-- FusionHub VM rebooten → VPN tunnel events bij herverbinding
+- Save klikken op een FusionHub pagina — admin login event
+- FusionHub VM rebooten — VPN tunnel events bij herverbinding
 
 ### Controleer in Grafana
-Grafana → Explore → Loki → `{job="fusionhub_syslog"}`
+Grafana Explore Loki: `{job="fusionhub_syslog"}`
 
 ---
 

@@ -1,12 +1,12 @@
 # Grafana Dashboard — Handleiding & Secties
 
-**Bachelorproef Mediaventures Observability POC — maart 2026**
+Handleiding voor het Mediaventures Observability Dashboard: toegang, secties, alert rules en bijwerken van het dashboard-JSON.
 
 ---
 
 ## Toegang
 
-**URL:** http://192.168.137.10:3000
+**URL:** http://192.168.137.10:3000  
 **Login:** admin / admin
 
 ---
@@ -21,7 +21,7 @@ Het dashboard "Mediaventures — Observability Dashboard" heeft **11 secties** d
 
 **Doel:** In één oogopslag de status van alle 5 locaties zien.
 
-Per site (Bornem, Venue, Live1, Live2, **Balance 20X**) worden 3 waarden getoond:
+Per site (Bornem, Venue, Live1, Live2, Balance 20X) worden 3 waarden getoond:
 
 | Waarde | Metric | Betekenis |
 |--------|--------|-----------|
@@ -48,9 +48,9 @@ Per site (Bornem, Venue, Live1, Live2, **Balance 20X**) worden 3 waarden getoond
 
 | Metric | Groen | Geel | Rood |
 |--------|-------|------|------|
-| RTT | < 50ms | 50–150ms | > 150ms |
+| RTT | < 50ms | 50-150ms | > 150ms |
 | Packet Loss | 0% | < 1% | > 5% |
-| Jitter | < 5ms | 5–20ms | > 20ms |
+| Jitter | < 5ms | 5-20ms | > 20ms |
 
 ---
 
@@ -96,10 +96,10 @@ Zie `poc/snmp_fysieke_peplink.md` voor de volledige OID-mapping.
 - **WiFi AP Status** — AP aan/uit per device (via `status.ap`)
 - **Lokale API Bereikbaarheid** — welke devices bereikbaar zijn via de lokale REST API
 
-**API-endpoint:** `POST https://<ip>/cgi-bin/MANGA/api.cgi`
+**API-endpoint:** `POST https://<ip>/cgi-bin/MANGA/api.cgi`  
 **Auth:** Cookie-based login met `{"func": "login", "username": "admin", "password": "<wachtwoord>"}`
 
-**CPU drempelwaarden:** Groen < 60%, Geel 60–85%, Rood > 85%
+**CPU drempelwaarden:** Groen < 60%, Geel 60-85%, Rood > 85%
 
 ---
 
@@ -111,7 +111,7 @@ Zie `poc/snmp_fysieke_peplink.md` voor de volledige OID-mapping.
 - **Tunnel status (4x stat)** — UP/DOWN per device
 - **Tunnel status geschiedenis** — tijdlijn met drops naar 0 bij onderbrekingen
 
-> Tunnels zijn geconfigureerd in een gedeeltelijke mesh: Bornem ↔ Venue, Live1 ↔ Bornem, Live1 ↔ Venue, Live2 ↔ Bornem, Live2 ↔ Venue.
+> Tunnels zijn geconfigureerd in een gedeeltelijke mesh: Bornem op Venue, Live1 op Bornem, Live1 op Venue, Live2 op Bornem, Live2 op Venue.
 
 ---
 
@@ -212,6 +212,6 @@ ssh -i "$KEY" -p 2222 -o StrictHostKeyChecking=no -o PubkeyAcceptedKeyTypes=+ssh
 |-------|---------|
 | Refresh dashboard | `Shift + R` |
 | Tijdvenster uitbreiden | Gebruik de tijdpicker rechtsboven |
-| Panel fullscreen | Klik op panelnaam → View |
-| Explore (ad-hoc queries) | Linkermenu → Explore |
-| Alert rules bekijken | Linkermenu → Alerting → Alert rules |
+| Panel fullscreen | Klik op panelnaam dan View |
+| Explore (ad-hoc queries) | Linkermenu dan Explore |
+| Alert rules bekijken | Linkermenu dan Alerting dan Alert rules |

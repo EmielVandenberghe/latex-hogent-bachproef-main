@@ -1,8 +1,8 @@
 # Monitoring blind-spot: `peplink_tunnel_up` rapporteerde groen zonder profielen
 
-**Datum ontdekking:** 15 april 2026 (tijdens Live3 topologie-uitbreiding)
-**Impact:** sectie 5 "PepVPN Tunnels" van het Grafana dashboard toonde alle tunnels als UP gedurende de periode 7–15 april, terwijl er in die periode aantoonbaar géén PepVPN profielen bestonden in InControl2.
-**Ernst:** hoog — een observability-stack die liegt over tunnel-status ondergraaft de volledige claim van de PoC. Moet expliciet opgelost én gedocumenteerd worden.
+**Datum ontdekking:** 15 april 2026 (tijdens Live3 topologie-uitbreiding)  
+**Impact:** sectie 5 "PepVPN Tunnels" van het Grafana dashboard toonde alle tunnels als UP gedurende de periode 7-15 april, terwijl er in die periode aantoonbaar geen PepVPN profielen bestonden in InControl2.  
+**Ernst:** hoog — een observability-stack die onjuiste tunnel-status rapporteert ondergraaft de volledige claim van de PoC. Moet expliciet opgelost en gedocumenteerd worden.
 
 ---
 
@@ -25,7 +25,7 @@ def get_tunnel_stat(self, org_id, group_id, device_id):
             data = result.get("data", {})
             if isinstance(data, list):
                 if not data:
-                    return True   # ← BUG
+                    return True   # <- BUG
                 return all(t.get("stat") == "ok" for t in data if isinstance(t, dict))
             elif isinstance(data, dict):
                 return data.get("stat") == "ok"
@@ -44,7 +44,7 @@ if stat is not None:
     tunnel_up.labels(d_id, d_name).set(1 if stat else 0)
 ```
 
-Resultaat: voor élk device wordt `peplink_tunnel_up=1` gezet zolang IC2 een lege lijst teruggeeft — onafhankelijk van of er ooit een profiel heeft bestaan.
+Resultaat: voor elk device wordt `peplink_tunnel_up=1` gezet zolang IC2 een lege lijst teruggeeft — onafhankelijk van of er ooit een profiel heeft bestaan.
 
 ## Secundaire oorzaak — Gauge-staleness
 
@@ -55,7 +55,7 @@ Resultaat: voor élk device wordt `peplink_tunnel_up=1` gezet zolang IC2 een leg
 
 ## Hoe het zichtbaar werd
 
-Tijdens de Live3 sessie op 15 april werd de IC2 SpeedFusion VPN page geopend en bleek leeg. Uit gesprek met de gebruiker: profielen waren sinds de re-claim op 7 april niet aangemaakt. Bij het controleren van Grafana sectie 5 "PepVPN Tunnels" stonden alle 4 FusionHub-devices echter groen. Dit mismatcht de waarheid en leidde tot het onderzoek.
+Tijdens de Live3 sessie op 15 april werd de IC2 SpeedFusion VPN page geopend en bleek leeg. Uit gesprek met de gebruiker: profielen waren sinds de re-claim op 7 april niet aangemaakt. Bij het controleren van Grafana sectie 5 "PepVPN Tunnels" stonden alle 4 FusionHub-devices echter groen. Dit mismatcht de werkelijkheid en leidde tot het onderzoek.
 
 ## Fix — voorstel (twee lagen)
 
@@ -84,7 +84,7 @@ def get_tunnel_stat(self, org_id, group_id, device_id):
         if isinstance(data, list):
             count = len(data)
             if count == 0:
-                return (0, None)            # geen profielen — onbepaald
+                return (0, None)            # geen profielen -- onbepaald
             return (count, all(t.get("stat") == "ok" for t in data if isinstance(t, dict)))
         if isinstance(data, dict):
             return (1, data.get("stat") == "ok")
@@ -101,16 +101,16 @@ count, stat = client.get_tunnel_stat(org_id, IC_GROUP_ID, d_id)
 if count is not None:
     tunnel_count.labels(d_id, d_name).set(count)
     if count == 0:
-        # Geen profielen configureerbaar — tunnel_up expliciet 0 (of .remove)
+        # Geen profielen configureerbaar -- tunnel_up expliciet 0 (of .remove)
         tunnel_up.labels(d_id, d_name).set(0)
     elif stat is not None:
         tunnel_up.labels(d_id, d_name).set(1 if stat else 0)
 ```
 
 Met dit patroon:
-- `peplink_tunnel_count == 0` → geen profielen → `peplink_tunnel_up = 0` (correct: "geen healthy tunnel")
-- `peplink_tunnel_count > 0 and peplink_tunnel_up == 1` → alle profielen gezond
-- `peplink_tunnel_count > 0 and peplink_tunnel_up == 0` → minstens één profiel in error
+- `peplink_tunnel_count == 0` -- geen profielen -- `peplink_tunnel_up = 0` (correct: "geen healthy tunnel")
+- `peplink_tunnel_count > 0 and peplink_tunnel_up == 1` -- alle profielen gezond
+- `peplink_tunnel_count > 0 and peplink_tunnel_up == 0` -- minstens één profiel in error
 
 ### Laag 2: stale-label opruiming
 
@@ -118,7 +118,7 @@ Voeg aan het begin van elke `collect_metrics` cycle een `.clear()` toe op de dev
 
 ```python
 def collect_metrics(client, org_id):
-    # Stale labels opruimen vóór nieuwe scrape (voorkomt oude waardes bij verdwenen devices)
+    # Stale labels opruimen voor nieuwe scrape (voorkomt oude waardes bij verdwenen devices)
     tunnel_up.clear()
     tunnel_count.clear()
     device_online.clear()
@@ -156,18 +156,18 @@ Deze regel had de blind-spot op 7 april binnen 5 minuten gedetecteerd.
 
 ## Hoe te verwerken in de bap (verdedigbaarheid)
 
-Deze bevinding is **geen zwakte maar een sterkte** van het werk — mits eerlijk gerapporteerd. Aanbevolen plaatsing:
+Deze bevinding is geen zwakte maar een sterkte van het werk — mits eerlijk gerapporteerd. Aanbevolen plaatsing:
 
 1. **`poc.tex` observability-validatie sectie:** expliciete subsectie "Zelf-validatie van de stack" waarin dit voorbeeld staat. Drie observable momenten:
-   - *Symptoom gedetecteerd* (sectie 5 groen terwijl profielen ontbraken)
-   - *Root cause geïdentificeerd* (exporter returnt `True` bij lege lijst)
-   - *Patch + verdediging in meerdere lagen* (semantiek, staleness, dashboard, alert)
+   - Symptoom gedetecteerd (sectie 5 groen terwijl profielen ontbraken)
+   - Root cause geïdentificeerd (exporter returnt `True` bij lege lijst)
+   - Patch + verdediging in meerdere lagen (semantiek, staleness, dashboard, alert)
 
 2. **`methodologie.tex`:** opnemen als case-study voor iteratief PoC-werk. Monitoring van een monitoring-systeem is recursief — je moet elke metric valideren tegen de grond-waarheid, niet alleen tegen wat het dashboard toont.
 
 3. **`conclusie.tex` aanbevelingen:** algemene les voor productie-observability: **onderscheid "geen data" van "alles is goed"**. Default-to-healthy is een klassieke observability-antipattern (zie o.a. Google SRE boek, "The Myth of Unknown Unknowns"). Elke aggregator/exporter die deze aanname maakt is een latent risico.
 
-4. **Eerlijkheid over de periode:** de screenshots van vóór 15 april die tunnel-status tonen zijn retroactief ongeldig als bewijs voor PepVPN-gezondheid. Ze blijven wél geldig voor andere secties (ICMP, SNMP, lokale API, CPU, SRT). In de bap expliciet vermelden welke baseline screenshots opnieuw gemaakt moeten worden na de fix.
+4. **Eerlijkheid over de periode:** de screenshots van voor 15 april die tunnel-status tonen zijn retroactief ongeldig als bewijs voor PepVPN-gezondheid. Ze blijven wel geldig voor andere secties (ICMP, SNMP, lokale API, CPU, SRT). In de bap expliciet vermelden welke baseline screenshots opnieuw gemaakt moeten worden na de fix.
 
 ## Checklist na toepassing fix
 
@@ -176,6 +176,6 @@ Deze bevinding is **geen zwakte maar een sterkte** van het werk — mits eerlijk
 - [ ] Nieuwe metric `peplink_tunnel_count` gescraped door Prometheus
 - [ ] Dashboard sectie 5 uitgebreid met `peplink_tunnel_count` panel (laag 3)
 - [ ] Nieuwe alert-regel geprovisioneerd (laag 4)
-- [ ] End-to-end test: profiel verwijderen → binnen 1 minuut tunnel_up=0 in Grafana
-- [ ] End-to-end test: profiel opnieuw aanmaken → binnen 1 minuut tunnel_up=1
-- [ ] Nieuwe baseline screenshot sectie 5 mét zichtbare profiel-count
+- [ ] End-to-end test: profiel verwijderen -- binnen 1 minuut tunnel_up=0 in Grafana
+- [ ] End-to-end test: profiel opnieuw aanmaken -- binnen 1 minuut tunnel_up=1
+- [ ] Nieuwe baseline screenshot sectie 5 met zichtbare profiel-count

@@ -1,14 +1,6 @@
 # Blackbox Exporter — Latency, Packet Loss & Jitter via ICMP
 
-**Bachelorproef Mediaventures Observability POC — maart 2026**
-
----
-
-## Wat is de blackbox exporter?
-
-De Prometheus [blackbox exporter](https://github.com/prometheus/blackbox_exporter) voert actieve probes uit naar externe endpoints. In dit POC gebruiken we ICMP (ping) probes om de netwerkkwaliteit tussen de observability-VM en elke FusionHub site te meten.
-
-Dit is **synthetic monitoring**: de observability-stack initieert zelf meetverkeer, in tegenstelling tot passieve monitoring waarbij je wacht op data van de apparaten.
+De Prometheus [blackbox exporter](https://github.com/prometheus/blackbox_exporter) voert actieve ICMP-probes uit naar de FusionHub-sites en rapporteert bereikbaarheid en RTT als Prometheus-metrics.
 
 ---
 
@@ -18,11 +10,11 @@ De InControl2 API en SNMP op FusionHub leveren geen latency, jitter of packet lo
 
 | Metric | InControl2 API | SNMP op FusionHub | Blackbox Exporter |
 |--------|---------------|-------------------|-------------------|
-| Latency (RTT) | ❌ | ❌ | ✅ |
-| Packet Loss | ❌ | ❌ | ✅ |
-| Jitter | ❌ | ❌ | ✅ (berekend) |
-| Tunnel Up/Down | ✅ | ❌ | ❌ |
-| Bandwidth | ✅ | ✅ | ❌ |
+| Latency (RTT) | Nee | Nee | Ja |
+| Packet Loss | Nee | Nee | Ja |
+| Jitter | Nee | Nee | Ja (berekend) |
+| Tunnel Up/Down | Ja | Nee | Nee |
+| Bandwidth | Ja | Ja | Nee |
 
 > **Opmerking voor productie:** Fysieke Peplink-routers (20X, 380X) bieden via de lokale device API wél latency en jitter per SpeedFusion tunnel. De blackbox exporter is een universele aanvulling die onafhankelijk werkt van het routermerk.
 
@@ -35,10 +27,10 @@ De InControl2 API en SNMP op FusionHub leveren geen latency, jitter of packet lo
     |
     | ICMP probe elke 15s
     |
-    +---> 10.1.1.2 (Bornem)    → via intnet-bornem (direct)
-    +---> 10.1.2.2 (Venue)     → via VyOS routing
-    +---> 10.1.3.2 (Live1)     → via VyOS routing
-    +---> 10.1.4.2 (Live2)     → via VyOS routing
+    +---> 10.1.1.2 (Bornem)    -- via intnet-bornem (direct)
+    +---> 10.1.2.2 (Venue)     -- via VyOS routing
+    +---> 10.1.3.2 (Live1)     -- via VyOS routing
+    +---> 10.1.4.2 (Live2)     -- via VyOS routing
 ```
 
 De blackbox exporter draait als Docker container met `network_mode: host` zodat hij de FusionHub IPs kan bereiken via de VM's netwerk stack.
@@ -109,15 +101,15 @@ modules:
 
 ## Relatie met Ping-Jitter Exporter
 
-De blackbox exporter is ideaal voor het meten van **bereikbaarheid, RTT en packet loss**. Voor jitter is een aparte exporter gebouwd (`ping_exporter.py`) die 10 snelle pings stuurt en de `mdev` (mean deviation) rapporteert — dit is de echte jitter zoals ook `ping` zelf dat weergeeft.
+De blackbox exporter meet bereikbaarheid, RTT en packet loss. Voor jitter is een aparte exporter gebouwd (`ping_exporter.py`) die 10 snelle pings stuurt en de `mdev` (mean deviation) rapporteert.
 
 | Metric | Blackbox Exporter | Ping-Jitter Exporter |
 |--------|------------------|---------------------|
-| Bereikbaarheid (probe_success) | ✅ | ✅ (ping_reachable) |
-| RTT gemiddeld | ✅ | ✅ (ping_rtt_avg_ms) |
-| RTT min/max | ❌ | ✅ |
-| Packet loss | ✅ (over tijdvenster) | ✅ (per 10 pings) |
-| Jitter (mdev) | ❌ (benadering via stddev) | ✅ (echte mdev) |
+| Bereikbaarheid (probe_success) | Ja | Ja (ping_reachable) |
+| RTT gemiddeld | Ja | Ja (ping_rtt_avg_ms) |
+| RTT min/max | Nee | Ja |
+| Packet loss | Ja (over tijdvenster) | Ja (per 10 pings) |
+| Jitter (mdev) | Nee (benadering via stddev) | Ja (echte mdev) |
 
 ---
 
@@ -127,9 +119,9 @@ Op basis van de Mediaventures use case (live surgery streaming):
 
 | Metric | Groen | Geel | Rood |
 |--------|-------|------|------|
-| RTT | < 50ms | 50–150ms | > 150ms |
+| RTT | < 50ms | 50-150ms | > 150ms |
 | Packet Loss | 0% | < 1% | > 5% |
-| Jitter | < 5ms | 5–20ms | > 20ms |
+| Jitter | < 5ms | 5-20ms | > 20ms |
 
 SRT heeft ingebouwde herstelcapaciteit via retransmissie, maar bij packet loss > 5% of latency > 200ms kunnen zichtbare artifacts optreden.
 

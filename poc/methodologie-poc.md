@@ -1,39 +1,30 @@
 # Methodologie van het Proof of Concept
 
-## Iteratieve aanpak
-
 Het PoC wordt opgebouwd volgens een iteratieve methodologie, waarbij elke fase voortbouwt op de vorige en de scope incrementeel wordt uitgebreid.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Fase 1: Data Discovery Peplink/InControl2                  │
-│  → Welke metrics zijn beschikbaar via API?                  │
-└──────────────────────┬──────────────────────────────────────┘
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Fase 2: Observability Stack Opzetten                       │
-│  → Prometheus, Grafana, netwerk integratie                  │
-└──────────────────────┬──────────────────────────────────────┘
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Fase 3: Peplink Metrics Integreren                         │
-│  → API polling, exporter, dashboards                        │
-└──────────────────────┬──────────────────────────────────────┘
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Fase 4: Uitbreiding Netwerkapparatuur                      │
-│  → Switches, routers, access points                         │
-└──────────────────────┬──────────────────────────────────────┘
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Fase 5: Streaming/AV Laag (NDI & SRT)                      │
-│  → Applicatie-niveau metrics, end-to-end latency            │
-└──────────────────────┬──────────────────────────────────────┘
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Fase 6: Iteratie & Verfijning                              │
-│  → Alerting, correlatie, documentatie                       │
-└─────────────────────────────────────────────────────────────┘
+Fase 1: Data Discovery Peplink/InControl2
+  Welke metrics zijn beschikbaar via API?
+         |
+         v
+Fase 2: Observability Stack Opzetten
+  Prometheus, Grafana, netwerk integratie
+         |
+         v
+Fase 3: Peplink Metrics Integreren
+  API polling, exporter, dashboards
+         |
+         v
+Fase 4: Uitbreiding Netwerkapparatuur
+  Switches, routers, access points
+         |
+         v
+Fase 5: Streaming/AV Laag (NDI & SRT)
+  Applicatie-niveau metrics, end-to-end latency
+         |
+         v
+Fase 6: Iteratie & Verfijning
+  Alerting, correlatie, documentatie
 ```
 
 ## Fase 1: Data Discovery
@@ -127,8 +118,8 @@ Het PoC wordt opgebouwd volgens een iteratieve methodologie, waarbij elke fase v
 **Activiteiten:**
 - Onderzoeken welke metrics beschikbaar zijn per protocol
 - Exporters/collectors ontwikkelen of bestaande tools integreren
-- Correlatie met netwerk metrics (bijv. VPN throughput ↔ SRT bitrate)
-- End-to-end latency dashboard (bron → encoder → transport → decoder)
+- Correlatie met netwerk metrics (bijv. VPN throughput en SRT bitrate)
+- End-to-end latency dashboard (bron, encoder, transport, decoder)
 
 **Uitdagingen:**
 - NDI metrics zijn niet altijd extern toegankelijk

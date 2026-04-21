@@ -1,6 +1,6 @@
 # Ping-Jitter Exporter — Nauwkeurige Jittermeting
 
-**Bachelorproef Mediaventures Observability POC — maart 2026**
+De ping-jitter exporter voert per site `ping -c 10 -i 0.2` uit en rapporteert de `mdev` (mean deviation) als jitter-metric in Prometheus.
 
 ---
 
@@ -8,19 +8,19 @@
 
 De Prometheus blackbox exporter stuurt 1 ICMP ping per 15 seconden. Jitter berekend als `stddev_over_time(rtt[5m])` is slechts een benadering: het meet de variatie van losse meetpunten over 5 minuten, niet de echte pakket-naar-pakket variatie.
 
-De **ping-jitter exporter** voert `ping -c 10 -i 0.2` uit: 10 snelle pings met 0.2s tussentijd. Dit geeft de `mdev` (mean deviation) die `ping` zelf berekent — dit is de echte jitter, conform hoe netwerktechnici jitter definiëren voor streaming.
+De ping-jitter exporter voert `ping -c 10 -i 0.2` uit: 10 snelle pings met 0.2s tussentijd. Dit geeft de `mdev` (mean deviation) die `ping` zelf berekent — dit is de echte jitter, conform hoe netwerktechnici jitter definiëren voor streaming.
 
 | Methode | Formule | Nauwkeurigheid |
 |---------|---------|---------------|
 | Blackbox stddev | `stddev_over_time(rtt[5m])` | Lage nauwkeurigheid — meet RTT-trend-variatie |
-| Ping mdev (deze exporter) | `ping -c 10 -i 0.2` → mdev | Hoge nauwkeurigheid — meet pakket-naar-pakket variatie |
+| Ping mdev (deze exporter) | `ping -c 10 -i 0.2` mdev | Hoge nauwkeurigheid — meet pakket-naar-pakket variatie |
 
 ---
 
 ## Architectuur
 
 ```
-[ping_exporter container — network_mode: host]
+[ping_exporter container -- network_mode: host]
     |
     | ping -c 10 -i 0.2 <ip>    (elke 30s, per site)
     |
@@ -29,9 +29,9 @@ De **ping-jitter exporter** voert `ping -c 10 -i 0.2` uit: 10 snelle pings met 0
     +---> 10.1.3.2 (Live1)
     +---> 10.1.4.2 (Live2)
     |
-    ↓
+    v
 HTTP :9116/metrics
-    ↑
+    ^
 [Prometheus scrape elke 30s]
 ```
 
@@ -76,7 +76,7 @@ ping-exporter:
   scrape_timeout: 25s
 ```
 
-> Scrape interval 30s: ping duurt ~2s per site × 4 sites = ~8s. 30s geeft voldoende buffer.
+> Scrape interval 30s: ping duurt ~2s per site x 4 sites = ~8s. 30s geeft voldoende buffer.
 
 ---
 
@@ -89,7 +89,7 @@ ping-exporter:
 | `ping_rtt_min_ms{site="..."}` | ms | Minimale RTT van 10 pings |
 | `ping_rtt_avg_ms{site="..."}` | ms | Gemiddelde RTT van 10 pings |
 | `ping_rtt_max_ms{site="..."}` | ms | Maximale RTT van 10 pings |
-| `ping_jitter_ms{site="..."}` | ms | **Jitter = mdev van 10 pings** |
+| `ping_jitter_ms{site="..."}` | ms | Jitter = mdev van 10 pings |
 
 ### Voorbeeld ping output
 ```
@@ -109,8 +109,8 @@ De exporter leest: `min=0.287`, `avg=0.412`, `max=0.891`, `jitter=0.172`.
 
 | Metric | Groen | Geel | Rood |
 |--------|-------|------|------|
-| Jitter | < 5ms | 5–20ms | > 20ms |
-| RTT gemiddeld | < 50ms | 50–150ms | > 150ms |
+| Jitter | < 5ms | 5-20ms | > 20ms |
+| RTT gemiddeld | < 50ms | 50-150ms | > 150ms |
 | Packet loss | 0% | < 1% | > 5% |
 
 ---

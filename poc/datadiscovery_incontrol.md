@@ -245,7 +245,7 @@ tunnel_stat_v2 (POST) geeft zelfde resultaat:
 Invoke-RestMethod "https://api.ic.peplink.com/rest/o/a1pokv/g/4/d/13/pepvpn/tunnel_stat_v2" -Method POST -Headers $Headers -ContentType "application/json" -Body "{}"
 ```
 
-Conclusie: API geeft alleen basic "tunnel is up" status, geen quality metrics. Voor latency/jitter/loss waarschijnlijk SNMP of device-level API nodig.
+De API geeft alleen basic "tunnel is up" status, geen quality metrics. Voor latency/jitter/loss is SNMP of de device-level API nodig.
 
 ---
 
@@ -302,9 +302,7 @@ Bruikbaar: wie is verbonden, MAC/IP mapping, connection tracking.
 - VPN tunnel packet loss
 - Gedetailleerde WAN quality (in testomgeving)
 
--> In deze fase van het onderzoek nemen we genoegen met deze resultaten om te beginnen aan de observability stack, er kunnen altijd nog api endpoints toegevoegd worden aan de stack naarmate we verder raken in het project.
-
-    -> Nu dus door met fase 2 van het POC, de observability stack
+In deze fase nemen we genoegen met deze resultaten om te beginnen aan de observability stack. Extra API endpoints kunnen later toegevoegd worden naarmate het project vordert.
 
 ### Rate limit
 

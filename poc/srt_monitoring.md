@@ -1,6 +1,6 @@
 # SRT Stream Monitoring — POC Mediaventures
 
-**Bachelorproef Observability voor Multi-Site Live-Streamingomgevingen**
+**Bachelorproef Observability voor Multi-Site Live-Streamingomgevingen**  
 **Datum:** april 2026
 
 ---
@@ -12,7 +12,7 @@ De observability stack bevat twee containers voor SRT-streamingmonitoring:
 | Container | Functie |
 |-----------|---------|
 | `srt-exporter` | SRT-listener op UDP:9000, exporteert stream-statistieken als Prometheus-metrics |
-| `srt-test-stream` | Synthetisch testsignaal via ffmpeg → SRT caller → srt-exporter |
+| `srt-test-stream` | Synthetisch testsignaal via ffmpeg als SRT caller naar srt-exporter |
 
 Deze setup simuleert een live productiescenario waarbij een SRT-encoder (bv. LiveU, vMix) een stream stuurt naar een ontvanger, en de ontvanger de statistieken rapporteert. In productie wordt de srt-exporter vervangen door de echte SRT-ontvanger.
 
@@ -23,14 +23,14 @@ Deze setup simuleert een live productiescenario waarbij een SRT-encoder (bv. Liv
 ```
 srt-test-stream (caller)           srt-exporter (listener)
   ffmpeg testsignaal                  srt-live-transmit
-  → SRT caller → 127.0.0.1:9000 →   luistert op UDP:9000
-                                       ↓
+  -- SRT caller --> 127.0.0.1:9000 --> luistert op UDP:9000
+                                       |
                                       CSV stats parsing
-                                       ↓
+                                       |
                                   Prometheus metrics :9117
 ```
 
-Beide containers draaien met `network_mode: host` → verkeer loopt via de **loopback interface (`lo`)**, niet via de Docker bridge.
+Beide containers draaien met `network_mode: host` — verkeer loopt via de **loopback interface (`lo`)**, niet via de Docker bridge.
 
 ---
 
@@ -50,10 +50,10 @@ Beide containers draaien met `network_mode: host` → verkeer loopt via de **loo
 
 ### Typische waarden (baseline zonder storingen)
 - `srt_stream_active` = 1
-- `srt_bitrate_kbps` ≈ 1695 kbps
-- `srt_rtt_ms` ≈ 1.2 ms (loopback)
+- `srt_bitrate_kbps` ~ 1695 kbps
+- `srt_rtt_ms` ~ 1.2 ms (loopback)
 - `srt_packet_loss_percent` = 0%
-- `srt_jitter_ms` ≈ 0.1 ms
+- `srt_jitter_ms` ~ 0.1 ms
 
 ---
 
@@ -85,7 +85,7 @@ Het hoofddashboard bevat sectie **11. SRT Stream Kwaliteit** met de volgende pan
 | Retransmit Rate over tijd | timeseries | `srt_retransmit_rate` |
 | **Cross-layer RTT** | timeseries | `srt_rtt_ms` + `probe_icmp_duration_seconds * 1000` |
 
-Het **cross-layer RTT**-panel (toegevoegd op 14 april 2026) toont zowel de SRT-applicatielaag RTT (oranje) als de ICMP-netwerklaag RTT per site (blauw). Gelijktijdige pieken in beide signalen bevestigen dat een netwerkverstoring ook de stream beïnvloedt — een kernbijdrage van de end-to-end observability aanpak.
+Het cross-layer RTT-panel (toegevoegd op 14 april 2026) toont zowel de SRT-applicatielaag RTT (oranje) als de ICMP-netwerklaag RTT per site (blauw). Gelijktijdige pieken in beide signalen bevestigen dat een netwerkverstoring ook de stream beïnvloedt.
 
 ---
 
@@ -101,7 +101,7 @@ for: 1m
 severity: warning
 ```
 
-**Toelichting:** De drempel van 5% en de wachttijd van 1 minuut zijn afgestemd op live-streaming context. SRT ARQ herstelt korte verliesbarstes (<5%) automatisch; pas bij aanhoudend verlies degradeert de kijkerservaring merkbaar.
+De drempel van 5% en de wachttijd van 1 minuut zijn afgestemd op live-streaming context. SRT ARQ herstelt korte verliesbarstes (<5%) automatisch; pas bij aanhoudend verlies degradeert de kijkerservaring merkbaar.
 
 ---
 
@@ -127,9 +127,9 @@ sudo tc qdisc del dev lo root
 docker compose restart srt-test-stream
 ```
 
-### Scenario 4a — Packet Loss (30% netem → ~5-10% gemeten)
+### Scenario 4a — Packet Loss (30% netem — ~5-10% gemeten)
 
-Vanwege SRT ARQ (Automatic Repeat reQuest) herstelt de stack een deel van de verloren pakketten. 30% netem loss resulteert slechts in 4–10% gemeten `srt_packet_loss_percent`. Bij langdurige simulatie stijgt de loss progressief door ARQ-cascade: retransmissions zijn zelf ook onderhevig aan de netem-regel, waardoor ze opnieuw verloren gaan.
+Vanwege SRT ARQ (Automatic Repeat Request) herstelt de stack een deel van de verloren pakketten. 30% netem loss resulteert slechts in 4-10% gemeten `srt_packet_loss_percent`. Bij langdurige simulatie stijgt de loss progressief door ARQ-cascade: retransmissions zijn zelf ook onderhevig aan de netem-regel, waardoor ze opnieuw verloren gaan.
 
 **Gemeten time-to-detect (14 april 2026):**
 - T0 (19:47:51): tc netem actief
@@ -149,6 +149,6 @@ In een echte Mediaventures-omgeving vervangt de `srt-exporter` de teststream-ont
 
 1. Configureer de SRT-encoder (vMix/LiveU) als **caller** richting obs VM poort 9000
 2. `srt-exporter` draait als **listener** en ontvangt de productiestream
-3. Dezelfde metrics worden geëxporteerd → zelfde Grafana dashboard, zelfde alert rules
+3. Dezelfde metrics worden geëxporteerd — zelfde Grafana dashboard, zelfde alert rules
 
 De testomgeving bewijst daarmee dat de monitoringlogica schaalbaar is naar productie zonder aanpassingen aan de Prometheus/Grafana configuratie.

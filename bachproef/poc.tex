@@ -41,8 +41,8 @@ Tabel~\ref{tab:repo-structuur} geeft een overzicht van de mappenstructuur van de
     \texttt{poc/stack/srt\_exporter.py}            & Parser van \texttt{srt-live-transmit} CSV-stats naar Prometheus \\
     \texttt{poc/stack/prometheus.yml}              & Scrape-configuratie voor alle exporters en blackbox \\
     \texttt{poc/stack/blackbox.yml, loki.yml, promtail.yml} & ICMP-probes, log-opslag en log-collectie \\
-    \texttt{poc/stack/provisioning/dashboards/peplink.json} & JSON-definitie van het Grafana-dashboard (11 secties) \\
-    \texttt{poc/stack/provisioning/alerting/alerts.yml}      & Provisioned alert rules (10 regels) \\
+    \texttt{poc/stack/provisioning/dashboards/peplink.json} & JSON-definitie van het Grafana-dashboard (12 secties) \\
+    \texttt{poc/stack/provisioning/alerting/alerts.yml}      & Provisioned alert rules (11 regels) \\
     \texttt{poc/stack/provisioning/datasources/}             & Datasource-configuratie voor Prometheus en Loki \\
     \texttt{poc/*.md}                              & Documentatie per subsysteem (dashboard, alerting, scenario's, blind-spot) \\
     \hline
@@ -52,12 +52,14 @@ Tabel~\ref{tab:repo-structuur} geeft een overzicht van de mappenstructuur van de
 \section{Virtuele testomgeving}
 \label{sec:poc-omgeving}
 
-Omdat testen op de productie-infrastructuur van Mediaventures niet toegelaten is tijdens live-surgery projecten, werd een volledig virtuele testomgeving opgezet. Figuur~\ref{fig:ic2-topology} toont de topologie zoals die in InControl2 verschijnt: vier FusionHub-VMs (Bornem, Venue, Live1, Live2) en de fysieke Peplink Balance~20X die als \emph{Live3} is toegevoegd. De VMs draaien in VirtualBox op een Windows-host, verbonden via een VyOS-router die als centrale gateway, NAT en DNAT-port-forward fungeert. Een AlmaLinux~9 VM op \texttt{10.1.1.100} huisvest de volledige observability-stack. Detailinstructies staan in \texttt{poc/omgeving\_opzetten.md}.
+Omdat testen op de productie-infrastructuur van Mediaventures niet toegelaten is tijdens live-surgery projecten, werd een volledig virtuele testomgeving opgezet. De kern bestaat uit vier FusionHub-VMs (Bornem, Venue, Live1, Live2) die draaien in VirtualBox op een Windows-host, verbonden via een VyOS-router die als centrale gateway, NAT en DNAT-port-forward fungeert. Figuur~\ref{fig:ic2-topology} toont de PepVPN-topologie van deze vier VMs zoals die in InControl2 verschijnt. Een AlmaLinux~9 VM op \texttt{10.1.1.100} huisvest de volledige observability-stack.
+
+Aanvullend wordt een fysieke Peplink Balance~20X als vijfde site (\emph{Live3}) aan de stack gekoppeld via een bridged WiFi-adapter (\texttt{192.168.1.1}). Dit toestel is niet opgenomen in de PepVPN-mesh en maakt geen deel uit van de virtuele testomgeving; het dient uitsluitend voor de validatie dat de stack ook op echte Peplink-hardware werkt, met enterprise-SNMP en lokale API die FusionHub niet aanbiedt (zie scenario~5 en sectie~\ref{sec:poc-scope}). Detailinstructies staan in \texttt{poc/omgeving\_opzetten.md}.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.42\textheight,keepaspectratio]{ic2-topology-pepvpn.png}
-  \caption[Topologie in InControl2]{PepVPN-topologie in InControl2. Vier FusionHub-spokes vormen samen met de hub in Bornem een gedeeltelijke mesh; twee Point-to-Point-profielen verbinden de surgery-sites rechtstreeks met Venue.}
+  \caption[Topologie in InControl2]{PepVPN-topologie in InControl2: vier FusionHub-VMs (Bornem als hub, Venue, Live1 en Live2 als spokes) verbonden via drie SpeedFusion-profielen. De fysieke Balance~20X (Live3) is niet opgenomen in InControl2 en staat los van deze mesh.}
   \label{fig:ic2-topology}
 \end{figure}
 
@@ -76,7 +78,8 @@ De gekozen ICS~+~Host-Only~+~VyOS-topologie werd bewust boven VirtualBox' NAT-ad
     FH-Venue            & intnet-venue     & 10.1.2.2       & \texttt{:8442} \\
     FH-Live1            & intnet-surgery1  & 10.1.3.2       & \texttt{:8443} \\
     FH-Live2            & intnet-surgery2  & 10.1.4.2       & \texttt{:8444} \\
-    Balance~20X (Live3) & WiFi-direct      & 192.168.1.1    & WiFi \texttt{PEPLINK\_2622} \\
+    \multicolumn{4}{l}{\small\textit{Fysiek toestel (aanvullend, buiten virtuele mesh)}} \\
+    Balance~20X (Live3, fysiek) & WiFi-direct & 192.168.1.1 & WiFi \texttt{PEPLINK\_2622} \\
     Observability-VM    & intnet-bornem    & 10.1.1.100     & Grafana \texttt{:3000} \\
     \hline
   \end{tabular}
@@ -208,11 +211,11 @@ Het centrale dashboard \emph{Mediaventures --- Observability Dashboard} is opgeb
 \section{Alerting}
 \label{sec:poc-alerting}
 
-Het PoC bevat tien provisioned alert rules in \texttt{alerts.yml}, elk gericht op een specifiek faaldomein. Tabel~\ref{tab:alerts} vat de regels samen.
+Het PoC bevat elf provisioned alert rules in \texttt{alerts.yml}, elk gericht op een specifiek faaldomein. Tabel~\ref{tab:alerts} vat de regels samen.
 
 \begin{table}[htbp]
   \centering
-  \caption[Provisioned alert rules]{Overzicht van de tien alert rules in Grafana, gegroepeerd per faaldomein.}
+  \caption[Provisioned alert rules]{Overzicht van de elf alert rules in Grafana, gegroepeerd per faaldomein.}
   \label{tab:alerts}
   \begin{tabular}{l l l p{0.40\linewidth}}
     \hline
@@ -228,6 +231,7 @@ Het PoC bevat tien provisioned alert rules in \texttt{alerts.yml}, elk gericht o
     Hoge CPU Load                    & WARN & 5~min & \texttt{peplink\_local\_cpu\_load\_percent > 85} \\
     Exporter Down                    & CRIT & 2~min & \texttt{(1 - peplink\_scrape\_success) > 0} \\
     SRT Stream Packet Loss           & WARN & 1~min & \texttt{srt\_packet\_loss\_percent > 5} \\
+    NDI Stream Inactief              & CRIT & 1~min & \texttt{(1 - ndi\_stream\_active) > 0} \\
     \hline
   \end{tabular}
 \end{table}
@@ -472,4 +476,4 @@ Om de verdedigbaarheid van de PoC transparant te houden, worden de belangrijkste
 \section{Synthese}
 \label{sec:poc-synthese}
 
-Het proof-of-concept valideert dat een open-source PLG-stack in combinatie met een custom Python-exporter in staat is om de volledige audiovisuele keten van Mediaventures end-to-end te bewaken. De vijf uitgevoerde testscenario's tonen aan dat storingen op de netwerklaag, de device-laag én de applicatielaag binnen 1 tot 5 minuten gedetecteerd en gevisualiseerd worden. De zelf-validatie rondom de \texttt{peplink\_tunnel\_up}-blindspot bevestigt bovendien dat een iteratieve, kritische opbouw van de stack noodzakelijk is: elke metric moet gevalideerd worden tegen de grond-waarheid, niet enkel tegen wat het dashboard toont. Het resultaat is een overdraagbaar prototype dat na deze bachelorproef zonder fundamentele aanpassingen naar de productieomgeving van Mediaventures kan doorgroeien.
+Het proof-of-concept valideert dat een open-source PLG-stack in combinatie met een custom Python-exporter in staat is om de volledige audiovisuele keten van Mediaventures end-to-end te bewaken. De uitgevoerde testscenario's (netwerkstoringen, fysieke hardware, SRT, NDI en asymmetrische NAT) tonen aan dat storingen op de netwerklaag, de device-laag én de applicatielaag binnen 1 tot 5 minuten gedetecteerd en gevisualiseerd worden. De zelf-validatie rondom de \texttt{peplink\_tunnel\_up}-blindspot bevestigt bovendien dat een iteratieve, kritische opbouw van de stack noodzakelijk is: elke metric moet gevalideerd worden tegen de grond-waarheid, niet enkel tegen wat het dashboard toont. Het resultaat is een overdraagbaar prototype dat na deze bachelorproef zonder fundamentele aanpassingen naar de productieomgeving van Mediaventures kan doorgroeien.
