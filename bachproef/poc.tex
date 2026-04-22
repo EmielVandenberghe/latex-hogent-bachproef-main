@@ -421,6 +421,64 @@ Een aanvullende verificatie via de FH-Bornem webadmin (Status~$\rightarrow$~Spee
 
 \paragraph{Conclusie.} Scenario~7 bevestigt dat de observability-laag routing-agnostisch is. Ondanks de SNAT-masquerade op de transport-laag blijven alle drie onafhankelijke monitoringsbronnen --- ICMP-probes via blackbox-exporter, de InControl2-API en de PepVPN-tunnelstatus --- correct rapporteren dat Live1 gezond is. PepVPN's serial-based peer-identificatie maakt het ontwerp inherent NAT-tolerant, en omdat de stack exclusief op tunneladressen (\texttt{10.1.x.x}) werkt, is ze niet afhankelijk van een specifiek transport-IP. Rule~310 blijft als permanente uitbreiding van de PoC-baseline actief: scenario~7 wordt daarmee de nieuwe \emph{default-state} voor Live1, wat de bachproef aantoonbaar robuuster maakt tegenover realistische NAT-topologieën.
 
+\subsection{Scenario 8 --- cross-layer correlatie (SRT via VyOS)}
+\label{sec:scenario-8}
+
+De scenario's 2 t/m 7 valideren elk één laag afzonderlijk: netwerk, SRT-stroom, fysieke hardware, NDI of routing. Scenario~8 stelt een andere vraag: wanneer de netwerkkwaliteit daalt, ziet de observability-stack dat dan \emph{gelijktijdig} op de netwerk- én de applicatielaag --- zonder dat de beheerder twee dashboards naast elkaar hoeft te leggen? Dit is de praktische definitie van observability tegenover monitoring: niet enkel \emph{dat} er iets mis is, maar op \emph{welke laag} de oorzaak zit en hoe groot de impact is.
+
+\paragraph{Architectuurwijziging.}
+De standaard SRT-opstelling stuurt stream-verkeer via de loopback (\texttt{127.0.0.1}) van de obs~VM. Omdat beide containers met \texttt{network\_mode: host} draaien, raakt tc netem op VyOS loopback-verkeer nooit. Om cross-layer correlatie mogelijk te maken, wordt de SRT-stroom via een \textbf{VyOS hairpin-NAT} geleid: de SRT-caller verbindt met \texttt{10.1.1.1:9000} (VyOS Bornem-interface), een DNAT-rule leidt het pakket door naar de srt-exporter (\texttt{10.1.1.100:9000}), en een SNAT-masquerade zorgt ervoor dat de reply via VyOS terugkomt in plaats van rechtstreeks naar de caller. Het SRT-UDP-verkeer traverseert nu VyOS~eth1 (Bornem-interface) in beide richtingen --- dezelfde interface waarlangs de ICMP-probes naar FH-Bornem lopen.
+
+\paragraph{Opstelling.}
+Op VyOS worden twee permanente NAT-regels geconfigureerd (rule~50 bestemming-NAT + rule~50 bron-NAT). In \texttt{docker-compose.yml} is de SRT-caller gewijzigd van \texttt{srt://127.0.0.1:9000} naar \texttt{srt://10.1.1.1:9000}. Na \texttt{docker compose up -d --force-recreate srt-test-stream} verbindt de stream via de VyOS hairpin: \texttt{srt\_stream\_active=1} en \texttt{srt\_rtt\_ms} noteert nu 1--3~ms (iets hoger dan loopback, want de IP-stack van VyOS wordt doorlopen).
+
+\paragraph{Uitvoering.}
+Op VyOS~eth1 wordt via \texttt{tc qdisc add dev eth1 root netem delay 50ms 15ms distribution normal loss 5\%} een netwerkverstoring toegevoegd: 50~ms vertraging met ±15~ms jitter (normaalverdeling) en 5~\% packet loss. Omdat dezelfde interface ook de ICMP-probes en SNMP-queries naar FH-Bornem (\texttt{10.1.1.2}) draagt, worden beide lagen tegelijk verstoord --- één tc-ingreep, twee zichtbare effecten.
+
+\paragraph{Bevindingen.}
+Tabel~\ref{tab:scenario-8} vat de Prometheus-metingen samen voor, tijdens en na de netem-ingreep. De ICMP-RTT voor Bornem stijgt van minder dan 1~ms naar circa 100~ms (heen + terug via eth1), de jitter naar 10--20~ms en packet loss naar circa 5~\%. De SRT-RTT stijgt synchroon: \texttt{srt\_rtt\_ms} gaat van 1--3~ms naar circa 100~ms. Figuren~\ref{fig:scenario-8-sectie2} en~\ref{fig:scenario-8-srt} tonen sectie~2 (netwerklaag) en sectie~11 (streaminglaag) van het Grafana-dashboard op dezelfde tijdas: de stijging begint op precies hetzelfde tijdstip, zonder dat de gebruiker tijdstempels hoeft te vergelijken.
+
+\begin{table}[htbp]
+  \centering
+  \caption[Metingen scenario 8]{Prometheus-metingen voor, tijdens en na tc netem op VyOS~eth1.}
+  \label{tab:scenario-8}
+  \begin{tabular}{l c c c}
+    \hline
+    \textbf{Metric} & \textbf{Baseline} & \textbf{Netem actief} & \textbf{Na herstel} \\
+    \hline
+    \texttt{probe\_icmp\_duration\{Bornem\}}   & \textless 1~ms  & $\approx$100~ms & \textless 1~ms \\
+    \texttt{ping\_jitter\_ms\{Bornem\}}        & \textless 1~ms  & 10--20~ms       & \textless 1~ms \\
+    \texttt{ping\_packet\_loss\{Bornem\}}      & 0~\%            & $\approx$5~\%   & 0~\%           \\
+    \texttt{srt\_rtt\_ms}                      & 1--3~ms         & $\approx$100~ms & 1--3~ms        \\
+    \texttt{srt\_packet\_loss\_percent}        & $\approx$0~\%   & 2--8~\%         & $\approx$0~\%  \\
+    \texttt{srt\_retransmit\_total}            & stabiel         & stijgt continu  & stabiliseert   \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth,keepaspectratio]{final-scenario-sectie2.png}
+  \caption[Scenario 8: netwerklaag (ICMP) tijdens netem-ingreep]{Sectie~2 van het Grafana-dashboard tijdens de tc-netem-ingreep op VyOS~eth1. ICMP-RTT naar Bornem stijgt van \textless 1~ms naar circa 100~ms; jitter en packet loss voor Bornem stijgen mee, terwijl de overige sites ongewijzigd blijven.}
+  \label{fig:scenario-8-sectie2}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth,keepaspectratio]{final-scenario-srt-dashboard.png}
+  \caption[Scenario 8: streaminglaag (SRT) tijdens netem-ingreep]{Sectie~11 van het Grafana-dashboard op dezelfde tijdas als figuur~\ref{fig:scenario-8-sectie2}. \texttt{srt\_rtt\_ms} stijgt synchroon met de ICMP-RTT, \texttt{srt\_retransmit\_total} begint continu op te lopen en \texttt{srt\_packet\_loss\_percent} toont de restloss na ARQ-herstel. Eén tc-ingreep op VyOS is gelijktijdig zichtbaar op netwerk- én streaminglaag.}
+  \label{fig:scenario-8-srt}
+\end{figure}
+
+\paragraph{ARQ-transparantie.}
+De gemeten \texttt{srt\_packet\_loss\_percent} blijft initieel lager dan de geconfigureerde 5~\% netem-loss, omdat SRT's ARQ-mechanisme verloren pakketten herstelt vóór de latency-deadline (zie ook scenario~4a). De \texttt{srt\_retransmit\_total}-counter onthult de verborgen netwerkdruk die de loss-metric nog niet toont. Beide metriken zijn dus nodig: loss geeft het netto resultaat, retransmit-rate geeft de stress op het netwerk.
+
+\paragraph{Productiewaarde.}
+De combinatie van netwerk- en applicatiemetrics op één tijdas stelt de NOC-medewerker in staat de oorzaak te lokaliseren zonder op apparaten in te loggen: de ICMP-RTT-stijging wijst naar de netwerklaag (niet de encoder), de SRT-metrics kwantificeren de impact op de stroom. Zonder de observability-stack zou deze diagnose vereisen dat de technieker eerst inlogt op VyOS voor netwerk-statistieken, dan op de SRT-encoder voor streamstatistieken, en vervolgens de tijdstempels handmatig vergelijkt.
+
+\paragraph{Conclusie.}
+Scenario~8 bewijst de diepte van de stack: niet enkel \emph{dekking} (elk type storing wordt ergens gedetecteerd), maar ook \emph{verbinding} (dezelfde storing is op meerdere lagen tegelijk traceerbaar). De hairpin-NAT maakt de correlatie technisch mogelijk in het lab; in productie vervult het echte netwerk (meerdere hops, carrier NAT op 4G/5G-backhaul) die rol vanzelf.
+
 \section{Zelf-validatie van de stack}
 \label{sec:poc-blindspot}
 

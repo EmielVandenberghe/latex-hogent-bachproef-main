@@ -171,7 +171,7 @@ services:
           -b:v 2000k -maxrate 2500k -bufsize 4000k
           -g 50 -keyint_min 50
         -c:a aac -b:a 128k
-        -f mpegts "srt://127.0.0.1:9000?pkt_size=1316&mode=caller"
+        -f mpegts "srt://10.1.1.1:9000?pkt_size=1316&mode=caller"
     depends_on:
       - srt-exporter
 
