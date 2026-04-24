@@ -23,9 +23,6 @@ jobs:
     - name: Build the thesis
       run: docker run --rm -v "$PWD":/bp bpimg sh /bp/docker/render_thesis.sh bachproef
 
-    - name: Build the poster
-      run: docker run --rm -v "$PWD":/bp bpimg sh /bp/docker/render_thesis.sh poster
-
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
       with:
