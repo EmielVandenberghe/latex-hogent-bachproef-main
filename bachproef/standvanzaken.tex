@@ -11,9 +11,9 @@ In audiovisuele productieomgevingen is observability een essentieel concept om d
 \section{NDI als intern audiovisueel transportprotocol}
 \label{sec:ndi}
 
-NDI (Network Device Interface) is een AV-over-IP-technologie die ontworpen is voor situaties waarin meerdere videobronnen binnen een lokaal netwerk (LAN) beschikbaar moeten zijn. Volgens de officiële NDI-documentatie maakt het protocol gebruik van hoge bandbreedtes en lage latency om videobronnen vrijwel in realtime tussen apparaten te transporteren \autocite{NewTek2022}. NDI-apparaten kunnen elkaar automatisch ontdekken binnen hetzelfde subnet, waardoor videobronnen flexibel kunnen worden gerouteerd zonder bijkomende bekabeling.
+NDI (Network Device Interface) is een AV-over-IP-technologie die ontworpen is voor situaties waarin meerdere videobronnen binnen een lokaal netwerk (LAN) beschikbaar moeten zijn. Volgens de officiële NDI-documentatie maakt het protocol gebruik van hoge bandbreedtes en lage latency om videobronnen vrijwel in realtime tussen apparaten te transporteren \autocite{NewTek2022}. NDI-apparaten kunnen elkaar automatisch ontdekken binnen hetzelfde subnet, waardoor videobronnen flexibel kunnen worden gerouteerd zonder bijkomende bekabeling. \textcite{Babich2022} tonen in een vergelijkende studie aan dat AV-over-IP-protocollen zoals NDI bijzonder gevoelig zijn voor latency-variatie door hun hoge bitrate en lage tolerantie voor pakketvertraging.
 
-Naast softwarematige NDI-implementaties worden in de Mediaventures-infrastructuur ook hardwarematige NDI-apparaten ingezet. BirdDog is een fabrikant van hardware en software specifiek voor NDI-omgevingen, met een productgamma dat onder meer camera's, encoders, decoders en signaalconverters omvat. BirdDog-apparatuur converteert HDMI- en SDI-signalen naar NDI en omgekeerd, en integreert zo traditionele AV-apparatuur in het IP-netwerk \autocite{VanRenterghem2025}. BirdDog biedt via BirdDog Connect tevens een REST API waarmee apparaatstatus en streamingparameters programmatisch kunnen worden uitgelezen, wat een potentiële databron vormt voor een observabilityoplossing \autocite{BirdDogAPI2024}.
+Naast softwarematige NDI-implementaties worden in de Mediaventures-infrastructuur ook hardwarematige NDI-apparaten ingezet. BirdDog is een fabrikant van hardware en software specifiek voor NDI-omgevingen, met een productgamma dat onder meer camera's, encoders, decoders en signaalconverters omvat. BirdDog-apparatuur converteert HDMI- en SDI-signalen naar NDI en omgekeerd, en integreert zo traditionele AV-apparatuur in het IP-netwerk \autocite{VanRenterghem2025}. BirdDog biedt via BirdDog Connect tevens een REST API waarmee apparaatstatus en streamingparameters programmatisch kunnen worden uitgelezen, wat een potentiële databron vormt voor een observabilityoplossing \autocite{BirdDogAPI2024}. Deze aanpak wordt ook in de community toegepast, zoals blijkt uit het open-source birddog-http pakket \autocite{Burgess2023}.
 
 Binnen Mediaventures ontvangt een computer de verschillende NDI-streams en verwerkt deze via een softwarematige mixer tot één gecombineerd eindbeeld \autocite{VanRenterghem2025}. Dit mixstation vormt een kritisch punt in de workflow: omdat NDI-prestaties afhankelijk zijn van bandbreedte, multicastondersteuning en correcte VLAN-configuratie \autocite{NewTek2022}, heeft elke afwijking in de netwerkcondities of processorbelasting direct impact op het eindbeeld dat vervolgens via Secure Reliable Transport (SRT) wordt verzonden naar de ontvangende locatie.
 
@@ -57,6 +57,8 @@ De belangrijkste parameters voor het beoordelen van de streamkwaliteit zijn:
 \item \textbf{Retransmissions}: Het aantal pakketten dat opnieuw is verzonden na initieel verlies. Een hoog aantal retransmissies duidt op een instabiele verbinding en verhoogt de effectieve bandbreedte die nodig is voor de stream.
 
 \end{itemize}
+
+\textcite{Perkins2020} bevestigen in een onafhankelijke analyse dat SRT's ARQ-mechanisme effectief pakketverlies maskeert ten koste van verhoogde bandbreedte, wat direct verklaart waarom \texttt{srt\_retransmit\_rate} een vroeger signaal geeft dan \texttt{srt\_packet\_loss\_percent}.
 
 Deze statistieken worden door SRT-encoders en -decoders beschikbaar gesteld via interne API's of management-interfaces. Voor monitoring doeleinden kunnen deze waarden periodiek worden uitgelezen en geëxporteerd naar een centraal observability-platform. De correlatie tussen SRT-statistieken en onderliggende WAN-kwaliteit (zoals gemeten via PepVPN) maakt het mogelijk om de oorzaak van streamingproblemen sneller te identificeren: een stijging in RTT of packet loss op de SRT-laag kan direct worden gekoppeld aan degradatie van een specifieke WAN-verbinding.
 
@@ -121,7 +123,7 @@ Voor deze bachelorproef sluit de PLG-stack op vier manieren beter aan bij de Med
   \label{fig:plg-stack}
 \end{figure}
 
-Voor dit onderzoek werd daarom gekozen voor Prometheus als metrics-backend, Grafana als visualisatie- en alertingplatform en Loki voor log-aggregatie. Custom Python-exporters werden ontwikkeld om data uit de InControl2-API, SRT-encoders en de NDI SDK om te zetten naar het Prometheus-formaat. Deze keuze wordt in Hoofdstuk~\ref{ch:poc} praktisch gevalideerd aan de hand van een draaiend proof-of-concept en acht testscenario's.
+Voor dit onderzoek werd daarom gekozen voor Prometheus als metrics-backend, Grafana als visualisatie- en alertingplatform en Loki voor log-aggregatie. Custom Python-exporters werden ontwikkeld om data uit de InControl2-API, SRT-encoders, de NDI SDK en de BirdDog REST-API om te zetten naar het Prometheus-formaat. Deze keuze wordt in Hoofdstuk~\ref{ch:poc} praktisch gevalideerd aan de hand van een draaiend proof-of-concept en tien testscenario's.
 
 \section{Synthese}
 \label{sec:synthese-standvanzaken}
