@@ -1,0 +1,5 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY birddog_exporter.py .
+EXPOSE 9119
+CMD ["python", "-u", "birddog_exporter.py"]

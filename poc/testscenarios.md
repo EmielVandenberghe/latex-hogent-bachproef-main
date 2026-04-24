@@ -613,6 +613,148 @@ sudo tc qdisc del dev eth1 root
 
 ---
 
+## Scenario 9 — BirdDog Device & Mode Monitoring
+
+**Uitgevoerd op:** 23 april 2026
+
+**Doel:** Valideer dat sectie 13 van het dashboard correct per operatie-modus (encode vs. decode) onderscheidt, dat de twee mode-specifieke alerts firen, en dat de polling-exporter (BirdDog REST API 2.0) binnen één scrape-interval toestandsveranderingen oppikt.
+
+**Context:** `birddog-mock` (Flask, poort 8090) simuleert twee BirdDog-devices: `mock-01` in **decode**-modus (verbindt met een NDI-bron, rapporteert `decode_fps` + `decode_connected`) en `mock-02` in **encode**-modus (rapporteert `encode_bitrate_kbps` + `encode_clients_connected`). De `birddog-exporter` (Python, poort 9119) scrapet de mock API elke 15 s en publiceert Prometheus-gauges. Het dashboard filtert alle mode-specifieke panels via `and on(device) birddog_operation_mode_{encode,decode} == 1`, waardoor een encoder nooit rood oplicht in een decode-paneel en omgekeerd.
+
+### 9a — Baseline verificatie
+
+**Doel:** Visuele regressie-check dat de mode-filters werken.
+
+**Acties:**
+1. Open sectie 13 in Grafana (http://192.168.137.10:3000).
+2. Controleer dat:
+   - **Device Online** en **Operation Mode** beide devices tonen (mock-01 = DECODE, mock-02 = ENCODE).
+   - **Decode Connected** enkel `mock-01` toont (groen, VERBONDEN).
+   - **Encode Clients** en **Encode Bitrate** enkel `mock-02` tonen (respectievelijk 2 clients, 50 Mb/s).
+   - **Decode Framerate** enkel één lijn heeft (mock-01 @ 25 fps).
+   - **Encode Framerate** enkel één lijn heeft (mock-02 @ 25 fps).
+   - **BirdDog Status Overzicht** (tabel) toont één rij per device, zonder dubbele `Time/instance/job/__name__` kolommen.
+
+**Screenshot:** `scenario_9a_birddog_baseline.png` — sectie 13 volledig groen, geen misleidende rode indicatoren voor de verkeerde modus.
+
+### 9b — Decode-bron wegvalt
+
+**Commando op observability VM:**
+```bash
+curl -X POST http://localhost:8090/control/disconnect
+```
+
+De mock API zet `decode_connected` naar `false`, `decode_fps` naar 0 en leegt de `sourceName`.
+
+**Verwacht resultaat (binnen ~30 s, 2 scrape-intervallen):**
+- **Decode Connected** stat-panel voor `mock-01` → **GEEN BRON** (rood).
+- **Decode Framerate** timeseries → stapfunctie van 25 fps naar 0.
+- Alert **[WARNING] BirdDog Decode Geen Bron** → Pending → Firing (`for: 2m`).
+- `mock-02` blijft onaangetast (encode-panels onveranderd).
+
+**Screenshot:** `scenario_9b_birddog_decode_outage.png`.
+
+### 9c — Device volledig offline
+
+**Commando:**
+```bash
+curl -X POST http://localhost:8091/control/offline
+```
+(Port 8091 = mock-02, de encoder. Dit zet alle endpoints op 503 → `birddog-exporter` kan geen state ophalen.)
+
+**Verwacht resultaat (binnen ~60 s):**
+- **Device Online** toont `mock-02` → **OFFLINE** (rood).
+- Alle encode-specifieke panels (Clients, Bitrate, Framerate) tonen voor `mock-02` een plotse val naar 0 / geen data.
+- Alert **[CRITICAL] BirdDog Device Offline** → Firing (`for: 1m`).
+- `mock-01` (decoder) blijft groen en operationeel — bevestigt dat de twee apparaten onafhankelijk gemonitord worden.
+
+**Screenshot:** `scenario_9c_birddog_device_offline.png`.
+
+### 9d — Herstel
+
+**Commando's:**
+```bash
+curl -X POST http://localhost:8090/control/connect   # mock-01 decoder opnieuw verbinden
+curl -X POST http://localhost:8091/control/online    # mock-02 encoder weer beschikbaar
+```
+
+**Verwacht:** beide alerts zakken naar Normal binnen 1–2 min, alle panels groen, framerate- en bitrate-timeseries tonen duidelijke recovery-stap.
+
+### Bevindingen
+
+1. **Mode-filter via `and on(device)`-join werkt correct.** Zonder filter toonde het dashboard voor elke encoder een rood "GEEN BRON"-paneel (vals-positief); na filter verdwijnt een device uit mode-specifieke panels wanneer het de "verkeerde" modus heeft, in plaats van misleidend rood te blijven. Zie technische bevinding: PromQL-patroon `metric{...} and on(device) birddog_operation_mode_decode == 1` als canonieke filter voor multi-mode devices.
+2. **Detectietijd decode_connected-flip: instant na eerste scrape** (~15 s). De `decode_connected`-waarde flipped bij de eerstvolgende scrape zichtbaar in het stat-paneel. Alert-latency = scrape + `for: 2m` ≈ 2 min 15 s end-to-end.
+3. **Device offline detectie via `birddog_device_online`** is sneller dan via afwezige scrape-data omdat de exporter zelf de state cached: binnen één scrape-cyclus ziet Prometheus de waarde 0 verschijnen, geen `up == 0`-afhankelijkheid nodig.
+4. **Tabel-transforms identiek aan scenario 7-leerles:** `labelsToFields(columns)` → `joinByField(device, outer)` → `organize(excludeByName: Time/instance/job/__name__ per refId + renameByName: Value #A..G)`. Zonder de `excludeByName` zou Grafana 14 extra kolommen tonen (7 queries × {Time, instance, job, __name__}).
+5. **Mock `before_request` bug — controleroutes moesten uitgesloten worden van offline-check.** De Flask `@app.before_request`-hook retourneerde 503 op *alle* routes wanneer `STATE['offline'] = True`, inclusief `/control/online`. Hierdoor kon een offline device nooit via de API hersteld worden. Fix: `if fail_mode() and not request.path.startswith("/control/"):`. Lesje voor productie: herstelcommando's mogen nooit geblokkeerd worden door dezelfde fout-state die ze moeten oplossen.
+
+---
+
+## Scenario 10 — Teams Alerting via Power Automate
+
+**Uitgevoerd op:** 23 april 2026
+
+**Doel:** Valideer end-to-end dat Grafana Unified Alerting een Teams-notificatie verstuurt via de Power Automate Webhook-integratie. Bewijs dat het NOC een melding ontvangt zonder manueel in te loggen op het dashboard.
+
+**Vereiste voorbereiding:** Power Automate flow aangemaakt (zie `poc/alerting_teams.md` stap 2.2), `TEAMS_WEBHOOK_URL` ingesteld in `.env`, Grafana herstart via `docker compose up -d --force-recreate grafana`.
+
+### 10a — Handmatige contact point test
+
+**Actie in Grafana UI:**
+1. Ga naar **Alerting → Contact points → teams-webhook → Test**.
+2. Grafana verstuurt een synthetisch testbericht naar de Power Automate URL.
+
+**Verwacht:** Teams-kanaal "Observability-PoC" toont een bericht van Power Automate met `"status": "firing"` en alertname `"TestAlert"`.
+
+**Verificatie Power Automate:** flow.microsoft.com → jouw flow → **Run history** → meest recente run succesvol (groene vinkje).
+
+**Screenshot:** `scenario_10a_teams_test_message.png` — Teams-kanaal met het Grafana testbericht.
+
+### 10b — Echte alert triggert Teams-notificatie
+
+**Commando op observability VM:**
+```bash
+docker stop srt-test-stream
+```
+
+De SRT-stream stopt → `srt_stream_active` wordt 0 → geen loss-metric meer → let op: de **Exporter down**-alert (`peplink_scrape_success`) kan ook firen als de exporter problemen heeft. Veiliger alternatief: stop de NDI-stream.
+
+```bash
+docker stop ndi-test-stream
+```
+
+`ndi_stream_active` → 0 → alert **[CRITICAL] NDI Stream Inactief** → `for: 1m` → Firing na ~75 s.
+
+**Verwacht resultaat (binnen ~2 min):**
+1. Grafana Alerting → **NDI Stream Inactief** → status: **Firing**.
+2. Teams-kanaal ontvangt een POST van Power Automate met alert-details.
+3. Alert bevat labels `severity=critical`, `source=<NDI-bronnaam>`.
+4. `continue: true` in de routing policy zorgt dat ook `mediaventures-default` de alert ziet (Grafana UI-notificatie).
+
+**Screenshot:** `scenario_10b_teams_alert_ndi.png` — Teams-kanaal met de echte NDI-alert.
+
+### 10c — Herstel en resolve-notificatie
+
+**Commando:**
+```bash
+docker start ndi-test-stream
+```
+
+Na ~2 scrape-cycli (30 s) keert `ndi_stream_active` terug naar 1 → Grafana verstuurt een **resolve**-bericht.
+
+**Verwacht:** Teams-kanaal ontvangt een tweede bericht met `"status": "resolved"`. `disableResolveMessage: false` is ingesteld in de contact point provisioning.
+
+**Screenshot:** `scenario_10c_teams_resolve.png`.
+
+### Bevindingen
+
+1. **Power Automate vervangt verouderde O365-connector.** De native Grafana "Microsoft Teams"-integratie gebruikt `outlook.office.com/webhook/...`-URLs die deprecated zijn sinds 2024-10-01. Power Automate Workflow met HTTP-trigger is de enige ondersteunde aanpak in 2025/2026 voor nieuwe tenants.
+2. **Routing via `continue: true` — beide kanalen ontvangen de alert.** Zonder `continue: true` zou een gematchte sub-route de default receiver overslaan. Met `continue: true` ontvangt zowel `mediaventures-default` (Grafana UI) als `teams-webhook` de notificatie — belangrijk voor een NOC dat beide kanalen bewaakt.
+3. **Env-var substitutie in Grafana provisioning.** Grafana 11 ondersteunt `${ENV_VAR}` in alle provisioning-YAML-bestanden. De Teams-URL staat in `.env` (in `.gitignore`) en wordt via `TEAMS_WEBHOOK_URL=${TEAMS_WEBHOOK_URL}` doorgegeven aan de Grafana-container. Wijzigen van de URL vereist alleen een `docker compose up -d --force-recreate grafana` — geen rebuild.
+4. **Time-to-notify ≈ 2 min.** Scrape-interval 15 s + `for: 1m` (NDI-alert) + Power Automate verwerkingstijd (~5-10 s) = ~1 min 30 s tot Teams-notificatie na het stoppen van de stream.
+
+---
+
 ## Resultaten documenteren
 
 Maak screenshots van het Grafana dashboard bij elk scenario:

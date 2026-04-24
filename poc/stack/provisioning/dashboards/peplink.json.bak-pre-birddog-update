@@ -1,5 +1,5 @@
 {
-  "title": "Mediaventures — Observability Dashboard",
+  "title": "Mediaventures \u2014 Observability Dashboard",
   "uid": "peplink-infra",
   "tags": [
     "peplink",
@@ -23,7 +23,7 @@
         "y": 0
       },
       "options": {
-        "content": "### Observability PoC — Mediaventures\n**Sites:** Bornem (hub), Venue, Live1, Live2, **Live3** (fysieke Balance 20X via WiFi-direct).\n\nLive3 = de fysieke Balance 20X router, bereikbaar via WiFi-direct op `192.168.1.1`. ICMP-, ping-, SNMP- en lokale-API-metrics van Live3 meten dit toestel rechtstreeks over het WiFi-pad (geen PepVPN-tunnel — zie scope-verantwoording i.v.m. PrimeCare). Secties **3 en 4** tonen bijkomende metrics die enkel op fysieke Peplink-hardware beschikbaar zijn (enterprise SNMP WAN/WiFi + lokale REST API voor CPU-load) — deze secties bewijzen dat de stack ook op productiehardware werkt.",
+        "content": "### Observability PoC \u2014 Mediaventures\n**Sites:** Bornem (hub), Venue, Live1, Live2, **Live3** (fysieke Balance 20X via WiFi-direct).\n\nLive3 = de fysieke Balance 20X router, bereikbaar via WiFi-direct op `192.168.1.1`. ICMP-, ping-, SNMP- en lokale-API-metrics van Live3 meten dit toestel rechtstreeks over het WiFi-pad (geen PepVPN-tunnel \u2014 zie scope-verantwoording i.v.m. PrimeCare). Secties **3 en 4** tonen bijkomende metrics die enkel op fysieke Peplink-hardware beschikbaar zijn (enterprise SNMP WAN/WiFi + lokale REST API voor CPU-load) \u2014 deze secties bewijzen dat de stack ook op productiehardware werkt.",
         "mode": "markdown"
       },
       "transparent": true
@@ -316,7 +316,7 @@
       "id": 7,
       "type": "stat",
       "title": "Live3 (Balance 20X fysiek)",
-      "description": "Live3 is de fysieke Balance 20X router, bereikbaar via WiFi-direct (192.168.1.1). De PepVPN-tunnel-variant werd opgegeven wegens een PrimeCare-licentiebeperking; WiFi-direct volstaat voor de observability-validatie. Deze rol bewijst dat de observability-stack ook op productiehardware werkt (enterprise SNMP + lokale API — zie secties 3 en 4).",
+      "description": "Live3 is de fysieke Balance 20X router, bereikbaar via WiFi-direct (192.168.1.1). De PepVPN-tunnel-variant werd opgegeven wegens een PrimeCare-licentiebeperking; WiFi-direct volstaat voor de observability-validatie. Deze rol bewijst dat de observability-stack ook op productiehardware werkt (enterprise SNMP + lokale API \u2014 zie secties 3 en 4).",
       "gridPos": {
         "h": 5,
         "w": 4,
@@ -1103,7 +1103,7 @@
     {
       "id": 100,
       "type": "row",
-      "title": "3. WAN Multi-Link Status — Live3 (fysieke Balance 20X, Enterprise SNMP)",
+      "title": "3. WAN Multi-Link Status \u2014 Live3 (fysieke Balance 20X, Enterprise SNMP)",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1115,7 +1115,7 @@
     {
       "id": 101,
       "type": "table",
-      "title": "WAN Interface Status — Balance 20X",
+      "title": "WAN Interface Status \u2014 Balance 20X",
       "description": "Realtime WAN-status via Peplink enterprise SNMP OIDs. Status: 1=disabled, 2=disconnected, 3=connected. Link: 1=up, 0=down.",
       "gridPos": {
         "h": 7,
@@ -1395,7 +1395,7 @@
     {
       "id": 104,
       "type": "timeseries",
-      "title": "WAN Link Status — geschiedenis",
+      "title": "WAN Link Status \u2014 geschiedenis",
       "description": "Historiek van WAN link up/down per interface. Drops = failover events.",
       "gridPos": {
         "h": 5,
@@ -1410,7 +1410,7 @@
       "targets": [
         {
           "expr": "peplink_snmp_wan_link_up",
-          "legendFormat": "{{device_name}} — {{wan_name}}",
+          "legendFormat": "{{device_name}} \u2014 {{wan_name}}",
           "refId": "A"
         }
       ],
@@ -1454,7 +1454,7 @@
     {
       "id": 110,
       "type": "row",
-      "title": "4. Device Health — Lokale API & CPU (alle sites)",
+      "title": "4. Device Health \u2014 Lokale API & CPU (alle sites)",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1466,7 +1466,7 @@
     {
       "id": 111,
       "type": "gauge",
-      "title": "CPU Load — Balance 20X",
+      "title": "CPU Load \u2014 Balance 20X",
       "description": "Live CPU load via lokale REST API (status.cpu)",
       "gridPos": {
         "h": 6,
@@ -1721,7 +1721,7 @@
         "y": 50
       },
       "options": {
-        "content": "**Actieve profielen (FusionHub):** `Bornem-star` — Bornem hub → Venue / Live1 / Live2  |  `live1-venue` — Live1 ↔ Venue  |  `live2-venue` — Live2 ↔ Venue\n\n_tunnel\\_up=0 = minstens 1 profiel op dat device disconnected_",
+        "content": "**Actieve profielen (FusionHub):** `Bornem-star` \u2014 Bornem hub \u2192 Venue / Live1 / Live2 \u00a0|\u00a0 `live1-venue` \u2014 Live1 \u2194 Venue \u00a0|\u00a0 `live2-venue` \u2014 Live2 \u2194 Venue\n\n_tunnel\\_up=0 = minstens 1 profiel op dat device disconnected_",
         "mode": "markdown"
       },
       "transparent": true
@@ -1744,7 +1744,7 @@
       "targets": [
         {
           "expr": "peplink_tunnel_up{device_name=\"Bornem\"}",
-          "legendFormat": "Bornem → Venue/Live1/Live2",
+          "legendFormat": "Bornem \u2192 Venue/Live1/Live2",
           "refId": "A"
         }
       ],
@@ -1793,7 +1793,7 @@
       "id": 122,
       "type": "stat",
       "title": "live1-venue (P2P)",
-      "description": "Profiel: live1-venue (Point-to-Point). Live1 ↔ Venue. Live1 heeft 2 profielen (Bornem-star spoke + live1-venue). tunnel_up=0 als minstens 1 profiel disconnected.",
+      "description": "Profiel: live1-venue (Point-to-Point). Live1 \u2194 Venue. Live1 heeft 2 profielen (Bornem-star spoke + live1-venue). tunnel_up=0 als minstens 1 profiel disconnected.",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -1807,7 +1807,7 @@
       "targets": [
         {
           "expr": "peplink_tunnel_up{device_name=\"Live1\"}",
-          "legendFormat": "Live1 ↔ Venue",
+          "legendFormat": "Live1 \u2194 Venue",
           "refId": "A"
         }
       ],
@@ -1856,7 +1856,7 @@
       "id": 123,
       "type": "stat",
       "title": "live2-venue (P2P)",
-      "description": "Profiel: live2-venue (Point-to-Point). Live2 ↔ Venue. Live2 heeft 2 profielen (Bornem-star spoke + live2-venue). tunnel_up=0 als minstens 1 profiel disconnected.",
+      "description": "Profiel: live2-venue (Point-to-Point). Live2 \u2194 Venue. Live2 heeft 2 profielen (Bornem-star spoke + live2-venue). tunnel_up=0 als minstens 1 profiel disconnected.",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -1870,7 +1870,7 @@
       "targets": [
         {
           "expr": "peplink_tunnel_up{device_name=\"Live2\"}",
-          "legendFormat": "Live2 ↔ Venue",
+          "legendFormat": "Live2 \u2194 Venue",
           "refId": "A"
         }
       ],
@@ -1970,7 +1970,7 @@
     {
       "id": 125,
       "type": "timeseries",
-      "title": "PepVPN Tunnel Status — geschiedenis",
+      "title": "PepVPN Tunnel Status \u2014 geschiedenis",
       "description": "Tijdlijn van tunnelopbouw en -verbreking per device. Drops naar 0 = minstens 1 profiel op dat device disconnected.",
       "gridPos": {
         "h": 5,
@@ -3698,7 +3698,7 @@
       "id": 183,
       "type": "timeseries",
       "title": "Cross-layer RTT: SRT-applicatielaag vs. ICMP-netwerklaag",
-      "description": "Vergelijking van SRT-applicatielaag RTT (oranje) met ICMP-netwerklaag RTT per site. Gelijktijdige pieken bevestigen dat netwerkverstoring de stream beïnvloedt.",
+      "description": "Vergelijking van SRT-applicatielaag RTT (oranje) met ICMP-netwerklaag RTT per site. Gelijktijdige pieken bevestigen dat netwerkverstoring de stream be\u00efnvloedt.",
       "gridPos": {
         "x": 0,
         "y": 140,
@@ -4554,9 +4554,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_device_online",
-          "legendFormat": "{{device}}",
-          "instant": true
+          "expr": "birddog_device_online{device=~\".*\"}",
+          "legendFormat": "{{device}}"
         }
       ],
       "datasource": {
@@ -4631,117 +4630,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_operation_mode_decode",
-          "legendFormat": "{{device}}",
-          "instant": true
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      }
-    },
-    {
-      "id": 228,
-      "type": "stat",
-      "title": "Hostname",
-      "gridPos": {
-        "x": 12,
-        "y": 171,
-        "w": 6,
-        "h": 4
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "textMode": "name",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "value": null,
-                "color": "blue"
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "birddog_device_info",
-          "legendFormat": "{{hostname}}",
-          "instant": true
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      }
-    },
-    {
-      "id": 229,
-      "type": "stat",
-      "title": "Firmware versie",
-      "gridPos": {
-        "x": 18,
-        "y": 171,
-        "w": 6,
-        "h": 4
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "textMode": "name",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "value": null,
-                "color": "blue"
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "birddog_device_info",
-          "legendFormat": "{{firmware}}",
-          "instant": true
+          "expr": "birddog_operation_mode_decode{device=~\".*\"}",
+          "legendFormat": "{{device}}"
         }
       ],
       "datasource": {
@@ -4752,10 +4642,10 @@
     {
       "id": 223,
       "type": "stat",
-      "title": "Decode Connected (decoders)",
+      "title": "Decode Connected",
       "gridPos": {
-        "x": 0,
-        "y": 175,
+        "x": 12,
+        "y": 171,
         "w": 6,
         "h": 4
       },
@@ -4816,9 +4706,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_decode_connected and on(device) birddog_operation_mode_decode == 1",
-          "legendFormat": "{{device}}",
-          "instant": true
+          "expr": "birddog_decode_connected{device=~\".*\"}",
+          "legendFormat": "{{device}}"
         }
       ],
       "datasource": {
@@ -4831,124 +4720,8 @@
       "type": "stat",
       "title": "NDI Bronnen gevonden",
       "gridPos": {
-        "x": 6,
-        "y": 175,
-        "w": 6,
-        "h": 4
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "value": null,
-                "color": "red"
-              },
-              {
-                "value": 1,
-                "color": "green"
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "birddog_ndi_sources_count",
-          "legendFormat": "{{device}}",
-          "instant": true
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      }
-    },
-    {
-      "id": 232,
-      "type": "stat",
-      "title": "Encode Clients (encoders)",
-      "gridPos": {
-        "x": 12,
-        "y": 175,
-        "w": 6,
-        "h": 4
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "value": null,
-                "color": "yellow"
-              },
-              {
-                "value": 1,
-                "color": "green"
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "birddog_encode_clients_connected and on(device) birddog_operation_mode_encode == 1",
-          "legendFormat": "{{device}}",
-          "instant": true
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      }
-    },
-    {
-      "id": 233,
-      "type": "stat",
-      "title": "Encode Bitrate (encoders)",
-      "gridPos": {
         "x": 18,
-        "y": 175,
+        "y": 171,
         "w": 6,
         "h": 4
       },
@@ -4975,12 +4748,12 @@
                 "color": "red"
               },
               {
-                "value": 1000,
+                "value": 1,
                 "color": "green"
               }
             ]
           },
-          "unit": "Kbits"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -4990,9 +4763,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_encode_bitrate_kbps and on(device) birddog_operation_mode_encode == 1",
-          "legendFormat": "{{device}}",
-          "instant": true
+          "expr": "birddog_ndi_sources_count{device=~\".*\"}",
+          "legendFormat": "{{device}}"
         }
       ],
       "datasource": {
@@ -5003,10 +4775,10 @@
     {
       "id": 225,
       "type": "timeseries",
-      "title": "Decode Framerate (decoders)",
+      "title": "Decode Framerate over tijd",
       "gridPos": {
         "x": 0,
-        "y": 179,
+        "y": 175,
         "w": 12,
         "h": 8
       },
@@ -5029,53 +4801,23 @@
             "spanNulls": false
           }
         },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "birddog_decode_fps and on(device) birddog_operation_mode_decode == 1",
-          "legendFormat": "{{device}} fps"
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      }
-    },
-    {
-      "id": 231,
-      "type": "timeseries",
-      "title": "Encode Framerate (encoders)",
-      "gridPos": {
-        "x": 12,
-        "y": 179,
-        "w": 12,
-        "h": 8
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        },
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "spanNulls": false
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mock-01 fps"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
-        },
-        "overrides": []
+        ]
       },
       "targets": [
         {
@@ -5083,54 +4825,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_encode_fps and on(device) birddog_operation_mode_encode == 1",
+          "expr": "birddog_decode_fps{device=~\".*\"}",
           "legendFormat": "{{device}} fps"
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      }
-    },
-    {
-      "id": 230,
-      "type": "timeseries",
-      "title": "NDI Bronnen gezien (tijdreeks)",
-      "gridPos": {
-        "x": 0,
-        "y": 187,
-        "w": 12,
-        "h": 8
-      },
-      "options": {
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        },
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "spanNulls": false
-          }
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "birddog_ndi_sources_count",
-          "legendFormat": "{{device}}"
         }
       ],
       "datasource": {
@@ -5141,10 +4837,10 @@
     {
       "id": 226,
       "type": "timeseries",
-      "title": "Gedropt frames cumulatief (decoders)",
+      "title": "Gedropt frames (cumulatief)",
       "gridPos": {
         "x": 12,
-        "y": 187,
+        "y": 175,
         "w": 12,
         "h": 8
       },
@@ -5167,7 +4863,23 @@
             "spanNulls": false
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mock-01 dropped"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#F2495C",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "targets": [
         {
@@ -5175,7 +4887,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_decode_dropped_frames_total and on(device) birddog_operation_mode_decode == 1",
+          "expr": "birddog_decode_dropped_frames_total{device=~\".*\"}",
           "legendFormat": "{{device}} dropped"
         }
       ],
@@ -5190,7 +4902,7 @@
       "title": "BirdDog Status Overzicht",
       "gridPos": {
         "x": 0,
-        "y": 195,
+        "y": 183,
         "w": 24,
         "h": 6
       },
@@ -5198,87 +4910,8 @@
         "showHeader": true
       },
       "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Online"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "0": {
-                        "text": "OFFLINE",
-                        "color": "red"
-                      }
-                    }
-                  },
-                  {
-                    "type": "value",
-                    "options": {
-                      "1": {
-                        "text": "ONLINE",
-                        "color": "green"
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Mode"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "0": {
-                        "text": "ENCODE",
-                        "color": "blue"
-                      }
-                    }
-                  },
-                  {
-                    "type": "value",
-                    "options": {
-                      "1": {
-                        "text": "DECODE",
-                        "color": "green"
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              }
-            ]
-          }
-        ]
+        "defaults": {},
+        "overrides": []
       },
       "targets": [
         {
@@ -5286,70 +4919,45 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_device_online",
+          "expr": "birddog_device_online{device=~\".*\"}",
           "legendFormat": "{{device}}",
-          "instant": true,
-          "refId": "A"
+          "instant": true
         },
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_operation_mode_decode",
+          "expr": "birddog_decode_connected{device=~\".*\"}",
           "legendFormat": "{{device}}",
-          "instant": true,
-          "refId": "B"
+          "instant": true
         },
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_ndi_sources_count",
+          "expr": "birddog_decode_fps{device=~\".*\"}",
           "legendFormat": "{{device}}",
-          "instant": true,
-          "refId": "C"
+          "instant": true
         },
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_decode_fps",
+          "expr": "birddog_ndi_sources_count{device=~\".*\"}",
           "legendFormat": "{{device}}",
-          "instant": true,
-          "refId": "D"
+          "instant": true
         },
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "birddog_encode_fps",
+          "expr": "birddog_decode_dropped_frames_total{device=~\".*\"}",
           "legendFormat": "{{device}}",
-          "instant": true,
-          "refId": "E"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "birddog_encode_bitrate_kbps",
-          "legendFormat": "{{device}}",
-          "instant": true,
-          "refId": "F"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "birddog_decode_dropped_frames_total",
-          "legendFormat": "{{device}}",
-          "instant": true,
-          "refId": "G"
+          "instant": true
         }
       ],
       "datasource": {
@@ -5373,55 +4981,12 @@
         {
           "id": "organize",
           "options": {
-            "excludeByName": {
-              "Time 1": true,
-              "Time 2": true,
-              "Time 3": true,
-              "Time 4": true,
-              "Time 5": true,
-              "Time 6": true,
-              "Time 7": true,
-              "__name__ 1": true,
-              "__name__ 2": true,
-              "__name__ 3": true,
-              "__name__ 4": true,
-              "__name__ 5": true,
-              "__name__ 6": true,
-              "__name__ 7": true,
-              "instance 1": true,
-              "instance 2": true,
-              "instance 3": true,
-              "instance 4": true,
-              "instance 5": true,
-              "instance 6": true,
-              "instance 7": true,
-              "job 1": true,
-              "job 2": true,
-              "job 3": true,
-              "job 4": true,
-              "job 5": true,
-              "job 6": true,
-              "job 7": true
-            },
             "renameByName": {
-              "device": "Device",
               "Value #A": "Online",
-              "Value #B": "Mode",
-              "Value #C": "NDI bronnen",
-              "Value #D": "Decode FPS",
-              "Value #E": "Encode FPS",
-              "Value #F": "Bitrate (kbps)",
-              "Value #G": "Dropped frames"
-            },
-            "indexByName": {
-              "Device": 0,
-              "Online": 1,
-              "Mode": 2,
-              "NDI bronnen": 3,
-              "Decode FPS": 4,
-              "Encode FPS": 5,
-              "Bitrate (kbps)": 6,
-              "Dropped frames": 7
+              "Value #B": "Decode connected",
+              "Value #C": "FPS",
+              "Value #D": "NDI bronnen",
+              "Value #E": "Dropped frames"
             }
           }
         }

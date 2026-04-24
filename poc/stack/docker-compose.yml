@@ -21,6 +21,9 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     volumes:
       - grafana_data:/var/lib/grafana
       - ./provisioning:/etc/grafana/provisioning:ro
@@ -28,6 +31,7 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+      - TEAMS_WEBHOOK_URL=${TEAMS_WEBHOOK_URL}
 
   node-exporter:
     image: prom/node-exporter:latest
@@ -152,6 +156,61 @@ services:
     command: ["python", "-u", "ndi_sender.py"]
     depends_on:
       - ndi-exporter
+
+  # BirdDog mock-server (decode): bootst BirdDog REST API 2.0 na op poort 8090.
+  # Activeren: docker compose --profile demo up -d
+  birddog-mock:
+    build:
+      context: .
+      dockerfile: Dockerfile.birddog-mock
+    container_name: birddog-mock
+    profiles: ["demo"]
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      MOCK_PORT: "8090"
+      MOCK_MODE: "decode"
+      MOCK_HOSTNAME: "birddog-mock-01"
+      MOCK_FIRMWARE: "MOCK-3.2.1"
+      MOCK_SERIAL: "MOCK-0001"
+
+  # BirdDog mock-server (encode): tweede instantie in encode-modus op poort 8091.
+  # Simuleert een BirdDog-encoder (camera-zijde) naast de decoder (scherm-zijde).
+  birddog-mock-02:
+    build:
+      context: .
+      dockerfile: Dockerfile.birddog-mock
+    container_name: birddog-mock-02
+    profiles: ["demo"]
+    restart: unless-stopped
+    ports:
+      - "8091:8091"
+    environment:
+      MOCK_PORT: "8091"
+      MOCK_MODE: "encode"
+      MOCK_HOSTNAME: "birddog-mock-02"
+      MOCK_FIRMWARE: "MOCK-3.1.9"
+      MOCK_SERIAL: "MOCK-0002"
+
+  # BirdDog exporter: scrapt birddog-mock (of echte BirdDog hardware) en exposed Prometheus-metrics.
+  # Activeren: docker compose --profile demo up -d
+  birddog-exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile.birddog-exporter
+    container_name: birddog-exporter
+    profiles: ["demo"]
+    restart: unless-stopped
+    ports:
+      - "9119:9119"
+    environment:
+      BIRDDOG_TARGETS: "mock-01:birddog-mock:8090,mock-02:birddog-mock-02:8091"
+      EXPORTER_PORT: "9119"
+      SCRAPE_INTERVAL: "15"
+    depends_on:
+      - birddog-mock
+      - birddog-mock-02
 
   # Synthetische SRT-bron voor demo/scenario's — NIET deel van de observability stack zelf.
   # Opt-in via profile zodat baseline-metingen (CPU/RAM) de stack representeren zonder werklast.
