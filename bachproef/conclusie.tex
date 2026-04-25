@@ -27,9 +27,9 @@ Tabel~\ref{tab:conclusie-vergelijking} vat de belangrijkste praktische verbeteri
     \hline
     \textbf{Aspect} & \textbf{Huidige werkwijze} & \textbf{Met PoC} \\
     \hline
-    Detectietijd         & Handmatig inloggen per toestel & Dashboard-update binnen 15~s \\
+    Detectietijd         & Geen kwantitatieve baseline; kwalitatieve vaststelling tijdens testsessies & Dashboard-update binnen 15~s, alert binnen 1--5~min \\
     Packet loss          & Niet zichtbaar zonder actieve test & Continue meting, grafiek over 30~dagen \\
-    Alerting             & Geen --- techniekers merken het via kijkerklachten & Automatisch binnen 1--5~min \\
+    Alerting             & Geen automatische alerting --- detectie tijdens testsessie van $\sim$30~min de dag vóór uitzending of vlak vóór live-gang & Automatisch en continu, 24/7 \\
     Multi-site overzicht & 4~afzonderlijke logins en handmatig vergelijken & Eén dashboard met alle sites \\
     Historiek            & Beperkt tot lokale toestel-logs & 30~dagen in Prometheus en Loki \\
     \hline
@@ -37,6 +37,8 @@ Tabel~\ref{tab:conclusie-vergelijking} vat de belangrijkste praktische verbeteri
 \end{table}
 
 De grootste niet-kwantificeerbare meerwaarde is de vermindering van de afhankelijkheid van lokale expertise op live-surgery-locaties. Techniekers ter plaatse zijn tijdens een congres volledig bezig met de operationele uitvoering; een gecentraliseerd dashboard in Bornem laat een ondersteunend team toe om proactief mee te kijken en bij te sturen zonder de lokale crew te onderbreken.
+
+De fundamentele bijdrage van het PoC laat zich niet uitdrukken als een numeriek detectie-tijdverschil, maar als een \emph{aard}-verschuiving. In de huidige werkwijze bestaat er geen kwantitatieve baseline: detectie verloopt kwalitatief, mens-afhankelijk en gebonden aan de testsessie van circa dertig minuten de dag vóór de uitzending en aan een korte controle vlak vóór live-gang \autocite{VanRenterghem2025}. Buiten die twee vensters wordt er niet systematisch gemeten. Het PoC vervangt deze handeling door een continue, geautomatiseerde meting met een vooraf gedefinieerde scrape- en alert-cyclus. De winst zit dus niet zozeer in ``sneller dan x minuten'', maar in het feit dat detectie 24/7 plaatsvindt in plaats van uitsluitend tijdens twee tijdsvensters per project --- en dat de tijd-tot-detectie voor het eerst zelf een meetbare grootheid wordt, die in de testscenario's tussen één en twee minuten ligt.
 
 \section{Belangrijkste bevindingen}
 \label{sec:conclusie-bevindingen}
@@ -53,7 +55,7 @@ Naast de directe functionele resultaten leverde het onderzoek een aantal inzicht
 \section{Beperkingen}
 \label{sec:conclusie-beperkingen}
 
-Een eerlijke afbakening van het PoC is belangrijk voor de verdedigbaarheid. De belangrijkste beperkingen --- reeds uitgebreid besproken in sectie~\ref{sec:poc-scope} --- zijn: \emph{(i)} de afwezigheid van \emph{volledige} NAT-traversal in de testomgeving: er werd één asymmetrisch NAT-scenario toegevoegd (scenario~7, sectie~\ref{sec:poc-tests}) dat bewijst dat de observability-laag routing-agnostisch blijft, maar de PepVPN-eigen NAT-T-implementatie zelf (hole-punching onder CGNAT, keepalive-timing bij flappende NAT-bindings) is niet experimenteel geëvalueerd --- dat valt onder commerciële productfunctionaliteit van Peplink, \emph{(ii)} de opgegeven PepVPN-tunnel tussen de fysieke Balance~20X en FH-Bornem (opgelost via WiFi-direct, maar zonder tunnel-validatie op deze fysieke spoke), en \emph{(iii)} de validatie van de NDI-exporter tegen een synthetische loopback-bron in plaats van een hardware-encoder --- gedeeltelijk opgevangen door de gelaagde validatie uit scenario~9, waar een BirdDog mock-API op basis van de publieke REST~API~2.0 de device- en modus-laag valideert zoals een fysiek BirdDog-toestel dat zou doen, maar een volledige conformiteitstest tegen echte hardware blijft een productie-vervolgstap. Geen van deze beperkingen raakt de kernclaim van het onderzoek --- multi-bron end-to-end observability werkt en detecteert storingen aantoonbaar sneller --- maar elk van hen is een concrete vervolgstap.
+Een eerlijke afbakening van het PoC is belangrijk voor de verdedigbaarheid. De belangrijkste beperkingen --- reeds uitgebreid besproken in sectie~\ref{sec:poc-scope} --- zijn: \emph{(i)} de afwezigheid van \emph{volledige} NAT-traversal in de testomgeving: er werd één asymmetrisch NAT-scenario toegevoegd (scenario~7, sectie~\ref{sec:poc-tests}) dat bewijst dat de observability-laag routing-agnostisch blijft, maar de PepVPN-eigen NAT-T-implementatie zelf (hole-punching onder CGNAT, keepalive-timing bij flappende NAT-bindings) is niet experimenteel geëvalueerd --- dat valt onder commerciële productfunctionaliteit van Peplink, \emph{(ii)} de opgegeven PepVPN-tunnel tussen de fysieke Balance~20X en FH-Bornem (opgelost via WiFi-direct, maar zonder tunnel-validatie op deze fysieke spoke), en \emph{(iii)} de validatie van de NDI-exporter tegen een synthetische loopback-bron in plaats van een hardware-encoder --- gedeeltelijk opgevangen door de gelaagde validatie uit scenario~9, waar een BirdDog mock-API op basis van de publieke REST~API~2.0 de device- en modus-laag valideert zoals een fysiek BirdDog-toestel dat zou doen, maar een volledige conformiteitstest tegen echte hardware blijft een productie-vervolgstap. Geen van deze beperkingen raakt de kernclaim van het onderzoek --- multi-bron end-to-end observability werkt en verschuift detectie van een kwalitatieve, mens-afhankelijke vaststelling tijdens beperkte testvensters naar een continue, kwantitatieve meting met een time-to-detect van één tot twee minuten --- maar elk van hen is een concrete vervolgstap.
 
 \section{Aanbevelingen voor Mediaventures}
 \label{sec:conclusie-aanbevelingen}

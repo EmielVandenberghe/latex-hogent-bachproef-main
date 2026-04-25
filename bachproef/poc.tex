@@ -319,7 +319,7 @@ Op drie interfaces wordt tegelijk degradatie geïnjecteerd: Venue krijgt 150~ms~
   \label{fig:scenario-4b-overview}
 \end{figure}
 
-\paragraph{Gemeten time-to-detect.} Voor de SRT packet-loss-alert werd een uurwerkmeting uitgevoerd: T0 om 19:47:51 (tc netem actief), T+31~s eerste scrape boven drempel, T+118~s (19:49:49) Grafana-alert gefired. De totale time-to-detect is dus ongeveer twee minuten. Dat is substantieel sneller dan de huidige werkwijze, waarbij techniekers pas reageren op basis van klachten van de kijker.
+\paragraph{Gemeten time-to-detect.} Voor de SRT packet-loss-alert werd een uurwerkmeting uitgevoerd: T0 om 19:47:51 (tc netem actief), T+31~s eerste scrape boven drempel, T+118~s (19:49:49) Grafana-alert gefired. De totale time-to-detect is dus ongeveer twee minuten. Een directe numerieke vergelijking met de huidige werkwijze is niet mogelijk omdat daar geen kwantitatieve baseline beschikbaar is: detectie gebeurt voornamelijk kwalitatief tijdens een testsessie van circa dertig minuten de dag vóór de uitzending of vlak vóór live-gang \autocite{VanRenterghem2025}. Storingen buiten die twee testvensters worden in de huidige werkwijze niet automatisch gedetecteerd; het PoC verschuift de detectie naar een continue, kwantitatieve meting met deze gemeten ondergrens.
 
 \subsection{Scenario 5 --- fysieke Balance 20X offline}
 
@@ -380,7 +380,7 @@ Dit scenario is het NDI-analogon van scenario~4 (SRT) en valideert dat de stack 
   \label{fig:scenario-6b}
 \end{figure}
 
-\paragraph{Detectietijd.} De gemeten time-to-detect bedraagt ongeveer 15~s voor de metric-zelf (één scrape-interval) en 1~min~15~s tot de alert in Firing-state gaat. Dat is in dezelfde orde van grootte als de SRT-alert (scenario~4a, ~2~min), en ruim snel genoeg om tijdens een uitzending in te grijpen vóór de klacht van de eindgebruiker arriveert.
+\paragraph{Detectietijd.} De gemeten time-to-detect bedraagt ongeveer 15~s voor de metric-zelf (één scrape-interval) en 1~min~15~s tot de alert in Firing-state gaat. Dat is in dezelfde orde van grootte als de SRT-alert (scenario~4a, ~2~min). In de huidige werkwijze is een NDI-stream-onderbreking buiten het testvenster niet automatisch detecteerbaar; deze meting maakt het mogelijk om in te grijpen binnen het tijdsbestek van een lopende uitzending in plaats van te moeten wachten op een kwalitatieve vaststelling.
 
 \subsection{Scenario 7 --- asymmetrische NAT (NAT-traversal validatie)}
 \label{sec:scenario-7}
