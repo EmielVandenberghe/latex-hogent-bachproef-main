@@ -42,8 +42,8 @@ De belangrijkste parameters voor het beoordelen van de streamkwaliteit zijn:
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\linewidth,height=0.38\textheight,keepaspectratio]{chatgpt_srt_explanation.png}
-  \caption[NDI-naar-SRT-naar-NDI workflow]{Schematische weergave van de volledige AV-workflow: camera's op de surgery-locatie sturen via NDI naar een mixer-pc en SRT-encoder, waarna de stream via het internet naar de venue wordt getransporteerd en er opnieuw als NDI beschikbaar wordt gemaakt \autocite{ChatGPT2026}.}
+  \includegraphics[width=\linewidth,keepaspectratio]{av_workflow_livesurgery_venue.png}
+  \caption[AV-workflow van surgery-locatie naar venue]{Schematische weergave van de volledige AV-workflow bij Mediaventures: camera's op de live-surgery-locatie sturen beeldmateriaal via NDI naar een mixer-pc en SRT-encoder, waarna de gecomprimeerde stream via een PepVPN-tunnel over het internet naar de venue wordt getransporteerd. Op de venue decodeert een SRT-decoder de stream en maakt die via NDI-output beschikbaar voor de projectoren. De Peplink~20X (surgery) en Peplink~380X (venue) zijn via PepVPN verbonden met de centrale site in Bornem, waar de observability-stack (Prometheus, Loki, Grafana) de tunnelstatus en componentgezondheid bewaakt.}
   \label{fig:srt-workflow}
 \end{figure}
 
