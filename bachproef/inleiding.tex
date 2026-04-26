@@ -56,6 +56,8 @@ Het probleem- en oplossingsdomein bevindt zich op het snijpunt van AV-productie,
 
 Dit onderzoek richt zich op het verzamelen, aggregeren en visualiseren van observability-data (metrics, logs en netwerkflows) afkomstig van alle componenten in de audiovisuele infrastructuur. Het doel is techniekers een volledig, gecentraliseerd overzicht te bieden van de status en prestaties van de infrastructuur via één dashboard. Het automatisch interpreteren van problemen en het voorstellen van concrete oplossingen valt buiten de huidige scope; de focus ligt op detectie en zichtbaarmaking.
 
+Ook beveiliging van de monitoringstack zelf valt buiten de scope van dit proof-of-concept. Concreet betekent dit dat aspecten zoals TLS-encryptie tussen exporters en Prometheus, authenticatie op Grafana-niveau (buiten de standaard admin-login), role-based access control voor verschillende gebruikersgroepen, hardening van de observability-host en het beveiligen van API-credentials (zoals de InControl2-token) niet experimenteel werden geëvalueerd. De focus ligt uitsluitend op het functioneel aantonen van end-to-end zichtbaarheid; een productie-uitrol vereist een aanvullende security-review die in de aanbevelingen (sectie~\ref{sec:conclusie-aanbevelingen}) als vervolgstap wordt opgenomen.
+
 \section{\IfLanguageName{dutch}{Opzet van deze bachelorproef}{Structure of this bachelor thesis}}%
 \label{sec:opzet-bachelorproef}
 
