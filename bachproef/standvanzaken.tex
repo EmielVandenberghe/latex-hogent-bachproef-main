@@ -30,6 +30,13 @@ Omdat NDI ontworpen is voor gebruik binnen een LAN en niet geschikt is voor tran
 
 Deze omzetting vormt een belangrijke overgang van LAN-gebaseerde videodistributie naar WAN-transmissie. Storingen in de NDI-laag (zoals haperingen of te hoge belasting) worden op dit punt direct doorgegeven aan de SRT-encoder, die ze niet altijd kan corrigeren. Dit maakt monitoring op deze overgang van bijzonder belang \autocite{VanRenterghem2025}.
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth,keepaspectratio]{av_workflow_livesurgery_venue.png}
+  \caption[AV-workflow van surgery-locatie naar venue]{Schematische weergave van de volledige AV-workflow bij Mediaventures: camera's op de live-surgery-locatie sturen beeldmateriaal via NDI naar een mixer-pc en SRT-encoder, waarna de gecomprimeerde stream via een PepVPN-tunnel over het internet naar de venue wordt getransporteerd. Op de venue decodeert een SRT-decoder de stream en maakt die via NDI-output beschikbaar voor de projectoren. De Peplink~20X (surgery) en Peplink~380X (venue) zijn via PepVPN verbonden met de centrale site in Bornem, waar de observability-stack (Prometheus, Loki, Grafana) de tunnelstatus en componentgezondheid bewaakt.}
+  \label{fig:srt-workflow}
+\end{figure}
+
 \subsection{De omzetting van SRT terug naar een lokaal formaat}
 
 Wanneer de SRT-stream aankomt op de venue of in Bornem (de centrale site), wordt deze opnieuw gedecodeerd. De ontvangende software zet de stream terug om in een videobron die binnen het lokale netwerk kan worden gebruikt. Volgens \textcite{Haivision2023} ondersteunt SRT dit decodeerproces zonder dat de oorspronkelijke kwaliteit onnodig wordt aangetast. In veel audiovisuele workflows wordt de gedecodeerde stream opnieuw als NDI beschikbaar gemaakt zodat deze lokaal op dezelfde manier kan worden gerouteerd als andere videobronnen. Dit zorgt voor een consistente end-to-end workflow waarin NDI wordt gebruikt voor interne distributie en SRT voor transmissie over grotere afstanden \autocite{VanRenterghem2025}.
@@ -39,13 +46,6 @@ Wanneer de SRT-stream aankomt op de venue of in Bornem (de centrale site), wordt
 Het SRT-protocol biedt uitgebreide mogelijkheden voor het monitoren van de verbindingskwaliteit in real-time. De protocolspecificatie definieert een reeks statistieken die zowel aan zenderzijde als aan ontvangerzijde beschikbaar zijn en inzicht geven in de gezondheid van de verbinding \autocite{SRTAlliance2024}.
 
 De belangrijkste parameters voor het beoordelen van de streamkwaliteit zijn:
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=\linewidth,keepaspectratio]{av_workflow_livesurgery_venue.png}
-  \caption[AV-workflow van surgery-locatie naar venue]{Schematische weergave van de volledige AV-workflow bij Mediaventures: camera's op de live-surgery-locatie sturen beeldmateriaal via NDI naar een mixer-pc en SRT-encoder, waarna de gecomprimeerde stream via een PepVPN-tunnel over het internet naar de venue wordt getransporteerd. Op de venue decodeert een SRT-decoder de stream en maakt die via NDI-output beschikbaar voor de projectoren. De Peplink~20X (surgery) en Peplink~380X (venue) zijn via PepVPN verbonden met de centrale site in Bornem, waar de observability-stack (Prometheus, Loki, Grafana) de tunnelstatus en componentgezondheid bewaakt.}
-  \label{fig:srt-workflow}
-\end{figure}
 
 \begin{itemize}
 \item \textbf{Round-Trip Time (RTT)}: De tijd in milliseconden die een pakket nodig heeft om van zender naar ontvanger en terug te reizen. Deze waarde is cruciaal voor het berekenen van de optimale latency-instelling. De aanbevolen SRT-latency is minimaal drie tot vier keer de gemiddelde RTT \autocite{Sharabayko2022}.
@@ -132,9 +132,9 @@ De literatuur toont dat audiovisuele workflows meerdere gespecialiseerde protoco
 
 Deze drie lagen zijn onlosmakelijk met elkaar verbonden: problemen in de WAN-laag (zoals packet loss op een 5G-verbinding) manifesteren zich direct in de SRT-statistieken (verhoogde RTT en retransmissies), wat uiteindelijk zichtbaar wordt als kwaliteitsverlies in de NDI-output op de venue. Omgekeerd kan overbelasting van de lokale NDI-mixer leiden tot verhoogde jitter in de SRT-stream, zelfs wanneer de onderliggende WAN-verbinding stabiel is. Zonder inzicht in alle lagen tegelijk is het voor techniekers moeilijk om de werkelijke oorzaak van problemen te achterhalen.
 
-Geen enkel bestaand platform monitort al deze lagen tegelijk. InControl2 biedt waardevolle WAN-metrics maar mist SRT- en NDI-inzichten. SRT-encoders rapporteren streamstatistieken maar kennen de toestand van de onderliggende netwerk\-infrastructuur niet. De observability-oplossing die in dit onderzoek werd ontwikkeld, combineert SRT-statistieken van de encoders, NDI-framemetrics en WAN-kwaliteitsmetrics uit de InControl2 API in één gecentraliseerd platform. Door deze databronnen te correleren in Grafana-dashboards kunnen techniekers in één oogopslag zien of een streamingprobleem veroorzaakt wordt door lokale netwerkbelasting, WAN-degradatie of encoder-issues.
+Geen enkel bestaand platform monitort al deze lagen tegelijk. InControl2 biedt waardevolle WAN-metrics maar mist SRT- en NDI-inzichten. SRT-encoders rapporteren streamstatistieken maar kennen de toestand van de onderliggende netwerk\-infrastructuur niet. De observability-oplossing die in dit onderzoek werd ontwikkeld, combineert vijf onafhankelijke databronnen --- WAN-kwaliteitsmetrics uit de InControl2 API, directe SNMP-polling, de lokale Peplink REST-API, SRT- en NDI-stream-statistieken via custom exporters, en device-state via de BirdDog REST API~2.0 --- in één gecentraliseerd platform. Door deze databronnen te correleren in Grafana-dashboards kunnen techniekers in één oogopslag zien of een streamingprobleem veroorzaakt wordt door lokale netwerkbelasting, WAN-degradatie of encoder-issues.
 
 Een bijkomend voordeel van een gecentraliseerde observabilityoplossing is dat alle monitoringactiviteiten vanuit één locatie, de centrale site in Bornem, kunnen worden uitgevoerd. Op dit moment vereist het opsporen van problemen dat techniekers ter plaatse op elke locatie afzonderlijk inloggen op apparatuur, wat niet alleen tijdrovend is maar ook specifieke technische kennis op elke locatie veronderstelt. Op live-surgerylocaties zijn doorgaans slechts enkele personen aanwezig; hun aandacht gaat volledig naar de operationele uitvoering van het evenement. Een gecentraliseerd dashboard in Bornem zou de afhankelijkheid van lokale expertise sterk verminderen, de werkdruk op locatie verlichten en een snellere reactie op problemen mogelijk maken \autocite{VanRenterghem2025}.
 
-Het onderzoek startte met een afgebakende scope gericht op SRT en PepVPN-verbindingen. Naarmate de implementatie vorderde, werd NDI als derde AV-laag succesvol geïntegreerd via een custom exporter op de NDI SDK~v6 (zie hoofdstuk~\ref{ch:poc}). Switch-monitoring bleef buiten scope. De bevindingen kunnen na afloop van deze bachelorproef als fundament dienen voor een alomvattende monitoringoplossing bij Mediaventures.
+Het onderzoek startte met een afgebakende scope gericht op SRT en PepVPN-verbindingen. Naarmate de implementatie vorderde, werd NDI als derde AV-laag succesvol geïntegreerd via een custom exporter op de NDI SDK~v6, en de BirdDog-hardwarelaag (HDMI/SDI~$\leftrightarrow$~NDI-conversie) als vierde laag toegevoegd op basis van de publieke BirdDog REST API~2.0 (zie hoofdstuk~\ref{ch:poc}). Switch-monitoring bleef buiten scope. De bevindingen kunnen na afloop van deze bachelorproef als fundament dienen voor een alomvattende monitoringoplossing bij Mediaventures.
 
