@@ -1,4 +1,4 @@
-%%=============================================================================
+﻿%%=============================================================================
 %% Proof-of-Concept
 %%=============================================================================
 
@@ -21,9 +21,9 @@ Het repository bevat alle configuratiebestanden, Python-exporters, Vagrant- en D
 \section{Structuur van de repository}
 \label{sec:poc-repo-structuur}
 
-Tabel~\ref{tab:repo-structuur} geeft een overzicht van de mappenstructuur van de belangrijkste componenten. De repository is georganiseerd rond één centrale map \texttt{poc/stack/} waarin alle runtime-componenten samenkomen. De bijhorende documentatie staat als Markdown-bestanden naast de code, zodat elke beslissing herleidbaar is vanuit hetzelfde versiebeheer.
+Tabel~\ref{tab:repo-structuur} geeft een overzicht van de mappenstructuur van de belangrijkste componenten. De repository is georganiseerd rond Ã©Ã©n centrale map \texttt{poc/stack/} waarin alle runtime-componenten samenkomen. De bijhorende documentatie staat als Markdown-bestanden naast de code, zodat elke beslissing herleidbaar is vanuit hetzelfde versiebeheer.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption[Structuur van de PoC-repository]{Overzicht van de mappenstructuur van de GitHub-repository.}
   \label{tab:repo-structuur}
@@ -56,7 +56,7 @@ Omdat testen op de productie-infrastructuur van Mediaventures niet toegelaten is
 
 Aanvullend wordt een fysieke Peplink Balance~20X als vijfde site (\emph{Live3}) aan de stack gekoppeld via een bridged WiFi-adapter (\texttt{192.168.1.1}). Dit toestel is niet opgenomen in de PepVPN-mesh en maakt geen deel uit van de virtuele testomgeving; het dient uitsluitend voor de validatie dat de stack ook op echte Peplink-hardware werkt, met enterprise-SNMP en lokale API die FusionHub niet aanbiedt (zie scenario~4 en sectie~\ref{sec:poc-scope}). Detailinstructies staan in \texttt{poc/omgeving\_opzetten.md}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.42\textheight,keepaspectratio]{ic2-topology-pepvpn.png}
   \caption[Topologie in InControl2]{PepVPN-topologie in InControl2: vier FusionHub-VMs (Bornem als hub, Venue, Live1 en Live2 als spokes) verbonden via drie SpeedFusion-profielen. De fysieke Balance~20X (Live3) is niet opgenomen in InControl2 en staat los van deze mesh.}
@@ -65,7 +65,7 @@ Aanvullend wordt een fysieke Peplink Balance~20X als vijfde site (\emph{Live3}) 
 
 De gekozen ICS~+~Host-Only~+~VyOS-topologie werd bewust boven VirtualBox' NAT-adapter verkozen, omdat die laatste geen inkomend verkeer toestaat op UDP~4500 (nodig voor PepVPN). De opstelling geeft stabiele, reproduceerbare directe routering ongeacht de locatie van de laptop (thuis, school, hotspot).
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption[IP-schema en toegang testomgeving]{IP-adressen en webadmin-URL's van de testomgeving.}
   \label{tab:ip-schema}
@@ -90,7 +90,7 @@ De gekozen ICS~+~Host-Only~+~VyOS-topologie werd bewust boven VirtualBox' NAT-ad
 
 De stack draait als veertien Docker-containers op de observability-VM, georkestreerd via Docker Compose. De keuze voor containers garandeert reproduceerbaarheid en isoleert elke functie in een eigen eenheid. Tabel~\ref{tab:containers} geeft een overzicht.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption[Containers in de observability-stack]{De veertien containers van de observability-stack en hun rol.}
   \label{tab:containers}
@@ -127,9 +127,9 @@ Tijdens de implementatie kwamen verschillende praktijkbevindingen naar boven die
   \item \textbf{CPU- en geheugen-OIDs zijn niet beschikbaar op FusionHub.} De Peplink enterprise-OIDs onder \texttt{.1.3.6.1.4.1.23695.200.*} bestaan enkel op fysieke hardware. Dit verschil is een structureel gevolg van het virtuele karakter van FusionHub en wordt in de observability-stack opgevangen door de lokale REST-API te gebruiken: \texttt{status.cpu} werkt op beide platformen en levert de unieke bron voor CPU-belasting.
   \item \textbf{Statische routes vereist op de observability-VM.} Omdat de VM standaard enkel \texttt{10.1.1.0/24} kent, moeten de subnetten van Venue, Live1 en Live2 expliciet via VyOS als gateway toegevoegd worden. Zonder deze routes tonen de overige sites ICMP~DOWN in Grafana.
   \item \textbf{Docker Compose leest \texttt{.env} niet opnieuw bij restart.} Een klassieke valkuil: \texttt{docker compose restart} behoudt de oude environment. Enkel \texttt{docker compose up -d --force-recreate} past een gewijzigde \texttt{.env} effectief toe.
-  \item \textbf{NDI-discovery vereist een bereikbare Avahi-daemon, niet enkel \texttt{libavahi-client}.} Het NDI-protocol gebruikt mDNS (\texttt{\_ndi.\_tcp.local.}) om bronnen te ontdekken. \texttt{libavahi-client3} in de container installeren is niet voldoende --- die library heeft een dráaiende \texttt{avahi-daemon} nodig om mee te praten, anders geeft \texttt{NDIlib\_find\_get\_current\_sources()} nul bronnen (óók met \texttt{NDI\_EXTRA\_IPS=127.0.0.1}, omdat die parameter alsnog mDNS-resolutie vereist). Opgelost door \texttt{avahi} op de observability-VM te installeren en de DBus- en Avahi-socket van de host via bind-mounts door te geven aan beide NDI-containers.
-  \item \textbf{NDI-exporter moet gauges expliciet op nul zetten bij offline-stream.} Tijdens scenario~5 viel op dat \texttt{ndi\_video\_fps} op 25 bleef hangen nadat de sender was gestopt, hoewel \texttt{ndi\_stream\_active} correct naar~0 ging. De oorzaak was dat de \emph{``geen bron''}-branch van de exporter enkele gauges niet resette, waardoor Prometheus de laatste waarde behield tot de scrape zelf stale werd. De fix zet \texttt{video\_fps}, \texttt{queue\_depth}, \texttt{video\_width/height} en \texttt{frame\_drop\_rate} expliciet op~0 zodra de target verdwijnt, en reset de interne frame-counters om een counter-sprong bij recovery te vermijden. Dit is hetzelfde \emph{default-to-healthy}-patroon als de blindspot-bug uit sectie~\ref{sec:poc-blindspot} en onderstreept dat \emph{``geen data''} nooit impliciet als \emph{``alles is oké''} mag gelden.
-  \item \textbf{NDI-receivers moeten continu gedraind worden.} Een eerste versie van de \texttt{ndi-exporter} riep \texttt{NDIlib\_recv\_capture\_v2()} één keer per scrape-interval aan. Daardoor liep de interne NDI-queue vol en werd ongeveer de helft van de binnenkomende frames weggegooid, zichtbaar als een kunstmatige \texttt{frame\_drop\_rate} van ca.\ 50\%. De uiteindelijke implementatie gebruikt een tight drain-loop met een 5~ms-timeout die continu frames ophaalt; de performance- en queue-statistieken worden apart uitgelezen. De restdrop-rate in loopback-situatie (\textasciitilde{}10--15\%) is een eigenschap van de synthetische Python-sender en blijft in productie afwezig wanneer een hardware-encoder de bron levert.
+  \item \textbf{NDI-discovery vereist een bereikbare Avahi-daemon, niet enkel \texttt{libavahi-client}.} Het NDI-protocol gebruikt mDNS (\texttt{\_ndi.\_tcp.local.}) om bronnen te ontdekken. \texttt{libavahi-client3} in de container installeren is niet voldoende --- die library heeft een drÃ¡aiende \texttt{avahi-daemon} nodig om mee te praten, anders geeft \texttt{NDIlib\_find\_get\_current\_sources()} nul bronnen (Ã³Ã³k met \texttt{NDI\_EXTRA\_IPS=127.0.0.1}, omdat die parameter alsnog mDNS-resolutie vereist). Opgelost door \texttt{avahi} op de observability-VM te installeren en de DBus- en Avahi-socket van de host via bind-mounts door te geven aan beide NDI-containers.
+  \item \textbf{NDI-exporter moet gauges expliciet op nul zetten bij offline-stream.} Tijdens scenario~5 viel op dat \texttt{ndi\_video\_fps} op 25 bleef hangen nadat de sender was gestopt, hoewel \texttt{ndi\_stream\_active} correct naar~0 ging. De oorzaak was dat de \emph{``geen bron''}-branch van de exporter enkele gauges niet resette, waardoor Prometheus de laatste waarde behield tot de scrape zelf stale werd. De fix zet \texttt{video\_fps}, \texttt{queue\_depth}, \texttt{video\_width/height} en \texttt{frame\_drop\_rate} expliciet op~0 zodra de target verdwijnt, en reset de interne frame-counters om een counter-sprong bij recovery te vermijden. Dit is hetzelfde \emph{default-to-healthy}-patroon als de blindspot-bug uit sectie~\ref{sec:poc-blindspot} en onderstreept dat \emph{``geen data''} nooit impliciet als \emph{``alles is okÃ©''} mag gelden.
+  \item \textbf{NDI-receivers moeten continu gedraind worden.} Een eerste versie van de \texttt{ndi-exporter} riep \texttt{NDIlib\_recv\_capture\_v2()} Ã©Ã©n keer per scrape-interval aan. Daardoor liep de interne NDI-queue vol en werd ongeveer de helft van de binnenkomende frames weggegooid, zichtbaar als een kunstmatige \texttt{frame\_drop\_rate} van ca.\ 50\%. De uiteindelijke implementatie gebruikt een tight drain-loop met een 5~ms-timeout die continu frames ophaalt; de performance- en queue-statistieken worden apart uitgelezen. De restdrop-rate in loopback-situatie (\textasciitilde{}10--15\%) is een eigenschap van de synthetische Python-sender en blijft in productie afwezig wanneer een hardware-encoder de bron levert.
 \end{itemize}
 
 \section{Datacollectie en verzamelde metrics}
@@ -155,16 +155,16 @@ In totaal leveren de exporters meer dan 40 metrics per scrape, wat toelaat om ge
 
 Het centrale dashboard \emph{Mediaventures --- Observability Dashboard} is opgebouwd uit dertien secties die van boven naar beneden de volledige keten tonen. Het dashboard wordt via JSON-provisioning geladen, zodat elke wijziging versiebeheerbaar is en niet verloren gaat bij een restart.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{5-baseline-alles.png}
   \caption[Dashboard baseline (volledig overzicht)]{Baseline van het volledige dashboard onder normale werking: alle vijf de sites rapporteren groen en alle metrics bevinden zich binnen de ingestelde drempels.}
   \label{fig:baseline-alles}
 \end{figure}
 
-\paragraph{Sectie 1 --- Site Status Overzicht.} Per site tonen drie stat-panels de bereikbaarheid (ICMP), de tunnel- of SNMP-status en de cloud- of lokale-API-status. Dit geeft techniekers in één blik een go/no-go voor elk van de vijf sites (figuur~\ref{fig:baseline-sitestatus}).
+\paragraph{Sectie 1 --- Site Status Overzicht.} Per site tonen drie stat-panels de bereikbaarheid (ICMP), de tunnel- of SNMP-status en de cloud- of lokale-API-status. Dit geeft techniekers in Ã©Ã©n blik een go/no-go voor elk van de vijf sites (figuur~\ref{fig:baseline-sitestatus}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.25\textheight,keepaspectratio]{5-baseline-sitestatus.png}
   \caption[Sectie 1: Site Status Overzicht]{Sectie~1 toont per site drie onafhankelijke gezondheidsindicatoren: ICMP, SNMP/tunnel en API.}
@@ -173,7 +173,7 @@ Het centrale dashboard \emph{Mediaventures --- Observability Dashboard} is opgeb
 
 \paragraph{Sectie 2 --- Connectiviteit en netwerkkwaliteit.} Deze sectie combineert ICMP-RTT, packet loss en jitter voor alle sites. De drempelwaarden zijn afgestemd op live-streaming: groen onder 50~ms RTT, rood boven 150~ms; packet loss groen bij 0\%, rood boven 5\%; jitter groen onder 5~ms.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.30\textheight,keepaspectratio]{5-baseline-connectiviteit.png}
   \caption[Sectie 2: Connectiviteit en netwerkkwaliteit]{RTT, packet loss en jitter per site. Baseline op het lokale testnetwerk: RTT\,\textless\,2~ms, 0\% loss.}
@@ -182,7 +182,7 @@ Het centrale dashboard \emph{Mediaventures --- Observability Dashboard} is opgeb
 
 \paragraph{Secties 3 en 4 --- WAN en device health.} Sectie~3 is gewijd aan de enterprise-SNMP van de fysieke Balance~20X (WAN-interface-status, link-up, signaal in dBm, health check). Sectie~4 toont de CPU-load en AP-status voor alle sites die via de lokale API bereikbaar zijn. Samen leveren ze het bewijs dat de stack ook op fysieke Peplink-hardware werkt, met metrics die FusionHub niet aanbiedt.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.38\textheight,keepaspectratio]{5-baseline-3-4-wanendevicehealth.png}
   \caption[Secties 3 en 4: WAN status en device health]{Enterprise SNMP WAN-interfaces van Live3 (Balance~20X) en de CPU-load gemeten via de lokale REST-API.}
@@ -191,7 +191,7 @@ Het centrale dashboard \emph{Mediaventures --- Observability Dashboard} is opgeb
 
 \paragraph{Sectie 5 --- PepVPN-tunnels.} Per actief SpeedFusion-profiel tonen stat-panels de tunnelstatus; een tijdreeks geeft drops en herstel weer. Na de fix die besproken wordt in sectie~\ref{sec:poc-blindspot} bevat deze sectie ook een expliciete \texttt{peplink\_tunnel\_count}-indicator.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.28\textheight,keepaspectratio]{5-baseline-pepvpntunnels.png}
   \caption[Sectie 5: PepVPN-tunnels]{Drie actieve SpeedFusion-profielen (Bornem-hub, Live1$\leftrightarrow$Venue, Live2$\leftrightarrow$Venue).}
@@ -202,23 +202,23 @@ Het centrale dashboard \emph{Mediaventures --- Observability Dashboard} is opgeb
 
 \paragraph{Sectie 11 --- SRT stream kwaliteit.} Acht panels bewaken de live SRT-stream: stream-active, bitrate, RTT, packet loss, jitter, retransmit-rate, de totale retransmissions en een \emph{cross-layer} panel dat de SRT-RTT samen toont met de ICMP-RTT per site. Dat cross-layer-panel is een kernbijdrage: gelijktijdige pieken in beide signalen bewijzen dat een netwerkverstoring direct doorwerkt op de streamkwaliteit.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.32\textheight,keepaspectratio]{5-baseline-srt.png}
   \caption[Sectie 11: SRT stream kwaliteit]{Baseline van de SRT-teststream: \textasciitilde{}1\,695 kbps, RTT $\approx$ 1~ms op loopback, 0\% loss.}
   \label{fig:baseline-srt}
 \end{figure}
 
-\paragraph{Sectie 12 --- NDI stream kwaliteit.} Analoog aan sectie~11 voor SRT bevat deze sectie stat- en gauge-panels voor \texttt{ndi\_stream\_active}, \texttt{ndi\_video\_fps}, \texttt{ndi\_frame\_drop\_rate}, \texttt{ndi\_sources\_detected} en \texttt{ndi\_sdk\_available}, aangevuld met tijdreeksen voor de framerate, de receiver-queue-diepte, het aantal ontvangen versus gedropte frames per seconde, en de drop-rate doorheen de tijd. Het toevoegen van deze sectie bewijst dat dezelfde observability-aanpak die voor SRT werkt (één exporter die de applicatielaag vertaalt naar Prometheus-metrics) ook op het dominante IP-videoprotocol binnen productie-LANs van Mediaventures van toepassing is. De \texttt{queue\_depth}-metric is bijzonder waardevol: een stijgende bufferbezetting vormt een vroeg signaal van congestie of receiver-saturatie, nog vóór frame drops zich manifesteren.
+\paragraph{Sectie 12 --- NDI stream kwaliteit.} Analoog aan sectie~11 voor SRT bevat deze sectie stat- en gauge-panels voor \texttt{ndi\_stream\_active}, \texttt{ndi\_video\_fps}, \texttt{ndi\_frame\_drop\_rate}, \texttt{ndi\_sources\_detected} en \texttt{ndi\_sdk\_available}, aangevuld met tijdreeksen voor de framerate, de receiver-queue-diepte, het aantal ontvangen versus gedropte frames per seconde, en de drop-rate doorheen de tijd. Het toevoegen van deze sectie bewijst dat dezelfde observability-aanpak die voor SRT werkt (Ã©Ã©n exporter die de applicatielaag vertaalt naar Prometheus-metrics) ook op het dominante IP-videoprotocol binnen productie-LANs van Mediaventures van toepassing is. De \texttt{queue\_depth}-metric is bijzonder waardevol: een stijgende bufferbezetting vormt een vroeg signaal van congestie of receiver-saturatie, nog vÃ³Ã³r frame drops zich manifesteren.
 
-\paragraph{Sectie 13 --- BirdDog device monitoring.} Deze sectie dekt de hardware-laag af die HDMI- en SDI-signalen in- en uit het NDI-domein brengt. Vier info-stats (Device Online, Operation Mode, Hostname, Firmware) tonen per device de identiteit; vier status-stats tonen per modus de relevante werkstand (Decode Connected, NDI Bronnen gevonden voor decoders; Encode Clients en Encode Bitrate voor encoders). Twee tijdreeks-panels (Decode Framerate en Encode Framerate) geven de evolutie van de framerate per modus, waarna een tijdreeks voor het aantal gevonden NDI-bronnen en een tijdreeks voor cumulatief gedropte frames volgen. Het geheel wordt afgesloten met een tabelpaneel \emph{BirdDog Status Overzicht} dat alle gauges per device als één rij samenbrengt. De mode-specifieke panels gebruiken een PromQL-filter met een \texttt{and on(device) birddog\_operation\_mode\_\{decode,encode\} == 1}-join, waardoor een encoder niet vals-rood oplicht in een decode-paneel. De tabel gebruikt dezelfde \texttt{labelsToFields(columns)} $\rightarrow$ \texttt{joinByField(device, outer)} $\rightarrow$ \texttt{organize}-chain als de WAN-tabel uit sectie~3, omdat Grafana~11's oude \texttt{merge}-transform niet correct joint op labels.
+\paragraph{Sectie 13 --- BirdDog device monitoring.} Deze sectie dekt de hardware-laag af die HDMI- en SDI-signalen in- en uit het NDI-domein brengt. Vier info-stats (Device Online, Operation Mode, Hostname, Firmware) tonen per device de identiteit; vier status-stats tonen per modus de relevante werkstand (Decode Connected, NDI Bronnen gevonden voor decoders; Encode Clients en Encode Bitrate voor encoders). Twee tijdreeks-panels (Decode Framerate en Encode Framerate) geven de evolutie van de framerate per modus, waarna een tijdreeks voor het aantal gevonden NDI-bronnen en een tijdreeks voor cumulatief gedropte frames volgen. Het geheel wordt afgesloten met een tabelpaneel \emph{BirdDog Status Overzicht} dat alle gauges per device als Ã©Ã©n rij samenbrengt. De mode-specifieke panels gebruiken een PromQL-filter met een \texttt{and on(device) birddog\_operation\_mode\_\{decode,encode\} == 1}-join, waardoor een encoder niet vals-rood oplicht in een decode-paneel. De tabel gebruikt dezelfde \texttt{labelsToFields(columns)} $\rightarrow$ \texttt{joinByField(device, outer)} $\rightarrow$ \texttt{organize}-chain als de WAN-tabel uit sectie~3, omdat Grafana~11's oude \texttt{merge}-transform niet correct joint op labels.
 
 \section{Alerting}
 \label{sec:poc-alerting}
 
 Het PoC bevat dertien provisioned alert rules in \texttt{alerts.yml}, elk gericht op een specifiek faaldomein. Tabel~\ref{tab:alerts} vat de regels samen.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption[Provisioned alert rules]{Overzicht van de dertien alert rules in Grafana, gegroepeerd per faaldomein.}
   \label{tab:alerts}
@@ -243,11 +243,11 @@ Het PoC bevat dertien provisioned alert rules in \texttt{alerts.yml}, elk gerich
   \end{tabular}
 \end{table}
 
-\paragraph{Verantwoording van de drempelwaarden.} De numerieke drempels in tabel~\ref{tab:alerts} zijn niet willekeurig gekozen maar leunen aan bij gangbare praktijkrichtlijnen voor real-time communicatie en systeembewaking. De \textbf{150~ms RTT}-grens voor de \emph{Hoge VPN-latency}-regel is afgeleid van ITU-T-aanbeveling G.114 \autocite{ITU2003G114}, die voor interactieve real-time communicatie een one-way mond-tot-oor-vertraging van maximaal 150~ms voorschrijft voor goede gebruikerservaring; bidirectioneel komt dit neer op ongeveer 300~ms RTT, waarop 150~ms een conservatieve drempel vormt voor de eenrichtings-WAN-link onder de SRT-stream. De \textbf{5\,\% packet loss}-grens voor zowel ICMP-loss als SRT-loss steunt op de SRT-protocolanalyse van \textcite{Sharabayko2021}, die aantoont dat het ARQ-mechanisme effectief blijft tot ongeveer 5--10\% verlies, waarna de retransmit-overhead disproportioneel toeneemt en de latency-buffer overschreden wordt; de empirische bevestiging hiervan is zichtbaar in scenario~3a (sectie~\ref{sec:poc-tests}). De \textbf{85\,\% CPU}-drempel voor de \emph{Hoge CPU Load}-regel is een bewuste ontwerpkeuze: bij sustained utilization boven dit niveau nadert de stack een potentieel saturatiepunt waarbij wachtrijvorming kan optreden. De drempel kan in productie verfijnd worden op basis van ervaringsdata. De \textbf{\texttt{for}-duur van 3~min} voor \emph{PepVPN Tunnel Down} is empirisch onderbouwd in scenario~6 (sectie~\ref{sec:scenario-6}): kortere drempels veroorzaakten alert-spam tijdens NAT-rebinding-flaps zonder operationele impact. De \textbf{\texttt{for}-duur van 1--2~min} voor de overige kritieke regels (Device Offline, NDI Stream Inactief, BirdDog Device Offline) is afgestemd op de scrape-cyclus van 15~s: één enkele gemiste scrape mag geen alert triggeren, twee tot vier opeenvolgend wel, conform het Prometheus-best-practice-principe dat alert-thresholds rekening moeten houden met scrape-jitter. Voor de overige WARNING-drempels (jitter, AP down, retransmit-rate) zijn geen kritieke literatuurwaardes voorhanden; de gekozen waardes leunen op de baselinemetingen uit scenario~1 (sectie~\ref{sec:poc-tests}) en kunnen in productie verfijnd worden naarmate er ervaringsdata beschikbaar komt.
+\paragraph{Verantwoording van de drempelwaarden.} De numerieke drempels in tabel~\ref{tab:alerts} zijn niet willekeurig gekozen maar leunen aan bij gangbare praktijkrichtlijnen voor real-time communicatie en systeembewaking. De \textbf{150~ms RTT}-grens voor de \emph{Hoge VPN-latency}-regel is afgeleid van ITU-T-aanbeveling G.114 \autocite{ITU2003G114}, die voor interactieve real-time communicatie een one-way mond-tot-oor-vertraging van maximaal 150~ms voorschrijft voor goede gebruikerservaring; bidirectioneel komt dit neer op ongeveer 300~ms RTT, waarop 150~ms een conservatieve drempel vormt voor de eenrichtings-WAN-link onder de SRT-stream. De \textbf{5\,\% packet loss}-grens voor zowel ICMP-loss als SRT-loss steunt op de SRT-protocolanalyse van \textcite{Sharabayko2021}, die aantoont dat het ARQ-mechanisme effectief blijft tot ongeveer 5--10\% verlies, waarna de retransmit-overhead disproportioneel toeneemt en de latency-buffer overschreden wordt; de empirische bevestiging hiervan is zichtbaar in scenario~3a (sectie~\ref{sec:poc-tests}). De \textbf{85\,\% CPU}-drempel voor de \emph{Hoge CPU Load}-regel is een bewuste ontwerpkeuze: bij sustained utilization boven dit niveau nadert de stack een potentieel saturatiepunt waarbij wachtrijvorming kan optreden. De drempel kan in productie verfijnd worden op basis van ervaringsdata. De \textbf{\texttt{for}-duur van 3~min} voor \emph{PepVPN Tunnel Down} is empirisch onderbouwd in scenario~6 (sectie~\ref{sec:scenario-6}): kortere drempels veroorzaakten alert-spam tijdens NAT-rebinding-flaps zonder operationele impact. De \textbf{\texttt{for}-duur van 1--2~min} voor de overige kritieke regels (Device Offline, NDI Stream Inactief, BirdDog Device Offline) is afgestemd op de scrape-cyclus van 15~s: Ã©Ã©n enkele gemiste scrape mag geen alert triggeren, twee tot vier opeenvolgend wel, conform het Prometheus-best-practice-principe dat alert-thresholds rekening moeten houden met scrape-jitter. Voor de overige WARNING-drempels (jitter, AP down, retransmit-rate) zijn geen kritieke literatuurwaardes voorhanden; de gekozen waardes leunen op de baselinemetingen uit scenario~1 (sectie~\ref{sec:poc-tests}) en kunnen in productie verfijnd worden naarmate er ervaringsdata beschikbaar komt.
 
-\paragraph{Syntactische keuze: \texttt{(1 - X) > 0}.} Grafana Unified Alerting behandelt een waarde van~0 in bepaalde contexten als "geen data", waardoor naïeve \texttt{== 0}-queries nooit firen. Alle regels gebruiken daarom de formulering \texttt{(1 - X) > 0}, zodat een waarde van~0 wél als alarmerend wordt herkend.
+\paragraph{Syntactische keuze: \texttt{(1 - X) > 0}.} Grafana Unified Alerting behandelt een waarde van~0 in bepaalde contexten als "geen data", waardoor naÃ¯eve \texttt{== 0}-queries nooit firen. Alle regels gebruiken daarom de formulering \texttt{(1 - X) > 0}, zodat een waarde van~0 wÃ©l als alarmerend wordt herkend.
 
-\paragraph{Verantwoording \texttt{noDataState: OK}.} Alle regels gebruiken expliciet \texttt{noDataState: OK}. De keuze is bewust en berust op vier argumenten. Ten eerste zou \texttt{noDataState: Alerting} alle regels gelijktijdig laten vuren bij een enkele gemiste scrape, wat onvermijdelijk leidt tot alert-fatigue. Ten tweede is er een aparte \texttt{Exporter Down}-regel die de scrape-gezondheid centraal bewaakt; elke andere regel kan dus rustig op \texttt{OK} staan omdat "geen data" al elders wordt gedetecteerd. Ten derde respecteert dit het principe dat elke regel één faaldomein monitort in plaats van hun eigen dataverlies apart te signaleren. Ten vierde is in een live AV-productie de kost van een valse alarm (techniekers die onterecht gewekt worden) hoger dan de kost van een detectie-vertraging van hooguit twee minuten, die bovendien door de \texttt{Exporter Down}-regel hard begrensd is.
+\paragraph{Verantwoording \texttt{noDataState: OK}.} Alle regels gebruiken expliciet \texttt{noDataState: OK}. De keuze is bewust en berust op vier argumenten. Ten eerste zou \texttt{noDataState: Alerting} alle regels gelijktijdig laten vuren bij een enkele gemiste scrape, wat onvermijdelijk leidt tot alert-fatigue. Ten tweede is er een aparte \texttt{Exporter Down}-regel die de scrape-gezondheid centraal bewaakt; elke andere regel kan dus rustig op \texttt{OK} staan omdat "geen data" al elders wordt gedetecteerd. Ten derde respecteert dit het principe dat elke regel Ã©Ã©n faaldomein monitort in plaats van hun eigen dataverlies apart te signaleren. Ten vierde is in een live AV-productie de kost van een valse alarm (techniekers die onterecht gewekt worden) hoger dan de kost van een detectie-vertraging van hooguit twee minuten, die bovendien door de \texttt{Exporter Down}-regel hard begrensd is.
 
 \paragraph{Notificatiekanaal: Microsoft Teams via Power Automate.}
 Naast de Grafana-UI is het alerting-systeem gekoppeld aan een Teams-kanaal via een \emph{Power Automate Workflow}. Het ingebouwde Grafana ``Microsoft Teams''-contactpunt gebruikt de legacy Office~365-connectorwebhooks die Microsoft heeft gedeprecateerd per 1~oktober~2024; nieuwe tenants kunnen er geen berichten meer via versturen. De oplossing bestaat uit een Power Automate-flow met als trigger ``When a Teams webhook request is received'', en een \emph{Webhook}-contactpunt in Grafana dat een HTTP~POST stuurt naar de gegenereerde flow-URL. De webhook-URL wordt via de omgevingsvariabele \texttt{TEAMS\_WEBHOOK\_URL} doorgegeven aan de Grafana-container, waardoor ze nooit in git terechtkomt (\texttt{.env} staat in \texttt{.gitignore}). De notification policy routeert alle \texttt{CRITICAL}-alerts en de streaming-gerelateerde waarschuwingen (SRT, NDI, BirdDog) naar Teams, met \texttt{continue:~true} zodat de Grafana-UI tegelijk actief blijft als fallback. Herstelberichten (\texttt{status: resolved}) worden eveneens doorgestuurd zodat het NOC onmiddellijk weet wanneer een storing is opgelost zonder het dashboard te moeten checken.
@@ -257,14 +257,14 @@ Naast de Grafana-UI is het alerting-systeem gekoppeld aan een Teams-kanaal via e
 
 Om aan te tonen dat de stack storingen effectief detecteert, werd een reeks testscenario's uitgevoerd die de netwerk-, stream-, NAT- en AV-hardwarelaag afdekken. De netwerk-scenario's worden gesimuleerd met \texttt{tc netem} op VyOS; de SRT-scenario's op de loopback-interface van de observability-VM (omdat de SRT-containers met \texttt{network\_mode: host} draaien en hun verkeer niet via een Docker-bridge loopt); de BirdDog-scenario's via \texttt{POST}-oproepen op de controle-endpoints van de mock-server. Een volledige handleiding, inclusief de exacte \texttt{tc}-commando's en \texttt{curl}-aanroepen, staat in \texttt{poc/testscenarios.md}.
 
-\subsection{Scenario 1a --- packet loss 10\% op Live1}
+\subsection{Scenario 1a --- packet loss 20\% op Live1}
 
-Op \texttt{eth3} (Live1-interface) wordt 10\% packet loss ingevoerd via \texttt{tc qdisc add dev eth3 root netem loss 10\%}. Binnen de minuut stijgt \texttt{ping\_packet\_loss\_percent} voor Live1 naar de ingestelde waarde; na vijf minuten gaat de alert \emph{Hoog packet loss} naar Firing (figuur~\ref{fig:scenario-1a}). De cross-check via ICMP en via de jitter-exporter komt consistent overeen.
+Op \texttt{eth3} (Live1-interface) wordt 20\% packet loss ingevoerd via \texttt{tc qdisc add dev eth3 root netem loss 20\%}. Binnen de minuut stijgt \texttt{ping\_packet\_loss\_percent} voor Live1 naar de ingestelde waarde; na vijf minuten gaat de alert \emph{Hoog packet loss} naar Firing (figuur~\ref{fig:scenario-1a}). De cross-check via ICMP en via de jitter-exporter komt consistent overeen.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.30\textheight,keepaspectratio]{scenario_2a_packetloss_dashboard.png}
-  \caption[Scenario 1a: packet loss]{Packet loss van 10\% zichtbaar op Live1; de alert gaat via Pending naar Firing.}
+  \caption[Scenario 1a: packet loss]{Packet loss van 20\% zichtbaar op Live1; de alert gaat via Pending naar Firing.}
   \label{fig:scenario-1a}
 \end{figure}
 
@@ -272,7 +272,7 @@ Op \texttt{eth3} (Live1-interface) wordt 10\% packet loss ingevoerd via \texttt{
 
 Op \texttt{eth2} wordt 200~ms vertraging toegevoegd. De gemeten RTT stijgt naar ongeveer 400~ms (heen-en-terug), en de alert \emph{Hoge VPN-latency} firet na vijf minuten. Het dashboard toont duidelijk de sprong in de tijdreeks (figuur~\ref{fig:scenario-1b}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.30\textheight,keepaspectratio]{scenario_2b_latency_dashboard.png}
   \caption[Scenario 1b: 200 ms latency]{Latency-injectie op de Venue-interface: RTT verdubbelt en de alert gaat naar Firing.}
@@ -283,7 +283,7 @@ Op \texttt{eth2} wordt 200~ms vertraging toegevoegd. De gemeten RTT stijgt naar 
 
 Door \texttt{ip link set eth3 down} valt Live1 volledig weg. Binnen twee minuten firet de alert \emph{Site onbereikbaar (ICMP)}; de InControl2-timeout is trager (enkele minuten), waardoor \texttt{peplink\_device\_online} pas later op~0 komt te staan. Figuur~\ref{fig:scenario-1c} toont beide alerts tegelijk in Grafana.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.28\textheight,keepaspectratio]{scenario_2d_linkdown_dashboard.png}
   \caption[Scenario 1c: link down]{Live1 wordt volledig van het netwerk losgekoppeld; meerdere alerts firen gelijktijdig.}
@@ -292,9 +292,9 @@ Door \texttt{ip link set eth3 down} valt Live1 volledig weg. Binnen twee minuten
 
 \subsection{Scenario 2 --- meervoudige gelijktijdige storingen}
 
-Op drie interfaces wordt tegelijk degradatie geïnjecteerd: Venue krijgt 150~ms~+~2\% loss, Live1 100~ms~+~5\% loss en Live2 80~ms~+~3\% loss. Het dashboard toont onmiddellijk welke sites het zwaarst getroffen zijn en de bijbehorende alerts firen parallel (figuur~\ref{fig:scenario-2}). Dit bewijst dat de dashboards schalen naar een incident dat meerdere locaties tegelijk raakt --- een realistisch scenario tijdens een internationaal congres.
+Op drie interfaces wordt tegelijk degradatie geÃ¯njecteerd: Venue krijgt 150~ms~+~2\% loss, Live1 100~ms~+~5\% loss en Live2 80~ms~+~3\% loss. Het dashboard toont onmiddellijk welke sites het zwaarst getroffen zijn en de bijbehorende alerts firen parallel (figuur~\ref{fig:scenario-2}). Dit bewijst dat de dashboards schalen naar een incident dat meerdere locaties tegelijk raakt --- een realistisch scenario tijdens een internationaal congres.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.30\textheight,keepaspectratio]{scenario_3b_multi_dashboard.png}
   \caption[Scenario 2: meervoudige storingen]{Drie sites degraderen tegelijk; Grafana rangschikt ze visueel van zwaarst tot lichtst getroffen.}
@@ -303,9 +303,9 @@ Op drie interfaces wordt tegelijk degradatie geïnjecteerd: Venue krijgt 150~ms~
 
 \subsection{Scenario 3 --- SRT onder druk}
 
-\paragraph{3a: 30\% packet loss op UDP:9000.} De netem-regel wordt op de loopback-interface geplaatst met een \texttt{u32}-filter op poort~9000. Verrassend genoeg toont \texttt{srt\_packet\_loss\_percent} slechts 4~tot 10\% gemeten verlies, ondanks de 30\% geïnjecteerde loss. De verklaring is SRT's ingebouwde Automatic Repeat Request (ARQ): verloren pakketten worden binnen de latency-buffer opnieuw verzonden, waardoor de eindgebruiker ze niet ziet. De werkelijke netwerkbelasting wordt zichtbaar via \texttt{srt\_retransmit\_rate} en \texttt{srt\_retransmit\_total}, die beide sterk oplopen. Bij langdurige simulatie stijgt het gemeten verlies progressief door een ARQ-cascade: retransmissions zijn zelf ook onderhevig aan de 30\% loss (figuur~\ref{fig:scenario-3a}).
+\paragraph{3a: 30\% packet loss op UDP:9000.} De netem-regel wordt op de loopback-interface geplaatst met een \texttt{u32}-filter op poort~9000. Verrassend genoeg toont \texttt{srt\_packet\_loss\_percent} slechts 4~tot 10\% gemeten verlies, ondanks de 30\% geÃ¯njecteerde loss. De verklaring is SRT's ingebouwde Automatic Repeat Request (ARQ): verloren pakketten worden binnen de latency-buffer opnieuw verzonden, waardoor de eindgebruiker ze niet ziet. De werkelijke netwerkbelasting wordt zichtbaar via \texttt{srt\_retransmit\_rate} en \texttt{srt\_retransmit\_total}, die beide sterk oplopen. Bij langdurige simulatie stijgt het gemeten verlies progressief door een ARQ-cascade: retransmissions zijn zelf ook onderhevig aan de 30\% loss (figuur~\ref{fig:scenario-3a}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.30\textheight,keepaspectratio]{scenario_4a_srt_packetloss_peak.png}
   \caption[Scenario 3a: SRT packet loss]{30\% netem loss op UDP:9000. \texttt{srt\_retransmit\_rate} stijgt sterk, terwijl \texttt{srt\_packet\_loss\_percent} pas na tijd progressief oploopt door de ARQ-cascade.}
@@ -314,20 +314,20 @@ Op drie interfaces wordt tegelijk degradatie geïnjecteerd: Venue krijgt 150~ms~
 
 \paragraph{3b: 100 ms latency.} Een netem-delay van 100~ms benadert de standaard SRT-latency-buffer van 120~ms. Pakketten die te laat aankomen worden door SRT als verloren beschouwd, ook al zijn ze niet technisch gedropped. Het resultaat is een paradox: \emph{zonder} echte packet loss meet SRT toch ongeveer 35\% verlies. Figuur~\ref{fig:scenario-3b-overview} toont de volledige tijdlijn inclusief het herstel nadat de \texttt{tc}-regel verwijderd werd. Deze test bewijst het belang van RTT-monitoring naast packet loss: op SRT-niveau hebben beide effectief hetzelfde gevolg.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.30\textheight,keepaspectratio]{scenario_4b_srt_latency_overview.png}
   \caption[Scenario 3b: SRT latency]{100~ms delay veroorzaakt \textasciitilde{}35\% SRT packet loss doordat pakketten buiten de latency-buffer aankomen.}
   \label{fig:scenario-3b-overview}
 \end{figure}
 
-\paragraph{Gemeten time-to-detect.} Voor de SRT packet-loss-alert werd een uurwerkmeting uitgevoerd: T0 om 19:47:51 (tc netem actief), T+31~s eerste scrape boven drempel, T+118~s (19:49:49) Grafana-alert gefired. De totale time-to-detect is dus ongeveer twee minuten. Een directe numerieke vergelijking met de huidige werkwijze is niet mogelijk omdat daar geen kwantitatieve baseline beschikbaar is: detectie gebeurt voornamelijk kwalitatief tijdens een testsessie van circa dertig minuten de dag vóór de uitzending of vlak vóór live-gang \autocite{VanRenterghem2025}. Storingen buiten die twee testvensters worden in de huidige werkwijze niet automatisch gedetecteerd; het PoC verschuift de detectie naar een continue, kwantitatieve meting met deze gemeten ondergrens.
+\paragraph{Gemeten time-to-detect.} Voor de SRT packet-loss-alert werd een uurwerkmeting uitgevoerd: T0 om 19:47:51 (tc netem actief), T+31~s eerste scrape boven drempel, T+118~s (19:49:49) Grafana-alert gefired. De totale time-to-detect is dus ongeveer twee minuten. Een directe numerieke vergelijking met de huidige werkwijze is niet mogelijk omdat daar geen kwantitatieve baseline beschikbaar is: detectie gebeurt voornamelijk kwalitatief tijdens een testsessie van circa dertig minuten de dag vÃ³Ã³r de uitzending of vlak vÃ³Ã³r live-gang \autocite{VanRenterghem2025}. Storingen buiten die twee testvensters worden in de huidige werkwijze niet automatisch gedetecteerd; het PoC verschuift de detectie naar een continue, kwantitatieve meting met deze gemeten ondergrens.
 
 \subsection{Scenario 4 --- fysieke Balance 20X offline}
 
 Het laatste scenario valideert dat de stack ook op fysieke hardware werkt. De WiFi-AP van de Balance~20X wordt uitgeschakeld, waardoor de observability-VM haar route naar \texttt{192.168.1.1} verliest. Drie onafhankelijke kanalen (ICMP, SNMP enterprise, lokale API) slaan tegelijk alarm (figuur~\ref{fig:scenario-4a}); na ongeveer twee minuten firen de bijhorende alerts.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.28\textheight,keepaspectratio]{scenario_5a_live3_offline_status.png}
   \caption[Scenario 4a: Live3 offline]{Fysieke Balance~20X offline: ICMP, SNMP en lokale API rapporteren onafhankelijk DOWN.}
@@ -336,7 +336,7 @@ Het laatste scenario valideert dat de stack ook op fysieke hardware werkt. De Wi
 
 Een interessant neveneffect trad op: de WiFi-verbinding verzorgde ook de internettoegang van de observability-VM, waardoor de \texttt{incontrol2-exporter} tijdelijk zijn DNS-resolutie naar de InControl2-cloud verloor. Dat triggerde indirect ook de \emph{PepVPN Tunnel Down}-alert voor de overige sites --- een realistisch productie-inzicht: een monitoringhost die zijn eigen connectiviteit verliest, kan false positives genereren voor andere locaties. De aanbeveling voor productie is dan ook om de monitoringhost via een redundante uplink te voorzien.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.26\textheight,keepaspectratio]{scenario_5b_live3_herstel.png}
   \caption[Scenario 4b: herstel]{Na het heractiveren van de WiFi-AP herverbindt de VM en komen alle panels binnen 1--2 minuten opnieuw op UP.}
@@ -348,61 +348,61 @@ Een interessant neveneffect trad op: de WiFi-verbinding verzorgde ook de interne
 
 Dit scenario is het NDI-analogon van scenario~3 (SRT) en valideert dat de stack een plotse uitval van een NDI-bron binnen seconden detecteert en alarmeert. NDI-monitoring verloopt volledig via de \texttt{ndi-exporter} (een ctypes-binding op NDI SDK~v6) met als bron de synthetische \texttt{ndi-test-stream} (Python-sender, SMPTE-kleurbalken 1280$\times$720 @ 25~fps). Discovery gebeurt via Avahi/mDNS (\texttt{\_ndi.\_tcp.local.}).
 
-\paragraph{5a --- stream offline.} Na het stoppen van de sender (\texttt{docker compose --profile demo stop ndi-test-stream}) zakt \texttt{ndi\_stream\_active} binnen één scrape-interval (~15~s) naar 0, verdwijnt de mDNS-advertisement en daalt \texttt{ndi\_sources\_detected} naar 0. De bijhorende alert \emph{[CRITICAL] NDI Stream Inactief} gaat na de \texttt{for}-duur van één minuut in Firing (figuur~\ref{fig:scenario-5a-alert}), en sectie~12 van het dashboard kleurt volledig rood met alle timeseries op nul (figuur~\ref{fig:scenario-5a-outage}).
+\paragraph{5a --- stream offline.} Na het stoppen van de sender (\texttt{docker compose --profile demo stop ndi-test-stream}) zakt \texttt{ndi\_stream\_active} binnen Ã©Ã©n scrape-interval (~15~s) naar 0, verdwijnt de mDNS-advertisement en daalt \texttt{ndi\_sources\_detected} naar 0. De bijhorende alert \emph{[CRITICAL] NDI Stream Inactief} gaat na de \texttt{for}-duur van Ã©Ã©n minuut in Firing (figuur~\ref{fig:scenario-5a-alert}), en sectie~12 van het dashboard kleurt volledig rood met alle timeseries op nul (figuur~\ref{fig:scenario-5a-outage}).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.26\textheight,keepaspectratio]{scenario_6a_ndi_outage.png}
   \caption[Scenario 5a: NDI outage]{NDI-bron gestopt: stream inactive, bronnen 0, framerate 0, timeseries op flatline.}
   \label{fig:scenario-5a-outage}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.22\textheight,keepaspectratio]{scenario_6a_ndi_alert_firing.png}
   \caption[Scenario 5a: alert firing]{De alertregel \emph{[CRITICAL] NDI Stream Inactief} in Firing-state na de \texttt{for}-duur van 1~minuut.}
   \label{fig:scenario-5a-alert}
 \end{figure}
 
-\paragraph{Gauge-staleness: een subtiele bug die pas tijdens de test opviel.} Bij de eerste uitvoering bleef het stat-panel \emph{Framerate} op 25~fps staan, terwijl \emph{Stream Active} wél op OFFLINE sprong (figuur~\ref{fig:scenario-5a-staleness}). De oorzaak: de exporter resette in de \emph{"geen bron"}-branch enkele gauges niet, waardoor Prometheus de laatste waarde behield tot de scrape zelf stale werd. De fix zet \texttt{ndi\_video\_fps}, \texttt{ndi\_queue\_depth\_frames}, \texttt{ndi\_video\_width/height} en \texttt{ndi\_frame\_drop\_rate} expliciet op nul wanneer de target verdwijnt, en reset de interne frame-counters om counter-sprongen bij recovery te vermijden. Dit is een algemeen Prometheus-gauge-antipattern en wordt samen met de \emph{default-to-healthy}-les uit sectie~\ref{sec:poc-blindspot} meegenomen als ontwerpaanbeveling.
+\paragraph{Gauge-staleness: een subtiele bug die pas tijdens de test opviel.} Bij de eerste uitvoering bleef het stat-panel \emph{Framerate} op 25~fps staan, terwijl \emph{Stream Active} wÃ©l op OFFLINE sprong (figuur~\ref{fig:scenario-5a-staleness}). De oorzaak: de exporter resette in de \emph{"geen bron"}-branch enkele gauges niet, waardoor Prometheus de laatste waarde behield tot de scrape zelf stale werd. De fix zet \texttt{ndi\_video\_fps}, \texttt{ndi\_queue\_depth\_frames}, \texttt{ndi\_video\_width/height} en \texttt{ndi\_frame\_drop\_rate} expliciet op nul wanneer de target verdwijnt, en reset de interne frame-counters om counter-sprongen bij recovery te vermijden. Dit is een algemeen Prometheus-gauge-antipattern en wordt samen met de \emph{default-to-healthy}-les uit sectie~\ref{sec:poc-blindspot} meegenomen als ontwerpaanbeveling.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.22\textheight,keepaspectratio]{scenario_6a_ndi_staleness_before_fix.png}
-  \caption[Scenario 5a: gauge-staleness vóór fix]{Eerste uitvoering: Stream Active staat op OFFLINE, maar Framerate blijft op 25~fps hangen --- bewijs van de gauge-staleness-bug die de fix in \texttt{ndi\_exporter.py} motiveerde.}
+  \caption[Scenario 5a: gauge-staleness vÃ³Ã³r fix]{Eerste uitvoering: Stream Active staat op OFFLINE, maar Framerate blijft op 25~fps hangen --- bewijs van de gauge-staleness-bug die de fix in \texttt{ndi\_exporter.py} motiveerde.}
   \label{fig:scenario-5a-staleness}
 \end{figure}
 
 \paragraph{5b --- recovery.} Na \texttt{docker compose --profile demo start ndi-test-stream} verschijnt de mDNS-advertisement binnen enkele seconden opnieuw. \texttt{ndi\_stream\_active} springt terug naar 1, de framerate stabiliseert op 25~fps en de frame-drop-rate stabiliseert op de baseline van ~10--15\% die inherent is aan de Python-sender (in productie met hardware-encoder verdwijnt deze baseline grotendeels). De timeseries in figuur~\ref{fig:scenario-5b} tonen een duidelijke stapfunctie van 0 naar 25~fps --- visueel bewijs van de recovery en van de correctheid van de counter-reset in de staleness-fix.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.26\textheight,keepaspectratio]{scenario_6b_ndi_recovery.png}
   \caption[Scenario 5b: NDI recovery]{Recovery na herstart van de sender: duidelijke stapfunctie 0$\rightarrow$25~fps in de timeseries, alert zakt terug naar Normal.}
   \label{fig:scenario-5b}
 \end{figure}
 
-\paragraph{Detectietijd.} De gemeten time-to-detect bedraagt ongeveer 15~s voor de metric-zelf (één scrape-interval) en 1~min~15~s tot de alert in Firing-state gaat. Dat is in dezelfde orde van grootte als de SRT-alert (scenario~3a, ~2~min). In de huidige werkwijze is een NDI-stream-onderbreking buiten het testvenster niet automatisch detecteerbaar; deze meting maakt het mogelijk om in te grijpen binnen het tijdsbestek van een lopende uitzending in plaats van te moeten wachten op een kwalitatieve vaststelling.
+\paragraph{Detectietijd.} De gemeten time-to-detect bedraagt ongeveer 15~s voor de metric-zelf (Ã©Ã©n scrape-interval) en 1~min~15~s tot de alert in Firing-state gaat. Dat is in dezelfde orde van grootte als de SRT-alert (scenario~3a, ~2~min). In de huidige werkwijze is een NDI-stream-onderbreking buiten het testvenster niet automatisch detecteerbaar; deze meting maakt het mogelijk om in te grijpen binnen het tijdsbestek van een lopende uitzending in plaats van te moeten wachten op een kwalitatieve vaststelling.
 
 \subsection{Scenario 6 --- asymmetrische NAT (NAT-traversal validatie)}
 \label{sec:scenario-6}
 
-De methodologie (sectie~\ref{sec:fase5}) benoemt drie connectiviteitsscenarios als productcontext voor PepVPN: publiek IP, één NAT, en dubbele NAT. De basisopstelling van de virtuele testomgeving gebruikt directe routering via VyOS zonder NAT tussen de spokes en test geen van die drie empirisch. Scenario~6 voegt één expliciet asymmetrisch NAT-geval toe om de kernclaim van de observability-laag te valideren: zolang \texttt{peplink\_tunnel\_up=1} blijft de stack \emph{routing-agnostisch}, omdat alle exporters op tunneladressen (\texttt{10.1.x.x}) werken, ongeacht hoeveel NAT-lagen onder de tunnel zitten. Wat dit scenario expliciet \emph{niet} bewijst, is PepVPN's eigen NAT-T-implementatie onder CGNAT of hole-punching-gedrag --- dat is commerciële productfunctionaliteit van Peplink en valt buiten de observability-scope.
+De methodologie (sectie~\ref{sec:fase5}) benoemt drie connectiviteitsscenarios als productcontext voor PepVPN: publiek IP, Ã©Ã©n NAT, en dubbele NAT. De basisopstelling van de virtuele testomgeving gebruikt directe routering via VyOS zonder NAT tussen de spokes en test geen van die drie empirisch. Scenario~6 voegt Ã©Ã©n expliciet asymmetrisch NAT-geval toe om de kernclaim van de observability-laag te valideren: zolang \texttt{peplink\_tunnel\_up=1} blijft de stack \emph{routing-agnostisch}, omdat alle exporters op tunneladressen (\texttt{10.1.x.x}) werken, ongeacht hoeveel NAT-lagen onder de tunnel zitten. Wat dit scenario expliciet \emph{niet} bewijst, is PepVPN's eigen NAT-T-implementatie onder CGNAT of hole-punching-gedrag --- dat is commerciÃ«le productfunctionaliteit van Peplink en valt buiten de observability-scope.
 
-\paragraph{Opstelling.} Eén extra \texttt{source NAT}-regel (rule~310) op VyOS masquereert verkeer van FH-Live1 (\texttt{10.1.3.0/24}) richting het Bornem-subnet (\texttt{10.1.1.0/24}) via interface \texttt{eth1}. Vanuit FH-Bornem's perspectief lijkt Live1 plots afkomstig van \texttt{10.1.1.1} (VyOS-eth1) in plaats van \texttt{10.1.3.2} --- asymmetrische NAT. De overige P2P-tunnel (Live1$\leftrightarrow$Venue) blijft ongewijzigd.
+\paragraph{Opstelling.} EÃ©n extra \texttt{source NAT}-regel (rule~310) op VyOS masquereert verkeer van FH-Live1 (\texttt{10.1.3.0/24}) richting het Bornem-subnet (\texttt{10.1.1.0/24}) via interface \texttt{eth1}. Vanuit FH-Bornem's perspectief lijkt Live1 plots afkomstig van \texttt{10.1.1.1} (VyOS-eth1) in plaats van \texttt{10.1.3.2} --- asymmetrische NAT. De overige P2P-tunnel (Live1$\leftrightarrow$Venue) blijft ongewijzigd.
 
-\paragraph{Uitvoering.} Na het committen van rule~310 bleef de counter initieel op nul staan: de bestaande Bornem$\leftrightarrow$Live1 PepVPN-tunnel was oorspronkelijk door Bornem geïnitieerd, waardoor de conntrack-entry in de Bornem$\rightarrow$Live1-richting stond en de SNAT-regel niet raakte. Pas na het flushen van die entry (\texttt{sudo conntrack -D -p udp --sport 4500 --dport 4500 ...}) initieerde Live1 een verse outbound flow die wél onder rule~310 valt. In productie treedt dit artefact niet op, omdat de spoke-router (Live1) standaard outbound initieert naar een hub met publiek IP.
+\paragraph{Uitvoering.} Na het committen van rule~310 bleef de counter initieel op nul staan: de bestaande Bornem$\leftrightarrow$Live1 PepVPN-tunnel was oorspronkelijk door Bornem geÃ¯nitieerd, waardoor de conntrack-entry in de Bornem$\rightarrow$Live1-richting stond en de SNAT-regel niet raakte. Pas na het flushen van die entry (\texttt{sudo conntrack -D -p udp --sport 4500 --dport 4500 ...}) initieerde Live1 een verse outbound flow die wÃ©l onder rule~310 valt. In productie treedt dit artefact niet op, omdat de spoke-router (Live1) standaard outbound initieert naar een hub met publiek IP.
 
 \paragraph{Bevindingen.} Na de flush groeide de nft-counter van rule~310 continu door (figuur~\ref{fig:scenario-6-nft}), en een \texttt{conntrack}-dump toont de actieve masquerade-binding waarbij UDP~4500 (PepVPN transport) wordt vertaald naar een ephemeral poort (figuur~\ref{fig:scenario-6-conntrack}, \texttt{dport=24249} in de reply-tuple = SNAT in actie).
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth,keepaspectratio]{scenario_7_vyos_nat_rule.png}
   \caption[Scenario 6: VyOS nft counter]{\texttt{nft list chain ip vyos\_nat POSTROUTING}: rule~310 telt actief verkeer van \texttt{10.1.3.0/24} naar \texttt{10.1.1.0/24}, bewijs dat de SNAT-masquerade werkelijk geraakt wordt.}
   \label{fig:scenario-6-nft}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth,keepaspectratio]{scenario_7_vyos_conntrack.png}
   \caption[Scenario 6: conntrack masquerade-entry]{\texttt{conntrack -L} toont de bidirectionele UDP~4500-flow tussen \texttt{10.1.1.2} en \texttt{10.1.3.2}; de reply-tuple met \texttt{dport=24249} (in plaats van 4500) bewijst dat VyOS het bron-IP en de bronpoort masquereert.}
@@ -411,7 +411,7 @@ De methodologie (sectie~\ref{sec:fase5}) benoemt drie connectiviteitsscenarios a
 
 Ondanks de actieve masquerade op de transport-laag bleef de observability-stack ongewijzigd rapporteren. Tabel~\ref{tab:scenario-6} vat de metingen samen: \texttt{peplink\_tunnel\_up}, \texttt{probe\_success} en \texttt{peplink\_device\_online} voor Live1 bleven continu op~1, geen enkele alert firede, en de tunnel vertoonde geen zichtbare flap op scrape-resolutie (15~s). Indien er al een korte rebinding-flap optrad, was die korter dan de alert-drempel van drie minuten.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption[Metingen scenario 6]{Prometheus-metingen voor, tijdens en na het activeren van rule~310.}
   \label{tab:scenario-6}
@@ -431,12 +431,12 @@ Ondanks de actieve masquerade op de transport-laag bleef de observability-stack 
 
 Een aanvullende verificatie via de FH-Bornem webadmin (Status~$\rightarrow$~SpeedFusion VPN) toont dat de peer-IP voor \texttt{conn\_to\_Live1} nog steeds \texttt{10.1.3.2} is, niet \texttt{10.1.1.1}. Dat is correct gedrag: PepVPN registreert de \emph{inner} tunnel-endpoint die tijdens de InControl2-handshake is onderhandeld, niet het \emph{transport}-laag bron-IP dat door VyOS SNAT wordt gemasqueerd (UDP~4500 outer header). PepVPN identificeert peers via serial-number, waardoor de transport-laag masquerade transparant is voor de applicatielaag. Het bewijs van de actieve masquerade zit dus in VyOS-kernelstate (nft-counter en conntrack-entry), niet in de PepVPN-UI.
 
-\paragraph{Conclusie.} Scenario~6 bevestigt dat de observability-laag routing-agnostisch is. Ondanks de SNAT-masquerade op de transport-laag blijven alle drie onafhankelijke monitoringsbronnen --- ICMP-probes via blackbox-exporter, de InControl2-API en de PepVPN-tunnelstatus --- correct rapporteren dat Live1 gezond is. PepVPN's serial-based peer-identificatie maakt het ontwerp inherent NAT-tolerant, en omdat de stack exclusief op tunneladressen (\texttt{10.1.x.x}) werkt, is ze niet afhankelijk van een specifiek transport-IP. Rule~310 blijft als permanente uitbreiding van de PoC-baseline actief: scenario~6 wordt daarmee de nieuwe \emph{default-state} voor Live1, wat de bachproef aantoonbaar robuuster maakt tegenover realistische NAT-topologieën.
+\paragraph{Conclusie.} Scenario~6 bevestigt dat de observability-laag routing-agnostisch is. Ondanks de SNAT-masquerade op de transport-laag blijven alle drie onafhankelijke monitoringsbronnen --- ICMP-probes via blackbox-exporter, de InControl2-API en de PepVPN-tunnelstatus --- correct rapporteren dat Live1 gezond is. PepVPN's serial-based peer-identificatie maakt het ontwerp inherent NAT-tolerant, en omdat de stack exclusief op tunneladressen (\texttt{10.1.x.x}) werkt, is ze niet afhankelijk van een specifiek transport-IP. Rule~310 blijft als permanente uitbreiding van de PoC-baseline actief: scenario~6 wordt daarmee de nieuwe \emph{default-state} voor Live1, wat de bachproef aantoonbaar robuuster maakt tegenover realistische NAT-topologieÃ«n.
 
 \subsection{Scenario 7 --- cross-layer correlatie (SRT via VyOS)}
 \label{sec:scenario-7}
 
-De scenario's 1 t/m 6 valideren elk één laag afzonderlijk: netwerk, SRT-stroom, fysieke hardware, NDI of routing. Scenario~7 stelt een andere vraag: wanneer de netwerkkwaliteit daalt, ziet de observability-stack dat dan \emph{gelijktijdig} op de netwerk- én de applicatielaag --- zonder dat de beheerder twee dashboards naast elkaar hoeft te leggen? Dit is de praktische definitie van observability tegenover monitoring: niet enkel \emph{dat} er iets mis is, maar op \emph{welke laag} de oorzaak zit en hoe groot de impact is.
+De scenario's 1 t/m 6 valideren elk Ã©Ã©n laag afzonderlijk: netwerk, SRT-stroom, fysieke hardware, NDI of routing. Scenario~7 stelt een andere vraag: wanneer de netwerkkwaliteit daalt, ziet de observability-stack dat dan \emph{gelijktijdig} op de netwerk- Ã©n de applicatielaag --- zonder dat de beheerder twee dashboards naast elkaar hoeft te leggen? Dit is de praktische definitie van observability tegenover monitoring: niet enkel \emph{dat} er iets mis is, maar op \emph{welke laag} de oorzaak zit en hoe groot de impact is.
 
 \paragraph{Architectuurwijziging.}
 De standaard SRT-opstelling stuurt stream-verkeer via de loopback (\texttt{127.0.0.1}) van de obs~VM. Omdat beide containers met \texttt{network\_mode: host} draaien, raakt tc netem op VyOS loopback-verkeer nooit. Om cross-layer correlatie mogelijk te maken, wordt de SRT-stroom via een \textbf{VyOS hairpin-NAT} geleid: de SRT-caller verbindt met \texttt{10.1.1.1:9000} (VyOS Bornem-interface), een DNAT-rule leidt het pakket door naar de srt-exporter (\texttt{10.1.1.100:9000}), en een SNAT-masquerade zorgt ervoor dat de reply via VyOS terugkomt in plaats van rechtstreeks naar de caller. Het SRT-UDP-verkeer traverseert nu VyOS~eth1 (Bornem-interface) in beide richtingen --- dezelfde interface waarlangs de ICMP-probes naar FH-Bornem lopen.
@@ -445,12 +445,12 @@ De standaard SRT-opstelling stuurt stream-verkeer via de loopback (\texttt{127.0
 Op VyOS worden twee permanente NAT-regels geconfigureerd (rule~50 bestemming-NAT + rule~50 bron-NAT). In \texttt{docker-compose.yml} is de SRT-caller gewijzigd van \texttt{srt://127.0.0.1:9000} naar \texttt{srt://10.1.1.1:9000}. Na \texttt{docker compose up -d --force-recreate srt-test-stream} verbindt de stream via de VyOS hairpin: \texttt{srt\_stream\_active=1} en \texttt{srt\_rtt\_ms} noteert nu 1--3~ms (iets hoger dan loopback, want de IP-stack van VyOS wordt doorlopen).
 
 \paragraph{Uitvoering.}
-Op VyOS~eth1 wordt via \texttt{tc qdisc add dev eth1 root netem delay 50ms 15ms distribution normal loss 5\%} een netwerkverstoring toegevoegd: 50~ms vertraging met ±15~ms jitter (normaalverdeling) en 5~\% packet loss. Omdat dezelfde interface ook de ICMP-probes en SNMP-queries naar FH-Bornem (\texttt{10.1.1.2}) draagt, worden beide lagen tegelijk verstoord --- één tc-ingreep, twee zichtbare effecten.
+Op VyOS~eth1 wordt via \texttt{tc qdisc add dev eth1 root netem delay 50ms 15ms distribution normal loss 5\%} een netwerkverstoring toegevoegd: 50~ms vertraging met Â±15~ms jitter (normaalverdeling) en 5~\% packet loss. Omdat dezelfde interface ook de ICMP-probes en SNMP-queries naar FH-Bornem (\texttt{10.1.1.2}) draagt, worden beide lagen tegelijk verstoord --- Ã©Ã©n tc-ingreep, twee zichtbare effecten.
 
 \paragraph{Bevindingen.}
 Tabel~\ref{tab:scenario-7} vat de Prometheus-metingen samen voor, tijdens en na de netem-ingreep. De ICMP-RTT voor Bornem stijgt van minder dan 1~ms naar circa 100~ms (heen + terug via eth1), de jitter naar 10--20~ms en packet loss naar circa 5~\%. De SRT-RTT stijgt synchroon: \texttt{srt\_rtt\_ms} gaat van 1--3~ms naar circa 100~ms. Figuren~\ref{fig:scenario-7-sectie2} en~\ref{fig:scenario-7-srt} tonen sectie~2 (netwerklaag) en sectie~11 (streaminglaag) van het Grafana-dashboard op dezelfde tijdas: de stijging begint op precies hetzelfde tijdstip, zonder dat de gebruiker tijdstempels hoeft te vergelijken.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption[Metingen scenario 7]{Prometheus-metingen voor, tijdens en na tc netem op VyOS~eth1.}
   \label{tab:scenario-7}
@@ -468,28 +468,28 @@ Tabel~\ref{tab:scenario-7} vat de Prometheus-metingen samen voor, tijdens en na 
   \end{tabular}
 \end{table}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth,keepaspectratio]{final-scenario-sectie2.png}
   \caption[Scenario 7: netwerklaag (ICMP) tijdens netem-ingreep]{Sectie~2 van het Grafana-dashboard tijdens de tc-netem-ingreep op VyOS~eth1. ICMP-RTT naar Bornem stijgt van \textless 1~ms naar circa 100~ms; jitter en packet loss voor Bornem stijgen mee, terwijl de overige sites ongewijzigd blijven.}
   \label{fig:scenario-7-sectie2}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth,keepaspectratio]{final-scenario-srt-dashboard.png}
-  \caption[Scenario 7: streaminglaag (SRT) tijdens netem-ingreep]{Sectie~11 van het Grafana-dashboard op dezelfde tijdas als figuur~\ref{fig:scenario-7-sectie2}. \texttt{srt\_rtt\_ms} stijgt synchroon met de ICMP-RTT, \texttt{srt\_retransmit\_total} begint continu op te lopen en \texttt{srt\_packet\_loss\_percent} toont de restloss na ARQ-herstel. Eén tc-ingreep op VyOS is gelijktijdig zichtbaar op netwerk- én streaminglaag.}
+  \caption[Scenario 7: streaminglaag (SRT) tijdens netem-ingreep]{Sectie~11 van het Grafana-dashboard op dezelfde tijdas als figuur~\ref{fig:scenario-7-sectie2}. \texttt{srt\_rtt\_ms} stijgt synchroon met de ICMP-RTT, \texttt{srt\_retransmit\_total} begint continu op te lopen en \texttt{srt\_packet\_loss\_percent} toont de restloss na ARQ-herstel. EÃ©n tc-ingreep op VyOS is gelijktijdig zichtbaar op netwerk- Ã©n streaminglaag.}
   \label{fig:scenario-7-srt}
 \end{figure}
 
 \paragraph{Time-to-detect.}
-Waar de SRT-scenario's in sectie~\ref{sec:poc-tests} (scenario~3a/4b) een geïsoleerde stressor toepassen op de loopback-interface, brengt scenario~7 een realistischer beeld: de netem-ingreep staat op VyOS~eth1 en raakt gelijktijdig de netwerk- én de streaminglaag, zoals een echte WAN-storing dat ook zou doen. De end-to-end time-to-detect --- van het toepassen van het tc-commando tot het firen van de \emph{SRT Stream Packet Loss}-alert in Grafana --- werd gemeten op circa anderhalve tot twee minuten, wat in lijn ligt met de theoretische ondergrens van één minuut \texttt{for:}-duratie plus één scrape-cyclus van 15~seconden. Dat bevestigt dat de in sectie~\ref{sec:poc-tests}-scenario~3a gerapporteerde TTD robuust is onder meer realistische netwerkcondities met gecorreleerde latency- en loss-effecten.
+Waar de SRT-scenario's in sectie~\ref{sec:poc-tests} (scenario~3a/4b) een geÃ¯soleerde stressor toepassen op de loopback-interface, brengt scenario~7 een realistischer beeld: de netem-ingreep staat op VyOS~eth1 en raakt gelijktijdig de netwerk- Ã©n de streaminglaag, zoals een echte WAN-storing dat ook zou doen. De end-to-end time-to-detect --- van het toepassen van het tc-commando tot het firen van de \emph{SRT Stream Packet Loss}-alert in Grafana --- werd gemeten op circa anderhalve tot twee minuten, wat in lijn ligt met de theoretische ondergrens van Ã©Ã©n minuut \texttt{for:}-duratie plus Ã©Ã©n scrape-cyclus van 15~seconden. Dat bevestigt dat de in sectie~\ref{sec:poc-tests}-scenario~3a gerapporteerde TTD robuust is onder meer realistische netwerkcondities met gecorreleerde latency- en loss-effecten.
 
 \paragraph{ARQ-transparantie.}
-De gemeten \texttt{srt\_packet\_loss\_percent} blijft initieel lager dan de geconfigureerde 5~\% netem-loss, omdat SRT's ARQ-mechanisme verloren pakketten herstelt vóór de latency-deadline (zie ook scenario~3a). De \texttt{srt\_retransmit\_total}-counter onthult de verborgen netwerkdruk die de loss-metric nog niet toont. Beide metriken zijn dus nodig: loss geeft het netto resultaat, retransmit-rate geeft de stress op het netwerk.
+De gemeten \texttt{srt\_packet\_loss\_percent} blijft initieel lager dan de geconfigureerde 5~\% netem-loss, omdat SRT's ARQ-mechanisme verloren pakketten herstelt vÃ³Ã³r de latency-deadline (zie ook scenario~3a). De \texttt{srt\_retransmit\_total}-counter onthult de verborgen netwerkdruk die de loss-metric nog niet toont. Beide metriken zijn dus nodig: loss geeft het netto resultaat, retransmit-rate geeft de stress op het netwerk.
 
 \paragraph{Productiewaarde.}
-De combinatie van netwerk- en applicatiemetrics op één tijdas stelt de NOC-medewerker in staat de oorzaak te lokaliseren zonder op apparaten in te loggen: de ICMP-RTT-stijging wijst naar de netwerklaag (niet de encoder), de SRT-metrics kwantificeren de impact op de stroom. Zonder de observability-stack zou deze diagnose vereisen dat de technieker eerst inlogt op VyOS voor netwerk-statistieken, dan op de SRT-encoder voor streamstatistieken, en vervolgens de tijdstempels handmatig vergelijkt.
+De combinatie van netwerk- en applicatiemetrics op Ã©Ã©n tijdas stelt de NOC-medewerker in staat de oorzaak te lokaliseren zonder op apparaten in te loggen: de ICMP-RTT-stijging wijst naar de netwerklaag (niet de encoder), de SRT-metrics kwantificeren de impact op de stroom. Zonder de observability-stack zou deze diagnose vereisen dat de technieker eerst inlogt op VyOS voor netwerk-statistieken, dan op de SRT-encoder voor streamstatistieken, en vervolgens de tijdstempels handmatig vergelijkt.
 
 \paragraph{Conclusie.}
 Scenario~7 bewijst de diepte van de stack: niet enkel \emph{dekking} (elk type storing wordt ergens gedetecteerd), maar ook \emph{verbinding} (dezelfde storing is op meerdere lagen tegelijk traceerbaar). De hairpin-NAT maakt de correlatie technisch mogelijk in het lab; in productie vervult het echte netwerk (meerdere hops, carrier NAT op 4G/5G-backhaul) die rol vanzelf.
@@ -499,43 +499,43 @@ Scenario~7 bewijst de diepte van de stack: niet enkel \emph{dekking} (elk type s
 
 Scenario~8 valideert sectie~13 van het dashboard en de bijhorende twee alert rules. De scenario's 1 tot 7 dekten al de netwerk-, stream- en routing-laag af; met scenario~8 komt de AV-hardwarelaag aan bod die HDMI- en SDI-signalen in het NDI-domein brengt. Omdat Mediaventures tijdens de uitwerking van dit PoC geen fysiek BirdDog-toestel ter beschikking had, wordt de BirdDog Connect REST API~2.0~\autocite{BirdDogAPI2024} benaderd via een Flask-gebaseerde mock-server (\texttt{birddog-mock}, poort~8090/8091) die twee devices simuleert: \texttt{mock-01} in decode-modus (verbonden met een NDI-bron, rapporteert \texttt{decode\_fps} en \texttt{decode\_connected}) en \texttt{mock-02} in encode-modus (rapporteert \texttt{encode\_bitrate\_kbps} en \texttt{encode\_clients\_connected}). De \texttt{birddog-exporter} polt beide endpoints elke 15~s en vertaalt het resultaat naar Prometheus-gauges. Het scenario is opgesplitst in vier delen (8a tot 8d) die samen de volledige lifecycle van een BirdDog-device in monitoring afdekken: baseline, decode-bron wegvalt, device volledig offline, en herstel.
 
-\paragraph{8a --- baseline verificatie.} Onder normale omstandigheden toont sectie~13 beide devices volledig groen (figuren~\ref{fig:scenario-8a-top} en~\ref{fig:scenario-8a-bottom}). De info-stats geven \texttt{mock-01 = ONLINE/DECODE} en \texttt{mock-02 = ONLINE/ENCODE}; de mode-filters zorgen ervoor dat \emph{Decode Connected} enkel \texttt{mock-01} toont (groen, VERBONDEN), terwijl \emph{Encode Clients} (2) en \emph{Encode Bitrate} (50~Mb/s) enkel \texttt{mock-02} tonen. De twee framerate-timeseries bevatten elk één lijn op 25~fps, en de statustabel bevat exact één rij per device zonder de dubbele \texttt{Time}/\texttt{instance}/\texttt{job}/\texttt{\_\_name\_\_}-kolommen die Grafana standaard per query zou aanmaken.
+\paragraph{8a --- baseline verificatie.} Onder normale omstandigheden toont sectie~13 beide devices volledig groen (figuren~\ref{fig:scenario-8a-top} en~\ref{fig:scenario-8a-bottom}). De info-stats geven \texttt{mock-01 = ONLINE/DECODE} en \texttt{mock-02 = ONLINE/ENCODE}; de mode-filters zorgen ervoor dat \emph{Decode Connected} enkel \texttt{mock-01} toont (groen, VERBONDEN), terwijl \emph{Encode Clients} (2) en \emph{Encode Bitrate} (50~Mb/s) enkel \texttt{mock-02} tonen. De twee framerate-timeseries bevatten elk Ã©Ã©n lijn op 25~fps, en de statustabel bevat exact Ã©Ã©n rij per device zonder de dubbele \texttt{Time}/\texttt{instance}/\texttt{job}/\texttt{\_\_name\_\_}-kolommen die Grafana standaard per query zou aanmaken.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.32\textheight,keepaspectratio]{scenario9-baseline.png}
   \caption[Scenario 8a: BirdDog baseline (bovenste panels)]{Sectie~13 onder baseline: info-stats, mode-specifieke status-stats en de twee framerate-timeseries. Beide devices groen; geen kruisbesmetting tussen decode- en encode-panels dankzij het mode-filter.}
   \label{fig:scenario-8a-top}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.32\textheight,keepaspectratio]{scenario9-baseline2.png}
-  \caption[Scenario 8a: BirdDog baseline (tijdreeksen en tabel)]{Onderste deel van sectie~13: NDI-bronnen-tijdreeks, cumulatieve gedropte frames en de tabel \emph{BirdDog Status Overzicht} met één rij per device.}
+  \caption[Scenario 8a: BirdDog baseline (tijdreeksen en tabel)]{Onderste deel van sectie~13: NDI-bronnen-tijdreeks, cumulatieve gedropte frames en de tabel \emph{BirdDog Status Overzicht} met Ã©Ã©n rij per device.}
   \label{fig:scenario-8a-bottom}
 \end{figure}
 
-\paragraph{8b --- decode-bron wegvalt.} Een \texttt{POST /control/disconnect}-oproep op de mock API zet \texttt{decode\_connected} op \texttt{false}, \texttt{decode\_fps} op~0 en leegt de \texttt{sourceName}. Binnen één scrape-interval (~15~s) flipped het stat-paneel \emph{Decode Connected} voor \texttt{mock-01} van VERBONDEN naar GEEN BRON (figuur~\ref{fig:scenario-8b}); de decode-framerate toont een stapfunctie van 25~fps naar 0, terwijl de encoder (\texttt{mock-02}) volledig onaangetast blijft --- een directe visuele bevestiging dat de twee apparaten onafhankelijk gemonitord worden. De alert \emph{[WARNING] BirdDog Decode Geen Bron} gaat na de \texttt{for}-duur van 2~min in Firing.
+\paragraph{8b --- decode-bron wegvalt.} Een \texttt{POST /control/disconnect}-oproep op de mock API zet \texttt{decode\_connected} op \texttt{false}, \texttt{decode\_fps} op~0 en leegt de \texttt{sourceName}. Binnen Ã©Ã©n scrape-interval (~15~s) flipped het stat-paneel \emph{Decode Connected} voor \texttt{mock-01} van VERBONDEN naar GEEN BRON (figuur~\ref{fig:scenario-8b}); de decode-framerate toont een stapfunctie van 25~fps naar 0, terwijl de encoder (\texttt{mock-02}) volledig onaangetast blijft --- een directe visuele bevestiging dat de twee apparaten onafhankelijk gemonitord worden. De alert \emph{[WARNING] BirdDog Decode Geen Bron} gaat na de \texttt{for}-duur van 2~min in Firing.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.30\textheight,keepaspectratio]{scenario9b.png}
   \caption[Scenario 8b: decode-bron wegvalt]{Na \texttt{POST /control/disconnect} op \texttt{mock-01}: \emph{Decode Connected} kleurt rood (GEEN BRON), de decode-framerate maakt een stapfunctie naar 0, encode-panels blijven onveranderd.}
   \label{fig:scenario-8b}
 \end{figure}
 
-\paragraph{8c --- device volledig offline.} Een \texttt{POST /control/offline} op de mock van \texttt{mock-02} (poort~8091) zet alle endpoints op HTTP~503, waardoor de exporter geen state meer kan ophalen. Binnen één minuut komt \texttt{birddog\_device\_online\{device="mock-02"\}} op~0 te staan en toont het \emph{Device Online}-paneel voor \texttt{mock-02} de status OFFLINE (figuur~\ref{fig:scenario-8c}). Alle encode-specifieke panels (Clients, Bitrate, Framerate) vallen op \emph{No data} of~0, terwijl \texttt{mock-01} zijn reeds-opgetreden decode-outage uit 8b verderzet zonder door de nieuwe storing beïnvloed te worden. De alert \emph{[CRITICAL] BirdDog Device Offline} gaat na de \texttt{for}-duur van 1~min in Firing.
+\paragraph{8c --- device volledig offline.} Een \texttt{POST /control/offline} op de mock van \texttt{mock-02} (poort~8091) zet alle endpoints op HTTP~503, waardoor de exporter geen state meer kan ophalen. Binnen Ã©Ã©n minuut komt \texttt{birddog\_device\_online\{device="mock-02"\}} op~0 te staan en toont het \emph{Device Online}-paneel voor \texttt{mock-02} de status OFFLINE (figuur~\ref{fig:scenario-8c}). Alle encode-specifieke panels (Clients, Bitrate, Framerate) vallen op \emph{No data} of~0, terwijl \texttt{mock-01} zijn reeds-opgetreden decode-outage uit 8b verderzet zonder door de nieuwe storing beÃ¯nvloed te worden. De alert \emph{[CRITICAL] BirdDog Device Offline} gaat na de \texttt{for}-duur van 1~min in Firing.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.30\textheight,keepaspectratio]{scenario9c.png}
   \caption[Scenario 8c: encoder volledig offline]{\texttt{mock-02} wordt via \texttt{POST /control/offline} ontoegankelijk gemaakt. \emph{Device Online} en alle encode-panels springen naar OFFLINE/No data; \texttt{mock-01} behoudt zijn eigen toestand uit 8b.}
   \label{fig:scenario-8c}
 \end{figure}
 
-\paragraph{8d --- herstel.} Na \texttt{POST /control/connect} (\texttt{mock-01}) en \texttt{POST /control/online} (\texttt{mock-02}) komen beide devices binnen één à twee minuten terug op UP. De timeseries in figuur~\ref{fig:scenario-8d} tonen het karakteristieke patroon: de decode-framerate keert terug op 25~fps met een duidelijke stapfunctie, de encode-framerate hervat na een korte \emph{No data}-gap op 25~fps, en de stat-panels kleuren allemaal terug groen. Beide alerts zakken binnen hun \texttt{for}-venster terug naar Normal.
+\paragraph{8d --- herstel.} Na \texttt{POST /control/connect} (\texttt{mock-01}) en \texttt{POST /control/online} (\texttt{mock-02}) komen beide devices binnen Ã©Ã©n Ã  twee minuten terug op UP. De timeseries in figuur~\ref{fig:scenario-8d} tonen het karakteristieke patroon: de decode-framerate keert terug op 25~fps met een duidelijke stapfunctie, de encode-framerate hervat na een korte \emph{No data}-gap op 25~fps, en de stat-panels kleuren allemaal terug groen. Beide alerts zakken binnen hun \texttt{for}-venster terug naar Normal.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.95\linewidth,height=0.32\textheight,keepaspectratio]{scenario9d.png}
   \caption[Scenario 8d: herstel]{Na \texttt{/control/connect} en \texttt{/control/online} keren beide devices terug naar UP; de timeseries tonen een duidelijke recovery-stap voor zowel decode- als encode-framerate.}
@@ -544,7 +544,7 @@ Scenario~8 valideert sectie~13 van het dashboard en de bijhorende twee alert rul
 
 \paragraph{Technische bevindingen.} Drie leerpunten uit scenario~8 verdienen expliciete vermelding. Ten eerste werkt het \texttt{and on(device) birddog\_operation\_mode\_decode == 1}-filter als canoniek patroon voor multi-mode hardware in PromQL: zonder de join kleurde elke encoder een rood \emph{GEEN BRON}-paneel omdat \texttt{decode\_connected} op~0 stond bij devices die de metric nooit relevant gebruiken. Ten tweede is de detectie van een volledige device-outage in sectie~13 gebaseerd op een exporter-interne state-cache (\texttt{birddog\_device\_online=0}) en niet op een afwezige scrape; dat maakt de detectie onafhankelijk van een \texttt{up == 0}-regel en consistent met hoe de overige secties werken. Ten derde bevestigde een bug in de mock een productieprincipe: een eerste versie van \texttt{@app.before\_request} retourneerde 503 op \emph{alle} routes wanneer \texttt{STATE[\textquoteright{}offline\textquoteright{}] = True}, inclusief \texttt{/control/online}, waardoor een offline device niet meer herstelbaar was via de API. De fix (\texttt{if fail\_mode() and not request.path.startswith("/control/")}) is zelf een herinnering dat herstelcommando's nooit geblokkeerd mogen worden door dezelfde fout-state die ze moeten oplossen.
 
-\paragraph{Conclusie.} Scenario~8 sluit de BirdDog-laag aan op dezelfde observability-patronen die elders in de stack gelden: één exporter die API-data naar gauges vertaalt, twee alerts die elk één faaldomein afdekken, en een dashboard-sectie waarvan de filter-logica expliciet rekening houdt met de twee operatie-modi van het toestel. Omdat de scenario's met een mock werden uitgevoerd bewijst dit nog niet dat een fysiek BirdDog-toestel zich identiek gedraagt op de REST API; de overstap naar productie vereist bijgevolg een korte validatiefase tegen echte hardware. Het onderliggende observability-ontwerp --- de metric-naamgeving, de mode-filter, de alert-thresholds en de dashboard-layout --- kan op dat moment onveranderd behouden blijven.
+\paragraph{Conclusie.} Scenario~8 sluit de BirdDog-laag aan op dezelfde observability-patronen die elders in de stack gelden: Ã©Ã©n exporter die API-data naar gauges vertaalt, twee alerts die elk Ã©Ã©n faaldomein afdekken, en een dashboard-sectie waarvan de filter-logica expliciet rekening houdt met de twee operatie-modi van het toestel. Omdat de scenario's met een mock werden uitgevoerd bewijst dit nog niet dat een fysiek BirdDog-toestel zich identiek gedraagt op de REST API; de overstap naar productie vereist bijgevolg een korte validatiefase tegen echte hardware. Het onderliggende observability-ontwerp --- de metric-naamgeving, de mode-filter, de alert-thresholds en de dashboard-layout --- kan op dat moment onveranderd behouden blijven.
 
 \subsection{Scenario 9 --- Teams-alerting via Power Automate}
 \label{sec:scenario-9}
@@ -552,12 +552,12 @@ Scenario~8 valideert sectie~13 van het dashboard en de bijhorende twee alert rul
 Scenario~9 valideert de end-to-end notificatieketen: van een firende Grafana-alert tot een zichtbaar bericht in het Microsoft~Teams-kanaal van het NOC. Het bewijst dat de observability-stack niet alleen visueel signaleert in het dashboard maar ook actief meldt aan het operationele team via hun dagelijkse communicatietool, zonder dat daarvoor een manuele login vereist is.
 
 \paragraph{Achtergrond: waarom Power Automate en niet het native Teams-contactpunt.}
-Het ingebouwde Grafana ``Microsoft Teams''-contactpunt stuurt berichten via de Office~365-connectorwebhooks, die Microsoft heeft gedeprecateerd per 1~oktober~2024. Bestaande \texttt{out\-look.office.com/webhook/\ldots}-URLs lopen in bestaande tenants af en werken niet meer in nieuwe. De enige ondersteunde aanpak is een \emph{Power Automate Workflow} met trigger ``When a Teams webhook request is received''. Grafana gebruikt daarvoor het generieke \emph{Webhook}-contactpunt en stuurt een HTTP~POST naar de Power~Automate-URL. Dit vereist kennis van de deprecatietimeline: een naïeve installatie met het native Teams-contactpunt zou in een nieuwe omgeving onmiddellijk falen, terwijl de configuratie-UI dat niet expliciet meldt.
+Het ingebouwde Grafana ``Microsoft Teams''-contactpunt stuurt berichten via de Office~365-connectorwebhooks, die Microsoft heeft gedeprecateerd per 1~oktober~2024. Bestaande \texttt{out\-look.office.com/webhook/\ldots}-URLs lopen in bestaande tenants af en werken niet meer in nieuwe. De enige ondersteunde aanpak is een \emph{Power Automate Workflow} met trigger ``When a Teams webhook request is received''. Grafana gebruikt daarvoor het generieke \emph{Webhook}-contactpunt en stuurt een HTTP~POST naar de Power~Automate-URL. Dit vereist kennis van de deprecatietimeline: een naÃ¯eve installatie met het native Teams-contactpunt zou in een nieuwe omgeving onmiddellijk falen, terwijl de configuratie-UI dat niet expliciet meldt.
 
 \paragraph{Uitvoering: BirdDog-device offline en herstel.}
-De notificatieketen werd end-to-end gevalideerd met de BirdDog-mock als aanleiding. Via de testAPI van de mock werd \texttt{mock-01} op \texttt{offline} gezet (\texttt{POST /control/offline}), waardoor de exporter \texttt{birddog\_device\_online=0} publiceert. Na één scrape-cyclus (15~s) ziet Prometheus de waarde dalen; na de ingestelde \texttt{for:~1m} van de regel \emph{BirdDog Device Offline} gaat de status van Pending naar Firing. De routing policy bevat een sub-route voor \texttt{severity~=~critical} met \texttt{continue:~true}, waardoor zowel \texttt{mediaventures-default} (Grafana-UI) als \texttt{teams-webhook} (Power~Automate) de notificatie ontvangen. De end-to-end detectietijd --- van het forceren van de offline-status tot het verschijnen van het bericht in Teams --- bedraagt gemiddeld 90~seconden. Na het herstellen van de mock (\texttt{POST /control/online}) keert \texttt{birddog\_device\_online} terug naar~1 binnen twee scrape-cycli en verstuurt Grafana een \texttt{status:~resolved}-bericht omdat \texttt{disableResolveMessage:~false} is ingesteld. Beide berichten zijn zichtbaar in figuur~\ref{fig:scenario-9}: eerst het firende \texttt{[CRITICAL] BirdDog Device Offline}-bericht met daarin de samenvatting ``BirdDog device mock-01 offline'', en kort daarna het bijhorende resolved-bericht wanneer het device terug bereikbaar is.
+De notificatieketen werd end-to-end gevalideerd met de BirdDog-mock als aanleiding. Via de testAPI van de mock werd \texttt{mock-01} op \texttt{offline} gezet (\texttt{POST /control/offline}), waardoor de exporter \texttt{birddog\_device\_online=0} publiceert. Na Ã©Ã©n scrape-cyclus (15~s) ziet Prometheus de waarde dalen; na de ingestelde \texttt{for:~1m} van de regel \emph{BirdDog Device Offline} gaat de status van Pending naar Firing. De routing policy bevat een sub-route voor \texttt{severity~=~critical} met \texttt{continue:~true}, waardoor zowel \texttt{mediaventures-default} (Grafana-UI) als \texttt{teams-webhook} (Power~Automate) de notificatie ontvangen. De end-to-end detectietijd --- van het forceren van de offline-status tot het verschijnen van het bericht in Teams --- bedraagt gemiddeld 90~seconden. Na het herstellen van de mock (\texttt{POST /control/online}) keert \texttt{birddog\_device\_online} terug naar~1 binnen twee scrape-cycli en verstuurt Grafana een \texttt{status:~resolved}-bericht omdat \texttt{disableResolveMessage:~false} is ingesteld. Beide berichten zijn zichtbaar in figuur~\ref{fig:scenario-9}: eerst het firende \texttt{[CRITICAL] BirdDog Device Offline}-bericht met daarin de samenvatting ``BirdDog device mock-01 offline'', en kort daarna het bijhorende resolved-bericht wanneer het device terug bereikbaar is.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.85\linewidth,height=0.30\textheight,keepaspectratio]{screen-alert-teams.png}
   \caption[Scenario 9: firing en resolved in Teams]{Firing- en resolved-bericht van de \emph{BirdDog Device Offline}-alert in het Teams-kanaal, verstuurd via de Power Automate Workflow.}
@@ -570,13 +570,13 @@ Drie implementatiedetails verdienen expliciete vermelding. Ten eerste ondersteun
 \section{Zelf-validatie van de stack}
 \label{sec:poc-blindspot}
 
-Een observability-stack die zijn eigen correctheid niet kan bewijzen, is zelf een risico. Tijdens de Live3-integratie op 15 april werd ontdekt dat sectie~5 \emph{alle tunnels als UP} rapporteerde, terwijl er in InControl2 \emph{geen enkel SpeedFusion-profiel} geconfigureerd was. De root cause zat in de originele \texttt{get\_tunnel\_stat}-functie, die een lege lijst (geen tunnels) als \texttt{True} (alles oké) interpreteerde. Dit is een klassieke \emph{default-to-healthy}-antipattern die \textcite{VanRenterghem2025} ook in productiemonitoring ziet terugkeren.
+Een observability-stack die zijn eigen correctheid niet kan bewijzen, is zelf een risico. Tijdens de Live3-integratie op 15 april werd ontdekt dat sectie~5 \emph{alle tunnels als UP} rapporteerde, terwijl er in InControl2 \emph{geen enkel SpeedFusion-profiel} geconfigureerd was. De root cause zat in de originele \texttt{get\_tunnel\_stat}-functie, die een lege lijst (geen tunnels) als \texttt{True} (alles okÃ©) interpreteerde. Dit is een klassieke \emph{default-to-healthy}-antipattern die \textcite{VanRenterghem2025} ook in productiemonitoring ziet terugkeren.
 
 \paragraph{Fix in vier lagen.} De oplossing is bewust gelaagd opgebouwd om regressies te voorkomen:
 \begin{enumerate}
   \item \textbf{Exporter-semantiek.} De functie geeft voortaan een tuple \texttt{(count, all\_ok)} terug. Wanneer \texttt{count == 0} wordt \texttt{peplink\_tunnel\_up} expliciet op~0 gezet in plaats van impliciet op~1 te blijven staan.
   \item \textbf{Staleness.} Aan het begin van elke scrape-cyclus roepen de gauges \texttt{.clear()} aan, zodat verdwenen devices ook uit Prometheus verdwijnen.
-  \item \textbf{Dashboard-verdediging.} Een nieuwe metric \texttt{peplink\_tunnel\_count} wordt in sectie~5 getoond. Een panel dat 0 profielen én "up" zou tonen is onmiddellijk visueel herkenbaar als een anomalie.
+  \item \textbf{Dashboard-verdediging.} Een nieuwe metric \texttt{peplink\_tunnel\_count} wordt in sectie~5 getoond. Een panel dat 0 profielen Ã©n "up" zou tonen is onmiddellijk visueel herkenbaar als een anomalie.
   \item \textbf{Alerting.} De regel \emph{PepVPN No Profiles Configured} firet binnen 5 minuten zodra \texttt{max(peplink\_tunnel\_count) == 0}. Had deze regel vanaf het begin bestaan, dan was de blind-spot op 7 april ontdekt.
 \end{enumerate}
 
@@ -585,9 +585,9 @@ De algemene les is generaliseerbaar en wordt in Hoofdstuk~\ref{ch:conclusie} mee
 \section{Resourceverbruik}
 \label{sec:poc-resource}
 
-Op 15 april werd het resourceverbruik van de volledige stack gemeten op een 2~vCPU / 4~GB-VM met tien draaiende containers onder idle-load (vóór de NDI-integratie). Tabel~\ref{tab:resource} toont de belangrijkste cijfers; de twee NDI-containers die op 19 april zijn toegevoegd verhogen de totale belasting met naar schatting enkele procenten CPU en een honderdtal MiB RAM --- ruim binnen de resterende capaciteit van de VM.
+Op 15 april werd het resourceverbruik van de volledige stack gemeten op een 2~vCPU / 4~GB-VM met tien draaiende containers onder idle-load (vÃ³Ã³r de NDI-integratie). Tabel~\ref{tab:resource} toont de belangrijkste cijfers; de twee NDI-containers die op 19 april zijn toegevoegd verhogen de totale belasting met naar schatting enkele procenten CPU en een honderdtal MiB RAM --- ruim binnen de resterende capaciteit van de VM.
 
-\begin{table}[htbp]
+\begin{table}[H]
   \centering
   \caption[Resourceverbruik van de stack]{Resourceverbruik onder idle-load (2 vCPU, 4 GB RAM, AlmaLinux~9).}
   \label{tab:resource}
@@ -611,15 +611,15 @@ Om de verdedigbaarheid van de PoC transparant te houden, worden de belangrijkste
 
 \paragraph{Balance 20X als hybride Live3-spoke.} De fysieke Balance~20X werd oorspronkelijk opgenomen als een vijfde volwaardige site met een P2P PepVPN-tunnel naar FH-Bornem. Die tunnel bleef door een combinatie van een verlopen PrimeCare-licentie en een IC2-locked profiel in een authenticatie-cyclus steken en werd op 16 april opgegeven. De Balance~20X is daarna bewust behouden \emph{buiten} het SpeedFusion-profiel en bereikt de observability-stack via een bridged WiFi-adapter (\texttt{192.168.1.1}). Die keuze levert nog steeds twee bewijsdoelen op: \emph{(i)} de stack werkt op fysieke hardware met enterprise-SNMP en lokale API, en \emph{(ii)} het IC2-device-online=0-patroon (terwijl SNMP/API/ICMP gewoon groen blijven) is een sterk argument voor de multi-bron aanpak, want een single-source monitoring had hier het verkeerde beeld gegeven.
 
-\paragraph{NAT-traversal: gedeeltelijk experimenteel bevestigd.} De basisopstelling van de virtuele testomgeving gebruikt directe routering via VyOS zonder NAT tussen de spokes. Om toch een empirische basis te leggen onder de drie connectiviteitsscenarios uit sectie~\ref{sec:fase5}, werd één expliciet asymmetrisch NAT-scenario toegevoegd (scenario~6, sectie~\ref{sec:poc-tests}): FH-Live1 werd via een extra \texttt{source NAT}-regel op VyOS achter een tweede masquerade-laag geplaatst, zodat zijn verkeer richting de Bornem-hub als "afkomstig van de gateway" binnenkomt in plaats van met zijn eigen spoke-IP. Dat volstaat om de kernclaim van de observability-laag te valideren: zolang \texttt{peplink\_tunnel\_up=1} blijft de stack routing-agnostisch, omdat alle exporters op tunneladressen (\texttt{10.1.x.x}) werken. Wat \emph{niet} in deze PoC geëvalueerd wordt, is PepVPN's eigen NAT-T-implementatie onder extreme condities (CGNAT-hole-punching, port-rebind-frequentie, keepalive-tuning): dat is commerciële productfunctionaliteit van Peplink waarvoor publieke documentatie en leverancierstesten bestaan. Een korte tunnelflap door NAT-rebinding wordt operationeel opgevangen door de alert-drempel van drie minuten.
+\paragraph{NAT-traversal: gedeeltelijk experimenteel bevestigd.} De basisopstelling van de virtuele testomgeving gebruikt directe routering via VyOS zonder NAT tussen de spokes. Om toch een empirische basis te leggen onder de drie connectiviteitsscenarios uit sectie~\ref{sec:fase5}, werd Ã©Ã©n expliciet asymmetrisch NAT-scenario toegevoegd (scenario~6, sectie~\ref{sec:poc-tests}): FH-Live1 werd via een extra \texttt{source NAT}-regel op VyOS achter een tweede masquerade-laag geplaatst, zodat zijn verkeer richting de Bornem-hub als "afkomstig van de gateway" binnenkomt in plaats van met zijn eigen spoke-IP. Dat volstaat om de kernclaim van de observability-laag te valideren: zolang \texttt{peplink\_tunnel\_up=1} blijft de stack routing-agnostisch, omdat alle exporters op tunneladressen (\texttt{10.1.x.x}) werken. Wat \emph{niet} in deze PoC geÃ«valueerd wordt, is PepVPN's eigen NAT-T-implementatie onder extreme condities (CGNAT-hole-punching, port-rebind-frequentie, keepalive-tuning): dat is commerciÃ«le productfunctionaliteit van Peplink waarvoor publieke documentatie en leverancierstesten bestaan. Een korte tunnelflap door NAT-rebinding wordt operationeel opgevangen door de alert-drempel van drie minuten.
 
 \paragraph{Syslog van de Balance 20X locatie-afhankelijk.} Omdat de syslog-collector op de bridged WiFi-adapter van de observability-VM luistert, wijzigt het doel-IP per netwerk. Bij een werkende tunnel zou een vast \texttt{10.1.1.100}-adres volstaan. In productie is dit geen issue omdat de observability-host een vast IP heeft.
 
-\paragraph{BirdDog gevalideerd via mock, niet via fysiek toestel.} Sectie~13 en scenario~8 dekken de BirdDog-hardwarelaag volledig af op het niveau van de REST API~2.0: exporter, dashboard, mode-filter en twee alert rules zijn operationeel en werden end-to-end gevalideerd. Omdat Mediaventures tijdens het PoC geen fysiek BirdDog-toestel ter beschikking had, gebeurt die validatie via een Flask-gebaseerde mock die twee devices simuleert (decode + encode). Dat is voldoende om het observability-ontwerp te verifiëren --- metric-namen, mode-filter, alert-thresholds en dashboard-layout zijn onafhankelijk van de bron --- maar het bewijst niet dat een echt BirdDog-apparaat op dezelfde endpoints identiek gedrag vertoont. De overstap naar productie vereist bijgevolg een korte conformiteitstest tegen fysieke hardware; eventuele afwijkingen van de API-documentatie zijn dan te patchen in de exporter zonder de rest van de stack aan te raken.
+\paragraph{BirdDog gevalideerd via mock, niet via fysiek toestel.} Sectie~13 en scenario~8 dekken de BirdDog-hardwarelaag volledig af op het niveau van de REST API~2.0: exporter, dashboard, mode-filter en twee alert rules zijn operationeel en werden end-to-end gevalideerd. Omdat Mediaventures tijdens het PoC geen fysiek BirdDog-toestel ter beschikking had, gebeurt die validatie via een Flask-gebaseerde mock die twee devices simuleert (decode + encode). Dat is voldoende om het observability-ontwerp te verifiÃ«ren --- metric-namen, mode-filter, alert-thresholds en dashboard-layout zijn onafhankelijk van de bron --- maar het bewijst niet dat een echt BirdDog-apparaat op dezelfde endpoints identiek gedrag vertoont. De overstap naar productie vereist bijgevolg een korte conformiteitstest tegen fysieke hardware; eventuele afwijkingen van de API-documentatie zijn dan te patchen in de exporter zonder de rest van de stack aan te raken.
 
-\paragraph{NDI geïntegreerd met gelaagde validatie.} NDI-monitoring is niet langer een toekomstige uitbreiding maar een operationeel onderdeel van de stack, met een gelaagde validatie-aanpak. Op \emph{stream-niveau} draait de \texttt{ndi-exporter} volledig operationeel en exporteert hij frame-level metrics (\texttt{ndi\_video\_fps}, \texttt{ndi\_frame\_drop\_rate}, \texttt{ndi\_queue\_depth\_frames}) via de officiële NDI SDK, waarbij de bron een synthetische Python-sender (SMPTE-kleurbalken) is op dezelfde observability-VM. Op \emph{device-niveau} compenseert scenario~8 deze beperking: de BirdDog mock-API simuleert twee hardwareklassen (encoder + decoder) volgens de publieke BirdDog REST~API~2.0 en valideert de dashboard-laag, de mode-filtering en de alert-thresholds op dezelfde manier als een fysiek toestel dat zou doen. Samen dekken beide niveaus de volledige NDI-observability-keten af: de stream-metrics bewijzen dat frame-level degradatie detecteerbaar is, de mock-API bewijst dat de device- en modus-metadata correct in het dashboard landen. Twee nuances blijven staan voor productie. Ten eerste is mDNS in de PoC enkel link-local getest; voor cross-VLAN-detectie biedt NDI de \emph{Discovery Server} aan, die in Mediaventures een vervolgtraject is. Ten tweede vertoont de synthetische loopback-opstelling een restdrop-rate van 10--15\% die te wijten is aan de timing-precisie van de Python-sender en niet aan de meting zelf; in een productiescenario met een hardware-encoder verdwijnt die baseline grotendeels.
+\paragraph{NDI geÃ¯ntegreerd met gelaagde validatie.} NDI-monitoring is niet langer een toekomstige uitbreiding maar een operationeel onderdeel van de stack, met een gelaagde validatie-aanpak. Op \emph{stream-niveau} draait de \texttt{ndi-exporter} volledig operationeel en exporteert hij frame-level metrics (\texttt{ndi\_video\_fps}, \texttt{ndi\_frame\_drop\_rate}, \texttt{ndi\_queue\_depth\_frames}) via de officiÃ«le NDI SDK, waarbij de bron een synthetische Python-sender (SMPTE-kleurbalken) is op dezelfde observability-VM. Op \emph{device-niveau} compenseert scenario~8 deze beperking: de BirdDog mock-API simuleert twee hardwareklassen (encoder + decoder) volgens de publieke BirdDog REST~API~2.0 en valideert de dashboard-laag, de mode-filtering en de alert-thresholds op dezelfde manier als een fysiek toestel dat zou doen. Samen dekken beide niveaus de volledige NDI-observability-keten af: de stream-metrics bewijzen dat frame-level degradatie detecteerbaar is, de mock-API bewijst dat de device- en modus-metadata correct in het dashboard landen. Twee nuances blijven staan voor productie. Ten eerste is mDNS in de PoC enkel link-local getest; voor cross-VLAN-detectie biedt NDI de \emph{Discovery Server} aan, die in Mediaventures een vervolgtraject is. Ten tweede vertoont de synthetische loopback-opstelling een restdrop-rate van 10--15\% die te wijten is aan de timing-precisie van de Python-sender en niet aan de meting zelf; in een productiescenario met een hardware-encoder verdwijnt die baseline grotendeels.
 
 \section{Synthese}
 \label{sec:poc-synthese}
 
-Het proof-of-concept valideert dat een open-source PLG-stack in combinatie met een custom Python-exporter in staat is om de volledige audiovisuele keten van Mediaventures end-to-end te bewaken. De uitgevoerde testscenario's (netwerkstoringen, fysieke hardware, SRT, NDI, asymmetrische NAT, BirdDog device- en modus-monitoring en Teams-alerting) tonen aan dat storingen op de netwerklaag, de device-laag, de applicatielaag én de AV-hardwarelaag binnen 1 tot 5 minuten gedetecteerd, gevisualiseerd en actief gemeld worden aan het NOC via Microsoft Teams. De zelf-validatie rondom de \texttt{peplink\_tunnel\_up}-blindspot bevestigt bovendien dat een iteratieve, kritische opbouw van de stack noodzakelijk is: elke metric moet gevalideerd worden tegen de grond-waarheid, niet enkel tegen wat het dashboard toont. Het resultaat is een overdraagbaar prototype dat na deze bachelorproef zonder fundamentele aanpassingen naar de productieomgeving van Mediaventures kan doorgroeien.
+Het proof-of-concept valideert dat een open-source PLG-stack in combinatie met een custom Python-exporter in staat is om de volledige audiovisuele keten van Mediaventures end-to-end te bewaken. De uitgevoerde testscenario's (netwerkstoringen, fysieke hardware, SRT, NDI, asymmetrische NAT, BirdDog device- en modus-monitoring en Teams-alerting) tonen aan dat storingen op de netwerklaag, de device-laag, de applicatielaag Ã©n de AV-hardwarelaag binnen 1 tot 5 minuten gedetecteerd, gevisualiseerd en actief gemeld worden aan het NOC via Microsoft Teams. De zelf-validatie rondom de \texttt{peplink\_tunnel\_up}-blindspot bevestigt bovendien dat een iteratieve, kritische opbouw van de stack noodzakelijk is: elke metric moet gevalideerd worden tegen de grond-waarheid, niet enkel tegen wat het dashboard toont. Het resultaat is een overdraagbaar prototype dat na deze bachelorproef zonder fundamentele aanpassingen naar de productieomgeving van Mediaventures kan doorgroeien.
