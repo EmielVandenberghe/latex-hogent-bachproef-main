@@ -22,9 +22,9 @@ De huidige monitoring is voornamelijk lokaal en gefragmenteerd: elke locatie bew
 
 De praktische consequentie is dat techniekers bij storingen handmatig moeten inloggen op elk apparaat afzonderlijk. Dit vereist diepgaande kennis van meerdere technologieën tegelijk, duurt te lang tijdens een lopende live-productie, en vergroot het risico dat een probleem te laat wordt opgemerkt.
 
-Een bijkomende nuance is dat er geen kwantitatieve baseline bestaat voor de huidige detectietijd. Detectie verloopt kwalitatief: techniekers controleren visueel of auditief of de keten werkt tijdens een testsessie van circa dertig minuten de dag vóór de uitzending en nogmaals kort vóór live-gang \autocite{VanRenterghem2025}. Storingen die zich daartussen voordoen --- een tunnel die 's nachts uitvalt, een WAN-link die degradeert --- worden pas opgemerkt wanneer iemand kijkt, in het slechtste geval pas tijdens de uitzending zelf. Dit onderzoek introduceert continue, geautomatiseerde meting waar voorheen geen was: detectie verschuift van reactief naar proactief.
+Een bijkomende nuance is dat er geen kwantitatieve baseline bestaat voor de huidige detectietijd. Detectie verloopt kwalitatief: techniekers controleren visueel of auditief of de keten werkt tijdens een testsessie van circa dertig minuten de dag vóór de uitzending en nogmaals kort vóór live-gang \autocite{VanRenterghem2025}. Storingen die zich daartussen voordoen (een tunnel die 's nachts uitvalt, een WAN-link die degradeert) worden pas opgemerkt wanneer iemand kijkt, in het slechtste geval pas tijdens de uitzending zelf. Dit onderzoek introduceert continue, geautomatiseerde meting waar voorheen geen was: detectie verschuift van reactief naar proactief.
 
-Er is bijgevolg nood aan een geïntegreerde observability-oplossing die data uit verschillende lagen samenvoegt in één centraal overzicht. Dit moet techniekers in staat stellen om de oorzaak van een probleem efficiënter te lokaliseren --- zonder per toestel te hoeven inloggen --- en moet de detectie van storingen verschuiven van een kwalitatieve, mens-afhankelijke handeling naar een continue, geautomatiseerde meting.
+Er is bijgevolg nood aan een geïntegreerde observability-oplossing die data uit verschillende lagen samenvoegt in één centraal overzicht. Dit moet techniekers in staat stellen om de oorzaak van een probleem efficiënter te lokaliseren (zonder per toestel te hoeven inloggen) en moet de detectie van storingen verschuiven van een mens-afhankelijke handeling naar een continue, geautomatiseerde meting.
 
 \section{\IfLanguageName{dutch}{Onderzoeksvraag}{Research question}}%
 \label{sec:onderzoeksvraag}
@@ -34,7 +34,7 @@ De centrale onderzoeksvraag luidt: \textit{Hoe kan Mediaventures een geïntegree
 Deze vraag wordt verder gespecificeerd in twee deelvragen:
 
 \begin{enumerate}
-\item Deelvraag voor het probleemdomein: Welke soorten data en statusinformatie zijn beschikbaar op de verschillende netwerk- en AV-componenten binnen deze internationale workflow, en welke parameters zijn cruciaal om kwaliteitsproblemen vroegtijdig te detecteren?
+\item Deelvraag voor het probleemdomein: Welke soorten data en statusinformatie zijn beschikbaar op de verschillende netwerk- en audiovisuele (AV) componenten binnen deze internationale workflow, en welke parameters zijn cruciaal om kwaliteitsproblemen vroegtijdig te detecteren?
 
 \item Deelvraag voor het oplossingsdomein: Welke observability- en monitoringtechnieken sluiten het best aan bij audiovisuele producties met hoge betrouwbaarheidseisen, en welke bestaande tools zijn compatibel met de infrastructuur van Mediaventures?
 \end{enumerate}
@@ -47,7 +47,7 @@ Het probleem- en oplossingsdomein bevindt zich op het snijpunt van AV-productie,
 \begin{itemize}
 \item Een onderbouwde aanbeveling formuleren voor een observabilityoplossing die aansluit bij de specifieke noden van Mediaventures
 \item Een functioneel proof-of-concept ontwikkelen dat metrics, logs en netwerkflows integreert in één gecentraliseerd dashboard
-\item Aantonen hoe gecentraliseerde, continue data-verzameling en -visualisatie de detectie van storingen verschuift van kwalitatief en reactief (visueel of auditief tijdens testsessies) naar kwantitatief en proactief (continu meten met meetbare scrape- en alert-intervals)
+\item Aantonen hoe gecentraliseerde, continue data-verzameling en -visualisatie de detectie van storingen verschuift van kwalitatief en reactief (visueel of auditief tijdens testsessies) naar kwantitatief en proactief (continu meten met scrape- en alert-intervals)
 \item Een alerting-mechanisme integreren dat techniekers proactief waarschuwt bij kritieke afwijkingen
 \end{itemize}
 
@@ -56,7 +56,7 @@ Het probleem- en oplossingsdomein bevindt zich op het snijpunt van AV-productie,
 
 Dit onderzoek richt zich op het verzamelen, aggregeren en visualiseren van observability-data (metrics, logs en netwerkflows) afkomstig van alle componenten in de audiovisuele infrastructuur. Het doel is techniekers een volledig, gecentraliseerd overzicht te bieden van de status en prestaties van de infrastructuur via één dashboard. Het automatisch interpreteren van problemen en het voorstellen van concrete oplossingen valt buiten de huidige scope; de focus ligt op detectie en zichtbaarmaking.
 
-Ook beveiliging van de monitoringstack zelf valt buiten de scope van dit proof-of-concept. Concreet betekent dit dat aspecten zoals TLS-encryptie tussen exporters en Prometheus, authenticatie op Grafana-niveau (buiten de standaard admin-login), role-based access control voor verschillende gebruikersgroepen, hardening van de observability-host en het beveiligen van API-credentials (zoals de InControl2-token) niet experimenteel werden geëvalueerd. De focus ligt uitsluitend op het functioneel aantonen van end-to-end zichtbaarheid; een productie-uitrol vereist een aanvullende security-review die in de aanbevelingen (sectie~\ref{sec:conclusie-aanbevelingen}) als vervolgstap wordt opgenomen.
+Ook beveiliging van de monitoringstack zelf valt buiten de scope van dit proof-of-concept. Concreet betekent dit dat aspecten zoals TLS-encryptie tussen exporters en Prometheus, authenticatie op Grafana-niveau (buiten de standaard admin-login), role-based access control voor verschillende gebruikersgroepen, hardening van de observability-host en het beveiligen van API-credentials (zoals de InControl2-token) niet experimenteel werden geëvalueerd. De focus ligt uitsluitend op het functioneel aantonen van end-to-end zichtbaarheid; een productie-uitrol vereist een aanvullende security-review die in de aanbevelingen (sectie~\ref{sec:poc-aanbevelingen}) als vervolgstap wordt opgenomen.
 
 \section{\IfLanguageName{dutch}{Opzet van deze bachelorproef}{Structure of this bachelor thesis}}%
 \label{sec:opzet-bachelorproef}

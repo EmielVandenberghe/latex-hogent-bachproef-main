@@ -1,0 +1,87 @@
+%%=============================================================================
+%% Bijlage: Validatierapport PLG-stack
+%%=============================================================================
+
+\chapter{Validatierapport PLG-stack}
+\label{app:validatierapport}
+
+Dit rapport documenteert de validatie van de Prometheus--Loki--Grafana (PLG)-stack als observability-platform voor de Mediaventures-context. De validatie werd uitgevoerd in fase~3 van de methodologie (sectie~\ref{sec:fase3}, maart~2026, weken~5 tot~8) en ging vooraf aan de volledige implementatie in fase~6. Doel was te toetsen of de gekozen toolstack effectief in staat is aan de vijf vooropgestelde criteria te voldoen vooraleer in de bouw van het proof-of-concept tijd te investeren. Op 20~maart~2026 werd deze keuze ook mondeling toegelicht aan de promotor.
+
+\section*{Werkwijze}
+
+Per criterium werd een combinatie van drie methodes gebruikt, conform de methodologie:
+
+\begin{itemize}
+  \item \textbf{Documentatieanalyse} van de officiële documentatie van Prometheus, Loki, Grafana en relevante exporters, met aandacht voor architecturale ontwerpkeuzes en bekende beperkingen.
+  \item \textbf{Analyse van technische specificaties}: vergelijking van architecturale eisen (datavolume, scrape-intervallen, queryprestaties, opslagretentie) tegen gepubliceerde performance-karakteristieken.
+  \item \textbf{Kleinschalige tests met gesimuleerde data}: handmatige API-aanroepen op de InControl2-cloud (OAuth2-token, device-discovery, real-time status via \texttt{has\_status=1}, event logs) om te toetsen welke metrics effectief beschikbaar zijn voor automatisering, aangevuld met een minimale Prometheus--Grafana-Loki-installatie gevoed door een prototype Python-exporter met gesimuleerde Peplink-metrics. De resultaten van deze sessie zijn vastgelegd in de map \texttt{poc/datadiscovery\_incontrol.md} van de bijhorende GitHub-repository.
+\end{itemize}
+
+De alternatieven die als referentie dienden (Zabbix, Nagios, Datadog, Splunk en single-vendor dashboards zoals InControl2) zijn besproken in sectie~\ref{sec:tool-alternatieven}. Dit rapport beoordeelt enkel of de \emph{gekozen} PLG-stack aan de eisen voldoet en herhaalt de vergelijking met alternatieven niet.
+
+\section*{Criterium 1: Verwerkingstijd tussen data-ingang en visualisatie}
+
+\textbf{Eis.} De stack moet metrics binnen een minuut na data-ingang in het dashboard tonen en alerts binnen enkele minuten doen afgaan, zodat detectie tijdens een live-productie operationeel bruikbaar is.
+
+\textbf{Validatie.} Prometheus hanteert een pull-model met een configureerbaar scrape-interval; Grafana ververst dashboards volgens het ingestelde refresh-interval. In de kleinschalige testopstelling werd een scrape-interval van 15~seconden ingesteld en bleek de metric binnen één scrape-cyclus zichtbaar in de Grafana-grafiek. Voor alerting laat Grafana per regel een \texttt{for}-duratie toe die scrape-jitter absorbeert en valse alarmen voorkomt.
+
+\textbf{Conclusie:} \emph{Voldoet.} De verwerkingstijd ligt structureel onder de eis. De definitieve metingen per alert-regel worden empirisch bevestigd in fase~6 (zie sectie~\ref{sec:poc-tests}).
+
+\section*{Criterium 2: Volledigheid en betrouwbaarheid van metrics en logs}
+
+\textbf{Eis.} De stack moet metrics uit meerdere onafhankelijke bronnen (cloud-API, SNMP, lokale REST-API's, applicatie-statistieken, logs) kunnen combineren en betrouwbaar opslaan zonder structureel dataverlies.
+
+\textbf{Validatie.} Prometheus accepteert metrics in een uniform tekstformaat via \texttt{/metrics}-endpoints. In de testopstelling bevestigde een eenvoudige Python-exporter, gebaseerd op de \texttt{prometheus\_client}-library, dat custom metrics zonder problemen door Prometheus gescraped worden. De documentatie beschrijft een geoptimaliseerde time-series database met persistente opslag op disk; default retentie is 15~dagen en is configureerbaar. Loki gebruikt een vergelijkbaar pull-model voor logs via Promtail, met label-gebaseerde indexering die overeenkomt met de Prometheus-conventie.
+
+De handmatige InControl2-tests toonden aan dat de cloud-API alle relevante velden levert (\texttt{onlineStatus}, \texttt{uptime}, \texttt{client\_count}, \texttt{usage}, \texttt{tx}, \texttt{rx}, \texttt{fw\_ver}, event logs) op een herhaalbare manier, mits de \texttt{has\_status=1}-parameter wordt meegegeven om verse data te triggeren. Een belangrijk aandachtspunt dat tijdens de validatie expliciet werd benoemd: single-source monitoring kent inherente blinde vlekken. De multi-bron-aanpak is daarom een ontwerpkeuze die de stack moet ondersteunen door verschillende exporters parallel te draaien. PLG ondersteunt dit native: elke exporter wordt onafhankelijk gepolled en bij uitval ontbreken enkel zijn eigen series.
+
+\textbf{Conclusie:} \emph{Voldoet, mits multi-bron-implementatie.} De stack ondersteunt het noodzakelijke multi-bron-paradigma. De concrete uitwerking met vijf onafhankelijke databronnen wordt in fase~6 doorgevoerd (zie sectie~\ref{sec:poc-metrics}).
+
+\section*{Criterium 3: Schaalbaarheid}
+
+\textbf{Eis.} De stack moet schaalbaar zijn naar het beoogde aantal sites van Mediaventures (richtwaarde: vijf tot tien sites) met enkele tientallen metrics per site, zonder dat de host onbruikbaar wordt of dataverlies optreedt.
+
+\textbf{Validatie.} Prometheus' geheugenverbruik schaalt lineair met het aantal actieve time-series; de gepubliceerde richtwaarde ligt in de ordegrootte van enkele kilobytes RAM per actieve series. Bij circa veertig metrics over vijf sites (in de ordegrootte van enkele honderden series) blijft het verwachte geheugenverbruik ruim onder de capaciteit van een bescheiden VM. Loki schaalt op een vergelijkbare manier voor logs, met opslagretentie als belangrijkste sizing-parameter.
+
+In de testopstelling bleef het gecombineerde resourceverbruik van Prometheus, Grafana, Loki en één prototype-exporter ruim onder 1~GiB RAM op een 2~vCPU~/~4~GB-VM, met voldoende overcapaciteit om bijkomende exporters en containers toe te voegen.
+
+\textbf{Conclusie:} \emph{Voldoet.} Schaalbaarheid is afdoende voor de beoogde Mediaventures-omvang. De definitieve productie-sizing wordt empirisch bevestigd in fase~6 (sectie~\ref{sec:poc-resource}).
+
+\section*{Criterium 4: Integratiemogelijkheden met Peplink- en SRT-apparatuur}
+
+\textbf{Eis.} De stack moet data kunnen ophalen uit de specifieke databronnen van de Mediaventures-infrastructuur, in het bijzonder de InControl2-cloud-API, SNMP-polling van Peplink-routers, de lokale REST-API van Peplink-toestellen en de statistieken van \texttt{srt-live-transmit}.
+
+\textbf{Validatie.} Per databron werd onderzocht hoe de integratie technisch verloopt:
+
+\begin{itemize}
+  \item \textbf{InControl2 API.} OAuth2-token-gebaseerde REST-API met JSON-responses, gedocumenteerd door Peplink en in deze fase handmatig uitgeprobeerd via PowerShell-aanroepen. Een token blijft 48~uur geldig en kan via een refresh-token vernieuwd worden; alle endpoints leveren goed gestructureerde JSON die zonder bijkomende parsing-laag in een Python-exporter verwerkt kan worden. Wrappen in een Python-exporter met \texttt{requests} is rechttoe rechtaan.
+  \item \textbf{SNMP.} Ondersteund via \texttt{pysnmp} (Python-library) of de officiële \texttt{snmp\_exporter} van Prometheus. Een aandachtspunt dat tijdens de validatie genoteerd werd is dat de \texttt{pysnmp}-API tussen versies grondig veranderd is (synchroon~$\rightarrow$~asyncio); een expliciete versie-pinning is bijgevolg noodzakelijk voor reproduceerbaarheid. De exacte werkende versie (\texttt{pysnmp==4.4.12} met \texttt{pyasn1==0.4.8} op Python~3.11) werd in fase~6 vastgelegd.
+  \item \textbf{Lokale Peplink REST-API.} Het endpoint \texttt{/cgi-bin/MANGA/api.cgi} levert JSON-responses voor \texttt{status.cpu}, \texttt{status.ap} en gerelateerde velden, te benaderen met dezelfde \texttt{requests}-bibliotheek.
+  \item \textbf{SRT-statistieken.} \texttt{srt-live-transmit} ondersteunt periodieke CSV-output van stream-statistieken; een Python-parser kan deze converteren naar Prometheus-metrics.
+\end{itemize}
+
+Een prototype InControl2-exporter werd in de testopstelling gevoed met gesimuleerde data en publiceerde succesvol \texttt{peplink\_device\_online}-metrics die Prometheus zonder fouten scrapde en Grafana correct visualiseerde. De geschatte ontwikkeltijd per exporter ligt in de ordegrootte van honderden regels Python-code.
+
+\textbf{Conclusie:} \emph{Voldoet.} Alle vereiste integraties zijn implementeerbaar via custom Python-exporters. Voor SNMP geldt de aandachtspunt rond versie-pinning, die in fase~6 als expliciete \texttt{Dockerfile}-keuze is vastgelegd.
+
+\section*{Criterium 5: Resourcegebruik en onderhoudscomplexiteit}
+
+\textbf{Eis.} De stack moet draaien op een bescheiden VM (richtwaarde 2~vCPU~/~4~GB~RAM) en mag geen onevenredig hoog beheerwerk vragen ten opzichte van bestaande alternatieven.
+
+\textbf{Validatie.} Alle PLG-componenten zijn beschikbaar als officieel onderhouden Docker-image. Orchestratie via Docker~Compose laat toe om de volledige stack als één codeerbaar artefact te beheren, met expliciete versie-pinning per container en deterministische opstartvolgorde. Provisioning van datasources, dashboards en alert rules gebeurt via YAML- en JSON-bestanden onder versiebeheer, zodat de configuratie reproduceerbaar is en geen handmatige Grafana-acties vereist na een herstart.
+
+In de testopstelling bleek het beheer van de stack zich te beperken tot drie operaties: het bijwerken van container-tags in \texttt{docker-compose.yml}, het uitbreiden van YAML-bestanden in de provisioning-map en het herstarten van de Compose-stack. Geen van deze stappen vereist een GUI-interactie of administratorrechten op de hostmachine.
+
+\textbf{Conclusie:} \emph{Voldoet.} Het resourcegebruik blijft binnen de richtwaarde en het onderhoud is grotendeels declaratief. De volledige sizing op een productie-realistische opstelling (veertien containers, vijf sites) wordt empirisch bevestigd in fase~6 (sectie~\ref{sec:poc-resource}).
+
+\section*{Eindconclusie en aanbeveling}
+
+Op basis van bovenstaande validatie wordt geconcludeerd dat de PLG-stack aan alle vijf de gestelde criteria voldoet en het meest geschikte open-source platform is voor de Mediaventures-context. Drie aspecten ondersteunen deze keuze:
+
+\begin{enumerate}
+  \item De stack ondersteunt het multi-bron-paradigma dat noodzakelijk is om de audiovisuele keten end-to-end te bewaken zonder afhankelijk te zijn van één leverancier.
+  \item Integratie met de specifieke databronnen van Mediaventures (InControl2, SNMP, lokale REST-API, SRT-statistieken) is pragmatisch haalbaar via custom Python-exporters binnen de tijd van een bachelorproef. De handmatige InControl2-tests bevestigden dit alvast voor de cloud-laag.
+  \item Het volledig on-premise karakter en de afwezigheid van licentiekosten maken de stack geschikt voor zowel het proof-of-concept als een eventuele productie-uitrol bij Mediaventures.
+\end{enumerate}
+
+\textbf{Aanbeveling.} Ga over tot fase~4 (opbouw van de virtuele testomgeving) en vervolgens fase~6 (implementatie en validatie van het proof-of-concept) op basis van de PLG-stack. Aandachtspunten voor de implementatiefase, die in deze validatie reeds werden geïdentificeerd, zijn: het strikt pinnen van \texttt{pysnmp} op een Python~3.11-compatibele versie, het hanteren van een multi-bron-strategie voor cross-validatie tussen InControl2, SNMP en lokale API, en het beheren van alle configuratie via versiebeheerbare provisioning-bestanden in plaats van Grafana-UI-acties. Alle drie deze aandachtspunten zijn in fase~6 effectief toegepast (Hoofdstuk~\ref{ch:poc}).
