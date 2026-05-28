@@ -13,7 +13,7 @@ Meting uitgevoerd op de observability VM (AlmaLinux 9.7, 2 vCPU, 4 GB RAM) op 20
 | RAM beschikbaar | 2773 MB |
 | Swap | 0 MB (uitgeschakeld) |
 | Disk root (`/`) | 19 GB, 6.7 GB used (37%) |
-| Disk `/opt/observability` | 954 GB, 526 GB used (56%) — bind-mount vanaf hostschijf |
+| Disk `/opt/observability` | 954 GB, 526 GB used (56%) - bind-mount vanaf hostschijf |
 
 ## Containers
 Bron: `docker stats --no-stream` (1 sample, idle-load).
@@ -30,14 +30,14 @@ Bron: `docker stats --no-stream` (1 sample, idle-load).
 | node-exporter | 0.00 | 31.22 | 0.80 | 18.2 MB / 0 |
 | blackbox-exporter | 0.00 | 36.18 | 0.93 | 25.7 MB / 0 |
 | ping-exporter | 0.01 | 14.74 | 0.38 | 49.2 kB / 2.34 MB |
-| **Totaal** | **~126 %** | **~977 MiB** | **~29 %** | — |
+| **Totaal** | **~126 %** | **~977 MiB** | **~29 %** | - |
 
-> Noot: `CPU %` in docker stats is relatief tegenover het totaal (2 vCPU = 200% = maximum). 126% totaal betekent ~63% van één vCPU equivalent. Het grootste aandeel zit bij `incontrol2-exporter` (active scraping cycle op moment van meting, waarden pieken per 15s interval) en `srt-test-stream` (FFmpeg encoding testsignaal — constant).
+> Noot: `CPU %` in docker stats is relatief tegenover het totaal (2 vCPU = 200% = maximum). 126% totaal betekent ~63% van één vCPU equivalent. Het grootste aandeel zit bij `incontrol2-exporter` (active scraping cycle op moment van meting, waarden pieken per 15s interval) en `srt-test-stream` (FFmpeg encoding testsignaal - constant).
 
 ## Interpretatie voor verdediging
 - De stack past comfortabel in **1 GB RAM** (29% van 4 GB) onder idle load met 10 containers, 6 monitored sites en een live SRT stream.
 - CPU is het duurste deel door `srt-test-stream` (FFmpeg) en scrape-bursts van de `incontrol2-exporter`. In productie zou `srt-test-stream` vervallen (enkel nodig voor PoC-bewijs) wat ~55% CPU en ~240 MiB RAM vrijspeelt.
-- Disk-gebruik van Loki + Prometheus samen is minder dan 250 MiB na meerdere sessies — retentie-tuning is niet nodig binnen deze scope.
+- Disk-gebruik van Loki + Prometheus samen is minder dan 250 MiB na meerdere sessies - retentie-tuning is niet nodig binnen deze scope.
 - **Productie-aanbeveling:** 2 vCPU + 2 GB RAM + 20 GB disk volstaat voor ~10 sites met 15 s scrape-interval. Schaalt lineair met aantal targets.
 
 ## Reproduceerbaarheid

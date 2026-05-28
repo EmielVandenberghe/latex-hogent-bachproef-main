@@ -1,4 +1,4 @@
-# Blackbox Exporter — Latency, Packet Loss & Jitter via ICMP
+# Blackbox Exporter: Latency, Packet Loss en Jitter via ICMP
 
 De Prometheus [blackbox exporter](https://github.com/prometheus/blackbox_exporter) voert actieve ICMP-probes uit naar de FusionHub-sites en rapporteert bereikbaarheid en RTT als Prometheus-metrics.
 
@@ -16,7 +16,7 @@ De InControl2 API en SNMP op FusionHub leveren geen latency, jitter of packet lo
 | Tunnel Up/Down | Ja | Nee | Nee |
 | Bandwidth | Ja | Ja | Nee |
 
-> **Opmerking voor productie:** Fysieke Peplink-routers (20X, 380X) bieden via de lokale device API wél latency en jitter per SpeedFusion tunnel. De blackbox exporter is een universele aanvulling die onafhankelijk werkt van het routermerk.
+> **Opmerking voor productie:** fysieke Peplink-routers (20X, 380X) bieden via de lokale device API wel latency en jitter per SpeedFusion tunnel. De blackbox exporter is een universele aanvulling die onafhankelijk werkt van het routermerk.
 
 ---
 
@@ -33,7 +33,7 @@ De InControl2 API en SNMP op FusionHub leveren geen latency, jitter of packet lo
     +---> 10.1.4.2 (Live2)     -- via VyOS routing
 ```
 
-De blackbox exporter draait als Docker container met `network_mode: host` zodat hij de FusionHub IPs kan bereiken via de VM's netwerk stack.
+De blackbox exporter draait als Docker container met `network_mode: host` zodat hij de FusionHub IPs kan bereiken via de VM's netwerkstack.
 
 ---
 
@@ -49,7 +49,7 @@ modules:
       preferred_ip_protocol: ip4
 ```
 
-### `poc/stack/prometheus.yml` — relevante sectie
+### `poc/stack/prometheus.yml`: relevante sectie
 ```yaml
 - job_name: 'blackbox_icmp'
   metrics_path: /probe
@@ -95,7 +95,7 @@ modules:
 | RTT in ms | `probe_icmp_duration_seconds{phase="rtt"} * 1000` |
 | Packet loss % | `(1 - avg_over_time(probe_success[5m])) * 100` |
 
-> **Jitter:** Zie `ping_exporter.md` — de ping-jitter exporter geeft nauwkeurigere jitter via `ping -c 10 -i 0.2`. In het Grafana dashboard wordt `ping_jitter_ms` gebruikt.
+> **Jitter:** zie `ping_exporter.md`. De ping-jitter exporter geeft nauwkeurigere jitter via `ping -c 10 -i 0.2`. In het Grafana dashboard wordt `ping_jitter_ms` gebruikt.
 
 ---
 
@@ -148,6 +148,6 @@ probe_duration_seconds 0.000785
 | Probleem | Oplossing |
 |----------|-----------|
 | `probe_success = 0` voor alle sites | Controleer of `network_mode: host` actief is in docker-compose.yml |
-| `probe_success = 0` voor één site | FusionHub VM mogelijk uitgeschakeld of ICMP geblokkeerd |
+| `probe_success = 0` voor een site | FusionHub VM mogelijk uitgeschakeld of ICMP geblokkeerd |
 | Blackbox target DOWN in Prometheus | Controleer of `10.1.1.100:9115` bereikbaar is (`curl http://10.1.1.100:9115/metrics`) |
-| Geen `site` label in Grafana | Prometheus relabeling niet correct — check prometheus.yml `site` label definitie |
+| Geen `site` label in Grafana | Prometheus relabeling niet correct, check prometheus.yml `site` label definitie |

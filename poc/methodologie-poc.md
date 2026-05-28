@@ -19,17 +19,17 @@ Fase 4: Uitbreiding Netwerkapparatuur
   Switches, routers, access points
          |
          v
-Fase 5: Streaming/AV Laag (NDI & SRT)
+Fase 5: Streaming/AV Laag (NDI en SRT)
   Applicatie-niveau metrics, end-to-end latency
          |
          v
-Fase 6: Iteratie & Verfijning
+Fase 6: Iteratie en Verfijning
   Alerting, correlatie, documentatie
 ```
 
 ## Fase 1: Data Discovery
 
-**Doel:** Inventariseren welke telemetrie beschikbaar is vanuit Peplink FusionHub en InControl2.
+**Doel:** inventariseren welke telemetrie beschikbaar is vanuit Peplink FusionHub en InControl2.
 
 **Activiteiten:**
 - InControl2 API endpoints testen en documenteren
@@ -44,7 +44,7 @@ Fase 6: Iteratie & Verfijning
 
 ## Fase 2: Observability Stack
 
-**Doel:** Basisinfrastructuur opzetten voor metrics collectie en visualisatie.
+**Doel:** basisinfrastructuur opzetten voor metrics collectie en visualisatie.
 
 **Componenten:**
 - Prometheus (metrics opslag en querying)
@@ -71,7 +71,7 @@ Fase 6: Iteratie & Verfijning
 
 ## Fase 4: Uitbreiding Netwerkapparatuur
 
-**Doel:** Scope uitbreiden naar aanvullende netwerkapparatuur.
+**Doel:** scope uitbreiden naar aanvullende netwerkapparatuur.
 
 **Potentiële targets:**
 - Managed switches (SNMP)
@@ -83,9 +83,9 @@ Fase 6: Iteratie & Verfijning
 - Exporter/collector configureren
 - Dashboard integratie
 
-## Fase 5: Streaming/AV Laag (NDI & SRT)
+## Fase 5: Streaming/AV Laag (NDI en SRT)
 
-**Doel:** Observability uitbreiden naar de applicatielaag van de live streaming infrastructuur.
+**Doel:** observability uitbreiden naar de applicatielaag van de live streaming infrastructuur.
 
 ### NDI (Network Device Interface)
 
@@ -118,7 +118,7 @@ Fase 6: Iteratie & Verfijning
 **Activiteiten:**
 - Onderzoeken welke metrics beschikbaar zijn per protocol
 - Exporters/collectors ontwikkelen of bestaande tools integreren
-- Correlatie met netwerk metrics (bijv. VPN throughput en SRT bitrate)
+- Correlatie met netwerk metrics (bv. VPN throughput en SRT bitrate)
 - End-to-end latency dashboard (bron, encoder, transport, decoder)
 
 **Uitdagingen:**
@@ -126,9 +126,9 @@ Fase 6: Iteratie & Verfijning
 - SRT stats vereisen toegang tot encoder/decoder software
 - Real-time correlatie tussen netwerk en applicatie metrics
 
-## Fase 6: Iteratie & Verfijning
+## Fase 6: Iteratie en Verfijning
 
-**Doel:** Verfijnen en uitbreiden binnen beschikbare tijd.
+**Doel:** verfijnen en uitbreiden binnen beschikbare tijd.
 
 **Mogelijke uitbreidingen:**
 - Alerting rules definiëren

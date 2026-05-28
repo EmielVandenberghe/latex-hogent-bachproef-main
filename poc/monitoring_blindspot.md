@@ -1,8 +1,8 @@
 # Monitoring blind-spot: `peplink_tunnel_up` rapporteerde groen zonder profielen
 
-**Datum ontdekking:** 15 april 2026 (tijdens Live3 topologie-uitbreiding)  
-**Impact:** sectie 5 "PepVPN Tunnels" van het Grafana dashboard toonde alle tunnels als UP gedurende de periode 7-15 april, terwijl er in die periode aantoonbaar geen PepVPN profielen bestonden in InControl2.  
-**Ernst:** hoog — een observability-stack die onjuiste tunnel-status rapporteert ondergraaft de volledige claim van de PoC. Moet expliciet opgelost en gedocumenteerd worden.
+**Datum ontdekking:** 15 april 2026 (tijdens Live3 topologie-uitbreiding)
+**Impact:** sectie 5 "PepVPN Tunnels" van het Grafana dashboard toonde alle tunnels als UP gedurende de periode 7-15 april, terwijl er in die periode aantoonbaar geen PepVPN profielen bestonden in InControl2.
+**Ernst:** hoog. Een observability-stack die onjuiste tunnel-status rapporteert ondergraaft de volledige claim van de PoC. Moet expliciet opgelost en gedocumenteerd worden.
 
 ---
 
@@ -10,7 +10,7 @@
 
 Na de FusionHub re-claim op 7 april zijn de PepVPN-profielen in InControl2 niet opnieuw aangemaakt (tot 15 april). Toch bleef de metric `peplink_tunnel_up{device_name=~".*"}` in Prometheus op `1` staan voor elk FusionHub-device. De oorzaak is een logische fout in `incontrol2_exporter.py` die "geen profielen geconfigureerd" interpreteert als "alle tunnels gezond", gecombineerd met het default-gedrag van `prometheus_client.Gauge` dat oude waardes onveranderd laat als er tijdens een scrape geen update komt.
 
-## Root cause — exporter logica
+## Root cause: exporter logica
 
 In [incontrol2_exporter.py:156-175](stack/incontrol2_exporter.py#L156-L175):
 
@@ -44,20 +44,20 @@ if stat is not None:
     tunnel_up.labels(d_id, d_name).set(1 if stat else 0)
 ```
 
-Resultaat: voor elk device wordt `peplink_tunnel_up=1` gezet zolang IC2 een lege lijst teruggeeft — onafhankelijk van of er ooit een profiel heeft bestaan.
+Resultaat: voor elk device wordt `peplink_tunnel_up=1` gezet zolang IC2 een lege lijst teruggeeft, onafhankelijk van of er ooit een profiel heeft bestaan.
 
-## Secundaire oorzaak — Gauge-staleness
+## Secundaire oorzaak: Gauge-staleness
 
 `Gauge.set(value)` in `prometheus_client` behoudt de laatste waarde totdat hij opnieuw gezet of verwijderd wordt. De scrape-loop in `collect_metrics` roept nergens `gauge.clear()` of `gauge.remove(*labels)` aan bij start van een cycle. Twee gevolgen:
 
 1. Als een device uit de IC2 `get_devices_with_status` response valt (bv. offline, ge-unenrolled, verwijderd), blijft zijn laatst bekende `peplink_tunnel_up` waarde voor altijd in de registry staan.
-2. Prometheus ziet deze waardes elke 15s opnieuw — ze worden niet stale, dus `absent()` en staleness-markers detecteren niets.
+2. Prometheus ziet deze waardes elke 15s opnieuw. Ze worden niet stale, dus `absent()` en staleness-markers detecteren niets.
 
 ## Hoe het zichtbaar werd
 
 Tijdens de Live3 sessie op 15 april werd de IC2 SpeedFusion VPN page geopend en bleek leeg. Uit gesprek met de gebruiker: profielen waren sinds de re-claim op 7 april niet aangemaakt. Bij het controleren van Grafana sectie 5 "PepVPN Tunnels" stonden alle 4 FusionHub-devices echter groen. Dit mismatcht de werkelijkheid en leidde tot het onderzoek.
 
-## Fix — voorstel (twee lagen)
+## Fix: voorstel (twee lagen)
 
 ### Laag 1: exporter semantiek corrigeren
 
@@ -108,9 +108,9 @@ if count is not None:
 ```
 
 Met dit patroon:
-- `peplink_tunnel_count == 0` -- geen profielen -- `peplink_tunnel_up = 0` (correct: "geen healthy tunnel")
-- `peplink_tunnel_count > 0 and peplink_tunnel_up == 1` -- alle profielen gezond
-- `peplink_tunnel_count > 0 and peplink_tunnel_up == 0` -- minstens één profiel in error
+- `peplink_tunnel_count == 0`: geen profielen, `peplink_tunnel_up = 0` (correct: "geen healthy tunnel")
+- `peplink_tunnel_count > 0 and peplink_tunnel_up == 1`: alle profielen gezond
+- `peplink_tunnel_count > 0 and peplink_tunnel_up == 0`: minstens één profiel in error
 
 ### Laag 2: stale-label opruiming
 
@@ -131,7 +131,7 @@ def collect_metrics(client, org_id):
     ...
 ```
 
-Nadelen: Grafana heeft nu korte "no data" gaps per scrape-cyclus mogelijk. Alternatief: alleen `.remove(*labels)` aanroepen voor device_ids die in de huidige response ontbreken. Dit is veiliger maar vereist state-tracking. Voor een PoC is `.clear()` acceptabel — scrape-interval is 15s, Grafana rendert doorgaans niet per-sample.
+Nadelen: Grafana heeft nu korte "no data" gaps per scrape-cyclus mogelijk. Alternatief: alleen `.remove(*labels)` aanroepen voor device_ids die in de huidige response ontbreken. Dit is veiliger maar vereist state-tracking. Voor een PoC is `.clear()` acceptabel: scrape-interval is 15s, Grafana rendert doorgaans niet per-sample.
 
 ### Laag 3: dashboard verdediging
 
@@ -156,14 +156,14 @@ Deze regel had de blind-spot op 7 april binnen 5 minuten gedetecteerd.
 
 ## Hoe te verwerken in de bap (verdedigbaarheid)
 
-Deze bevinding is geen zwakte maar een sterkte van het werk — mits eerlijk gerapporteerd. Aanbevolen plaatsing:
+Deze bevinding is geen zwakte maar een sterkte van het werk, mits eerlijk gerapporteerd. Aanbevolen plaatsing:
 
 1. **`poc.tex` observability-validatie sectie:** expliciete subsectie "Zelf-validatie van de stack" waarin dit voorbeeld staat. Drie observable momenten:
    - Symptoom gedetecteerd (sectie 5 groen terwijl profielen ontbraken)
    - Root cause geïdentificeerd (exporter returnt `True` bij lege lijst)
    - Patch + verdediging in meerdere lagen (semantiek, staleness, dashboard, alert)
 
-2. **`methodologie.tex`:** opnemen als case-study voor iteratief PoC-werk. Monitoring van een monitoring-systeem is recursief — je moet elke metric valideren tegen de grond-waarheid, niet alleen tegen wat het dashboard toont.
+2. **`methodologie.tex`:** opnemen als case-study voor iteratief PoC-werk. Monitoring van een monitoring-systeem is recursief: je moet elke metric valideren tegen de grond-waarheid, niet alleen tegen wat het dashboard toont.
 
 3. **`conclusie.tex` aanbevelingen:** algemene les voor productie-observability: **onderscheid "geen data" van "alles is goed"**. Default-to-healthy is een klassieke observability-antipattern (zie o.a. Google SRE boek, "The Myth of Unknown Unknowns"). Elke aggregator/exporter die deze aanname maakt is een latent risico.
 
@@ -176,6 +176,6 @@ Deze bevinding is geen zwakte maar een sterkte van het werk — mits eerlijk ger
 - [ ] Nieuwe metric `peplink_tunnel_count` gescraped door Prometheus
 - [ ] Dashboard sectie 5 uitgebreid met `peplink_tunnel_count` panel (laag 3)
 - [ ] Nieuwe alert-regel geprovisioneerd (laag 4)
-- [ ] End-to-end test: profiel verwijderen -- binnen 1 minuut tunnel_up=0 in Grafana
-- [ ] End-to-end test: profiel opnieuw aanmaken -- binnen 1 minuut tunnel_up=1
+- [ ] End-to-end test: profiel verwijderen, binnen 1 minuut tunnel_up=0 in Grafana
+- [ ] End-to-end test: profiel opnieuw aanmaken, binnen 1 minuut tunnel_up=1
 - [ ] Nieuwe baseline screenshot sectie 5 met zichtbare profiel-count

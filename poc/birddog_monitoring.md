@@ -3,15 +3,15 @@
 ## Architectuur
 
 ```
-Grafana ←── Prometheus ←── birddog-exporter :9119
-                                  │
+Grafana <- Prometheus <- birddog-exporter :9119
+                                  |
                            HTTP REST API
-                                  │
+                                  |
                          birddog-mock :8090
                        (of echte BirdDog :8080)
 ```
 
-Beide containers draaien in de standaard Docker-bridge-netwerk en activeren via `--profile demo`.
+Beide containers draaien in het standaard Docker-bridge-netwerk en activeren via `--profile demo`.
 
 ## Containers
 
@@ -20,7 +20,7 @@ Beide containers draaien in de standaard Docker-bridge-netwerk en activeren via 
 | `birddog-mock` | 8090 | Flask server die BirdDog REST API 2.0 nabootst |
 | `birddog-exporter` | 9119 | Scrapt de BirdDog API en exposed Prometheus-metrics |
 
-## Geëxposeerde metrics
+## Geexposeerde metrics
 
 | Metric | Type | Beschrijving |
 |--------|------|-------------|
@@ -89,14 +89,14 @@ curl -s 'http://localhost:9090/api/v1/query?query=birddog_device_online' | pytho
 ## Fail-mode (scenario 9a)
 
 ```bash
-# Device offline simuleren — container herstarten met BIRDDOG_MOCK_FAIL=1
+# Device offline simuleren: container herstarten met BIRDDOG_MOCK_FAIL=1
 ssh ... "cd /opt/observability && \
   docker stop birddog-mock && \
   docker compose --profile demo run -d -e BIRDDOG_MOCK_FAIL=1 --name birddog-mock-fail birddog-mock"
 # OF simpelweg de container stoppen:
 docker stop birddog-mock
-# → birddog_device_online{device="mock-01"} gaat naar 0
-# → Alert [CRITICAL] BirdDog Device Offline firet binnen 1 minuut
+# Resultaat: birddog_device_online{device="mock-01"} gaat naar 0
+# Resultaat: alert [CRITICAL] BirdDog Device Offline firet binnen 1 minuut
 ```
 
 ## Uitbreiden naar echte hardware
@@ -110,7 +110,7 @@ De mock-container kan uitgeschakeld worden; de exporter werkt identiek op fysiek
 
 ## Limitaties
 
-- **Synthetische bron:** De mock bootst de BirdDog API na op basis van de officiële documentatie (BirdDog RESTful API 2.0). Geen fysiek BirdDog device beschikbaar in de PoC-omgeving.
-- **Geen `/about` firmware-validatie:** De exporter controleert niet of de firmware-versie compatibel is met API v2.0.
+- **Synthetische bron:** de mock bootst de BirdDog API na op basis van de officiele documentatie (BirdDog RESTful API 2.0). Geen fysiek BirdDog device beschikbaar in de PoC-omgeving.
+- **Geen `/about` firmware-validatie:** de exporter controleert niet of de firmware-versie compatibel is met API v2.0.
 - **mDNS niet vereist:** BirdDog gebruikt zijn eigen NDI-implementatie; de exporter haalt bronnenlijsten op via `/list` zonder lokale Avahi (anders dan de NDI-exporter).
-- **Poort 8090:** Echte BirdDog-hardware gebruikt poort 8080; de mock draait op 8090 om conflict met incontrol2-exporter te vermijden.
+- **Poort 8090:** echte BirdDog-hardware gebruikt poort 8080; de mock draait op 8090 om conflict met incontrol2-exporter te vermijden.

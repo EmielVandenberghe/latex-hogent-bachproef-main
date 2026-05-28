@@ -10,14 +10,14 @@ Het onderzoek verliep over twee semesters en bestond uit zeven fasen. Elke fase 
 \section{Fase 0: Voorbereiding en voorstelontwikkeling}
 \label{sec:fase0}
 
-\textbf{Tijdstip:} september tot december 2025, semester 1
+\emph{Tijdstip:} september tot december 2025, semester 1
 
 In semester 1 werd het bachelorproefvoorstel voorbereid. Dit omvatte het afbakenen van de onderzoeksvraag in samenspraak met co-promotor Arne Van Renterghem, het verkennen van de infrastructuur bij Mediaventures en het opstellen van een eerste versie van de literatuurstudie. Ook werd een planning opgemaakt en werden de deliverables per fase vastgelegd. Het resultaat van deze fase was het voorstel dat als startpunt diende voor het eigenlijke onderzoek in semester 2.
 
 \section{Fase 1: Analyse van de Mediaventures-infrastructuur}
 \label{sec:fase1}
 
-\textbf{Tijdstip:} februari 2026, weken 1 tot 3
+\emph{Tijdstip:} februari 2026, weken 1 tot 3
 
 Bij aanvang van semester 2 werd de bestaande infrastructuur bij Mediaventures in kaart gebracht. Omdat er binnen het bedrijf geen formele netwerkdocumentatie of architectuurdiagrammen voorhanden waren, gebeurde dit hoofdzakelijk via herhaalde semi-gestructureerde gesprekken met co-promotor Arne Van Renterghem, die als domein-expert de volledige audiovisuele keten van Mediaventures kent. In die gesprekken werd telkens één deelaspect uitgediept: de Peplink-routering en PepVPN-topologie tussen de surgery-locaties, de venue en Bornem; de rol van de NDI-mixers en BirdDog-hardware in de lokale productieflow; de overgang van NDI naar SRT en de keuze van encoders; en de operationele knelpunten die techniekers vandaag manueel detecteren. De daaruit gereconstrueerde topologie en workflow zijn weergegeven in figuur~\ref{fig:topology-mediav} en figuur~\ref{fig:srt-workflow} in hoofdstuk~\ref{ch:stand-van-zaken}; deze figuren zijn dus geen bestaande bedrijfsdocumentatie maar een eigen synthese op basis van die gesprekken.
 
@@ -26,7 +26,7 @@ Aanvullend werd gewerkt met de publieke documentatie van Peplink (InControl2, Fu
 \section{Fase 2: Literatuurstudie}
 \label{sec:fase2}
 
-\textbf{Tijdstip:} februari tot maart 2026, weken 2 tot 5
+\emph{Tijdstip:} februari tot maart 2026, weken 2 tot 5
 
 Parallel aan de infrastructuuranalyse werd literatuuronderzoek gedaan naar observability in audiovisuele netwerken, QoS-monitoring in streaming workflows, metrics- en logging-architecturen voor gedistribueerde systemen, en netwerksecurity- en eventanalyse. Via Google Scholar, IEEE Xplore en de ACM Digital Library werden bronnen gezocht die de termen gebruikt in dit onderzoek verder uitdiepen. Dit om ervoor te zorgen dat de gekozen aanpak wetenschappelijk onderbouwd is en dat het onderzoek begrijpbaar is voor alle lezers.
 
@@ -35,7 +35,7 @@ Dit onderzoek moest duidelijk maken welke tools, protocollen en architectuurmode
 \section{Fase 3: Validatie van de gekozen toolstack}
 \label{sec:fase3}
 
-\textbf{Tijdstip:} maart 2026, weken 5 tot 8
+\emph{Tijdstip:} maart 2026, weken 5 tot 8
 
 Op basis van de literatuurstudie in hoofdstuk~\ref{ch:stand-van-zaken} is gekozen voor de PLG-stack (Prometheus, Loki, Grafana) als observability-platform. In deze fase werd die keuze concreet gevalideerd aan de hand van vijf criteria die specifiek zijn voor de Mediaventures-context: verwerkingstijd tussen data-ingang en visualisatie, volledigheid en betrouwbaarheid van metrics en logs, schaalbaarheid, integratiemogelijkheden met de Peplink- en SRT-apparatuur, en resourcegebruik en onderhoudscomplexiteit.
 
@@ -44,7 +44,7 @@ De validatie gebeurde aan de hand van documentatieanalyse, technische specificat
 \section{Fase 4: Opbouw virtuele testomgeving}
 \label{sec:fase4}
 
-\textbf{Tijdstip:} maart tot april 2026, weken 7 tot 11
+\emph{Tijdstip:} maart tot april 2026, weken 7 tot 11
 
 Omdat de productieomgeving van Mediaventures niet permanent beschikbaar was voor uitgebreide tests, werd een virtuele testomgeving opgezet met FusionHub-instanties. Vier instanties vertegenwoordigden de vier productielocaties (Bornem, Venue, Live1, Live2); aanvullend werd een fysieke Peplink Balance~20X geïntegreerd als vijfde site (Live3). Deze instanties werden gekoppeld via PepVPN-tunnels in een gedeeltelijke mesh-topologie: elke surgery-locatie kreeg een directe tunnel naar Bornem en de venue, conform de voorkeur van de co-promotor om videostreams rechtstreeks van surgery naar venue te sturen.
 
@@ -66,11 +66,11 @@ In de praktijk is deze situatie echter eerder uitzondering dan regel. Mobiele in
 Binnen de context van Mediaventures ontstaan hierdoor drie typische connectiviteitsscenarios, die in dit hoofdstuk worden benoemd als \emph{productcontext} voor de architecturale keuze van PepVPN, en niet als stellingen die de PoC zelf empirisch zal bewijzen (zie verder):
 
 \begin{enumerate}
-\item \textbf{Beide locaties met statisch publiek IP}: Zowel de centrale site in Bornem als de remote locatie beschikken over een vast publiek IP-adres. De monitoringserver kan beide locaties rechtstreeks pollen zonder bijkomende configuratie.
+\item \emph{Beide locaties met statisch publiek IP}: Zowel de centrale site in Bornem als de remote locatie beschikken over een vast publiek IP-adres. De monitoringserver kan beide locaties rechtstreeks pollen zonder bijkomende configuratie.
 
-\item \textbf{Eén locatie achter NAT}: De remote locatie (bijvoorbeeld een live-surgery site met 4G-verbinding) bevindt zich achter NAT en is niet rechtstreeks bereikbaar. De centrale site in Bornem heeft wel een publiek IP-adres. In dit scenario moet de remote locatie een uitgaande verbinding initiëren naar Bornem, waarna communicatie in beide richtingen mogelijk wordt.
+\item \emph{Eén locatie achter NAT}: De remote locatie (bijvoorbeeld een live-surgery site met 4G-verbinding) bevindt zich achter NAT en is niet rechtstreeks bereikbaar. De centrale site in Bornem heeft wel een publiek IP-adres. In dit scenario moet de remote locatie een uitgaande verbinding initiëren naar Bornem, waarna communicatie in beide richtingen mogelijk wordt.
 
-\item \textbf{Beide locaties achter NAT}: Zowel de remote locatie als een eventuele tweede locatie (bijvoorbeeld een venue op een hotelnetwerk) bevinden zich achter NAT. Geen van beide kan de ander rechtstreeks bereiken. Een derde partij met een publiek IP-adres moet fungeren als tussenstation.
+\item \emph{Beide locaties achter NAT}: Zowel de remote locatie als een eventuele tweede locatie (bijvoorbeeld een venue op een hotelnetwerk) bevinden zich achter NAT. Geen van beide kan de ander rechtstreeks bereiken. Een derde partij met een publiek IP-adres moet fungeren als tussenstation.
 \end{enumerate}
 
 PepVPN biedt hier een oplossing op productniveau. Zodra een Peplink-router een PepVPN-tunnel opzet naar een centrale hub, ontstaat een virtueel privénetwerk waarin alle deelnemende apparaten elkaar kunnen bereiken, ongeacht hun onderliggende connectiviteitstype \autocite{Peplink2023}. De tunnel wordt geïnitieerd door de remote locatie (uitgaande verbinding) over UDP~4500 met NAT-T en keepalives, waardoor de drie scenarios hierboven vanuit het perspectief van de applicatielaag inwisselbaar worden. Bornem fungeert in deze architectuur als centrale hub voor monitoring: alle remote locaties bouwen een PepVPN-tunnel op naar Bornem, waardoor de monitoringserver alle apparaten kan bereiken. Daarnaast wordt er een directe PepVPN-tunnel opgezet tussen de surgery-locaties en de venue, zodat videostreams rechtstreeks kunnen worden verstuurd zonder via Bornem te passeren. Dit resulteert in een gedeeltelijke mesh-topologie waarbij Bornem het monitoring-eindpunt blijft maar niet langer een verplicht doorgeefluik is voor alle datastromen.
@@ -84,7 +84,7 @@ Dit betekent dat de gezondheid van de PepVPN-tunnels een voorwaarde is voor effe
 \section{Fase 6: Proof-of-concept implementatie en validatie}
 \label{sec:fase6}
 
-\textbf{Tijdstip:} april tot mei 2026, weken 10 tot 15
+\emph{Tijdstip:} april tot mei 2026, weken 10 tot 15
 
 De gekozen monitoringoplossing werd geïmplementeerd in de virtuele testomgeving. Dit hield in dat koppelingen werden gemaakt met de InControl2-API, de SRT-encoders en de NDI-laag, dat logverzameling werd opgezet en dat dashboards werden gebouwd die alle databronnen combineerden.
 
@@ -106,11 +106,11 @@ De volledige planning van het onderzoek over twee semesters wordt weergegeven in
 
 Het onderzoek brengt verschillende risico's met zich mee:
 
-\textbf{Beschikbaarheid testinfrastructuur}: De productieomgeving van Mediaventures is niet permanent beschikbaar voor uitgebreide tests, en bovendien verbleef de auteur van eind februari 2026 tot na de indiening in Peru in het kader van een internationale stage, waardoor fysieke toegang tot de Mediaventures-locaties in België gedurende het volledige onderzoekstraject niet mogelijk was. Beide factoren werden opgevangen door een volledig virtuele testomgeving op FusionHub-basis op te zetten, aangevuld met één fysieke Balance~20X die als hardware-validatieanker fungeerde. Hierdoor waren reproduceerbare tests mogelijk zonder afhankelijkheid van fysieke aanwezigheid op locatie of van de productie-infrastructuur tijdens live-projecten.
+\emph{Beschikbaarheid testinfrastructuur}: De productieomgeving van Mediaventures is niet permanent beschikbaar voor uitgebreide tests, en bovendien verbleef de auteur van eind februari 2026 tot na de indiening in Peru in het kader van een internationale stage, waardoor fysieke toegang tot de Mediaventures-locaties in België gedurende het volledige onderzoekstraject niet mogelijk was. Beide factoren werden opgevangen door een volledig virtuele testomgeving op FusionHub-basis op te zetten, aangevuld met één fysieke Balance~20X die als hardware-validatieanker fungeerde. Hierdoor waren reproduceerbare tests mogelijk zonder afhankelijkheid van fysieke aanwezigheid op locatie of van de productie-infrastructuur tijdens live-projecten.
 
-\textbf{Complexiteit multi-vendor integratie}: De infrastructuur combineert componenten van verschillende leveranciers (Peplink, Netgear, diverse NDI- en SRT-apparaten) met elk hun eigen managementprotocollen. In fase 1 werd daarom uitgebreid onderzocht welke API's en exportmogelijkheden beschikbaar zijn. Waar bepaalde componenten geen standaard exportformaten ondersteunen, werden custom exporters ontwikkeld of alternatieve dataverzamelingsmethoden toegepast (zoals het direct parsen van CLI-output via SSH-polling of het uitlezen van webinterface-responses).
+\emph{Complexiteit multi-vendor integratie}: De infrastructuur combineert componenten van verschillende leveranciers (Peplink, Netgear, diverse NDI- en SRT-apparaten) met elk hun eigen managementprotocollen. In fase 1 werd daarom uitgebreid onderzocht welke API's en exportmogelijkheden beschikbaar zijn. Waar bepaalde componenten geen standaard exportformaten ondersteunen, werden custom exporters ontwikkeld of alternatieve dataverzamelingsmethoden toegepast (zoals het direct parsen van CLI-output via SSH-polling of het uitlezen van webinterface-responses).
 
-\textbf{Beperkte toegang tot vergelijkbare onderzoekscontexten}: Audiovisuele livestreaming voor medische congressen is een nichemarkt met weinig publieke documentatie. Dit werd opgevangen door nauwe samenwerking met co-promotor Arne Van Renterghem van Mediaventures, die praktijkervaring en inzicht in specifieke uitdagingen kon delen. Daarnaast werd de literatuurstudie breder getrokken naar aanverwante domeinen zoals IP-video surveillance, live broadcasting en enterprise network monitoring.
+\emph{Beperkte toegang tot vergelijkbare onderzoekscontexten}: Audiovisuele livestreaming voor medische congressen is een nichemarkt met weinig publieke documentatie. Dit werd opgevangen door nauwe samenwerking met co-promotor Arne Van Renterghem van Mediaventures, die praktijkervaring en inzicht in specifieke uitdagingen kon delen. Daarnaast werd de literatuurstudie breder getrokken naar aanverwante domeinen zoals IP-video surveillance, live broadcasting en enterprise network monitoring.
 
-\textbf{Tijdsmanagement}: Het onderzoek combineert theorie en praktische implementatie binnen een beperkt tijdsbestek. De planning was daarom opgedeeld in duidelijke fasen met concrete mijlpalen. Regelmatige voortgangsbesprekingen met de promotor en co-promotor zorgden voor tijdige feedback en bijsturing. De keuze voor open-source tools met actieve communities verkleinde het risico op langdurige technische blokkades.
+\emph{Tijdsmanagement}: Het onderzoek combineert theorie en praktische implementatie binnen een beperkt tijdsbestek. De planning was daarom opgedeeld in duidelijke fasen met concrete mijlpalen. Regelmatige voortgangsbesprekingen met de promotor en co-promotor zorgden voor tijdige feedback en bijsturing. De keuze voor open-source tools met actieve communities verkleinde het risico op langdurige technische blokkades.
 

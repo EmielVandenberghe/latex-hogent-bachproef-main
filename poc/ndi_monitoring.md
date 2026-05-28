@@ -1,4 +1,4 @@
-# NDI Stream Monitoring — POC Mediaventures
+# NDI Stream Monitoring: POC Mediaventures
 
 **Bachelorproef Observability voor Multi-Site Live-Streamingomgevingen**
 **Datum:** april 2026
@@ -7,9 +7,7 @@
 
 ## Overzicht
 
-NDI (Network Device Interface, NewTek/Vizrt) is het dominante IP-videoprotocol binnen
-productie-LAN's (studio, OB-truck, venue). Binnen de PoC demonstreert de stack dat dezelfde
-observability-aanpak die voor SRT werkt, ook NDI-streams kan opvolgen op frame-niveau.
+NDI (Network Device Interface, NewTek/Vizrt) is het dominante IP-videoprotocol binnen productie-LAN's (studio, OB-truck, venue). Binnen de PoC demonstreert de stack dat dezelfde observability-aanpak die voor SRT werkt, ook NDI-streams kan opvolgen op frame-niveau.
 
 Twee containers:
 
@@ -18,7 +16,7 @@ Twee containers:
 | `ndi-exporter` | NDI-ontvanger op basis van de NDI SDK (ctypes); exporteert per-frame statistieken als Prometheus-metrics op poort 9118 |
 | `ndi-test-stream` | Synthetische NDI-bron (SMPTE-kleurbalken, 1280x720 @ 25 fps) voor demo/testscenario's (profile `demo`) |
 
-In productie wordt `ndi-test-stream` vervangen door een echte NDI-bron (camera, mixer, PTZ, vMix-output). De exporter blijft ongewijzigd — hij abonneert zich op een bronnaam.
+In productie wordt `ndi-test-stream` vervangen door een echte NDI-bron (camera, mixer, PTZ, vMix-output). De exporter blijft ongewijzigd: hij abonneert zich op een bronnaam.
 
 ---
 
@@ -27,10 +25,11 @@ In productie wordt `ndi-test-stream` vervangen door een echte NDI-bron (camera, 
 ```
 ndi-test-stream (sender)           ndi-exporter (receiver)
   SMPTE color bars                    NDIlib_recv_create_v3
-  → libndi.so.6 → NDI-TCP 5960/5961 → NDIlib_recv_capture_v2
+  -> libndi.so.6 -> NDI-TCP 5960/5961 -> NDIlib_recv_capture_v2
      (mDNS advertise via Avahi)        NDIlib_recv_get_performance
                                        NDIlib_recv_get_queue
-                                          ↓
+                                          |
+                                          v
                                      Prometheus metrics :9118
 ```
 
@@ -38,7 +37,7 @@ Beide containers draaien met `network_mode: host`. Discovery verloopt via **mDNS
 
 ---
 
-## Geëxporteerde metrics
+## Geexporteerde metrics
 
 | Metric | Eenheid | Beschrijving |
 |--------|---------|--------------|
@@ -59,32 +58,22 @@ Label `source="NDI Test Stream"` op stream-specifieke metrics.
 
 ## NDI SDK installatie
 
-Het SDK-archief `Install_NDI_SDK_v6_Linux.tar.gz` (gratis na registratie op
-<https://ndi.video/for-developers/ndi-sdk/>) moet aanwezig zijn in `poc/stack/` vóór
-`docker compose build`. De Dockerfile (`Dockerfile.ndi`):
+Het SDK-archief `Install_NDI_SDK_v6_Linux.tar.gz` (gratis na registratie op <https://ndi.video/for-developers/ndi-sdk/>) moet aanwezig zijn in `poc/stack/` vóór `docker compose build`. De Dockerfile (`Dockerfile.ndi`):
 
 1. Pakt het archief uit, detecteert de `Install_NDI_SDK_v*_Linux.sh` installer.
 2. Voert de installer uit met geaccepteerde EULA.
 3. Kopieert `libndi.so*` naar `/usr/local/lib/` en runt `ldconfig`.
 4. Verwijdert SDK-bestanden (enkel de gedeelde library blijft).
 
-Zonder het tar-archief start de exporter in **discovery-only modus**: dan worden enkel
-`ndi_sdk_available` (=0) en `ndi_sources_detected` via zeroconf-mDNS-browsing geëxporteerd.
-Frame-level metrics zijn pas beschikbaar mét SDK.
+Zonder het tar-archief start de exporter in **discovery-only modus**: dan worden enkel `ndi_sdk_available` (=0) en `ndi_sources_detected` via zeroconf-mDNS-browsing geëxporteerd. Frame-level metrics zijn pas beschikbaar mét SDK.
 
 ---
 
-## Discovery via mDNS/Avahi — kritieke configuratie
+## Discovery via mDNS/Avahi: kritieke configuratie
 
-NDI gebruikt **mDNS** (multicast DNS, `_ndi._tcp.local.`) voor bronnendetectie. De SDK
-maakt intern gebruik van `libavahi-client` om de mDNS-service te benaderen. Dit vereist
-een **actieve `avahi-daemon`** die het libavahi-client in de container kan bereiken.
+NDI gebruikt **mDNS** (multicast DNS, `_ndi._tcp.local.`) voor bronnendetectie. De SDK maakt intern gebruik van `libavahi-client` om de mDNS-service te benaderen. Dit vereist een **actieve `avahi-daemon`** die het libavahi-client in de container kan bereiken.
 
-**De valkuil:** `libavahi-client` installeren in de container (zoals in `Dockerfile.ndi`)
-is **onvoldoende**. De client verbindt via DBus of unix-socket met een dráaiende daemon.
-Zonder daemon ziet `NDIlib_find_get_current_sources()` nul bronnen — ook al luistert de
-sender op dezelfde host op TCP 5960/5961, en ook al staat `NDI_EXTRA_IPS=127.0.0.1`.
-(`p_extra_ips` in de NDI SDK vereist alsnog mDNS-resolutie van de vermelde IPs.)
+**De valkuil:** `libavahi-client` installeren in de container (zoals in `Dockerfile.ndi`) is **onvoldoende**. De client verbindt via DBus of unix-socket met een draaiende daemon. Zonder daemon ziet `NDIlib_find_get_current_sources()` nul bronnen, ook al luistert de sender op dezelfde host op TCP 5960/5961, en ook al staat `NDI_EXTRA_IPS=127.0.0.1`. (`p_extra_ips` in de NDI SDK vereist alsnog mDNS-resolutie van de vermelde IPs.)
 
 **Opgelost in de PoC:**
 
@@ -94,7 +83,7 @@ sender op dezelfde host op TCP 5960/5961, en ook al staat `NDI_EXTRA_IPS=127.0.0
    sudo systemctl enable --now avahi-daemon
    ```
 
-2. **Container-zijde** (`docker-compose.yml`) — DBus en Avahi-socket van de host bind-mounten naar beide NDI-containers:
+2. **Container-zijde** (`docker-compose.yml`): DBus en Avahi-socket van de host bind-mounten naar beide NDI-containers:
    ```yaml
    ndi-exporter:
      volumes:
@@ -111,8 +100,7 @@ sender op dezelfde host op TCP 5960/5961, en ook al staat `NDI_EXTRA_IPS=127.0.0
    docker compose --profile demo up -d --force-recreate ndi-exporter ndi-test-stream
    ```
 
-Na deze ingreep publiceert de sender zich via mDNS (zichtbaar met
-`avahi-browse -rt _ndi._tcp` op de host) en ziet de exporter de bron.
+Na deze ingreep publiceert de sender zich via mDNS (zichtbaar met `avahi-browse -rt _ndi._tcp` op de host) en ziet de exporter de bron.
 
 ---
 
@@ -152,24 +140,13 @@ curl -s http://127.0.0.1:9090/api/v1/targets | jq '.data.activeTargets[] | selec
 
 ## Bevindingen voor het BAP
 
-1. **NDI-monitoring is haalbaar als blackbox-exporter zonder tap-hardware.** Via de
-   SDK-receiver krijgen we realtime frame-level metrics (fps, drops, queue depth) die
-   geen andere passieve oplossing biedt.
+1. **NDI-monitoring is haalbaar als blackbox-exporter zonder tap-hardware.** Via de SDK-receiver krijgen we realtime frame-level metrics (fps, drops, queue depth) die geen andere passieve oplossing biedt.
 
-2. **mDNS is een verborgen netwerkafhankelijkheid.** In multi-site LAN's met
-   gesegmenteerde VLAN's is mDNS typisch link-local; NDI werkt daardoor standaard enkel
-   binnen één broadcastdomein. Voor cross-site discovery biedt NDI de "Discovery Server"
-   (centrale registry via TCP) — buiten scope van deze PoC, wel relevant voor
-   Mediaventures als vervolgtraject.
+2. **mDNS is een verborgen netwerkafhankelijkheid.** In multi-site LAN's met gesegmenteerde VLAN's is mDNS typisch link-local; NDI werkt daardoor standaard enkel binnen één broadcastdomein. Voor cross-site discovery biedt NDI de "Discovery Server" (centrale registry via TCP), buiten scope van deze PoC, wel relevant voor Mediaventures als vervolgtraject.
 
-3. **Container + mDNS + host-networking** vergt expliciet exposen van DBus/Avahi-sockets.
-   Dit is dezelfde klasse-fout als mDNS in Kubernetes pods: mensen vergeten dat
-   `libavahi-client` ≠ `avahi-daemon`.
+3. **Container + mDNS + host-networking** vergt expliciet exposen van DBus/Avahi-sockets. Dit is dezelfde klasse-fout als mDNS in Kubernetes pods: mensen vergeten dat `libavahi-client` niet hetzelfde is als `avahi-daemon`.
 
-4. **Receiver-side drops ≠ netwerkdrops.** `ndi_frames_dropped_total` meet frames die
-   de receiver intern moest weggooien (queue vol, te late aankomst). Dit correleert met
-   netwerkverstoring maar is niet gelijk aan UDP-loss op de link — die zou via tc netem
-   op LAN (zoals scenario 4 voor SRT) aangetoond kunnen worden in vervolgwerk.
+4. **Receiver-side drops zijn niet gelijk aan netwerkdrops.** `ndi_frames_dropped_total` meet frames die de receiver intern moest weggooien (queue vol, te late aankomst). Dit correleert met netwerkverstoring maar is niet gelijk aan UDP-loss op de link, die zou via tc netem op LAN (zoals scenario 4 voor SRT) aangetoond kunnen worden in vervolgwerk.
 
 ---
 

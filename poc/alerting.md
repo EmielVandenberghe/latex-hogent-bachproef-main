@@ -1,4 +1,4 @@
-# Grafana Alerting — Proactieve Notificaties
+# Grafana Alerting - Proactieve Notificaties
 
 Grafana Alerting evalueert alert rules elke minuut op basis van Prometheus-queries. Wanneer een conditie voldaan is gedurende de ingestelde duur, gaat de alert naar "Firing" en wordt een notificatie gestuurd.
 
@@ -31,10 +31,10 @@ In het POC zijn **10 alert rules** geconfigureerd via `poc/stack/provisioning/al
 
 1. Ga naar http://192.168.137.10:3000
 2. Klik in het linkermenu op **Alerting** (bel-icoon)
-3. Klik op **Alert rules** — hier zie je alle regels met hun huidige status:
-   - **Normal** — conditie niet actief
-   - **Pending** — conditie actief maar nog niet lang genoeg
-   - **Firing** — alert actief, notificatie verstuurd
+3. Klik op **Alert rules** - hier zie je alle regels met hun huidige status:
+   - **Normal** - conditie niet actief
+   - **Pending** - conditie actief maar nog niet lang genoeg
+   - **Firing** - alert actief, notificatie verstuurd
 
 ---
 
@@ -127,7 +127,7 @@ Alle provisioned alert rules in de PoC gebruiken `noDataState: OK`. Dat betekent
 
 1. **Transient scrape-gaps worden niet gepromoot tot incidenten.** Prometheus `scrape_interval=15s` met `evaluation_interval=15s` betekent dat één gemiste scrape (netwerk-hikup, exporter GC-pauze, container-restart) al een leeg evaluatievenster kan opleveren. Met `noDataState: Alerting` zou elke incidentele gap alle 9 regels gelijktijdig laten vuren, resulterend in alert-fatigue en false positives.
 
-2. **Multi-laag veiligheidsnet dekt het risico af.** Het risico van `noDataState: OK` — dat een echte exporter-down niet opgemerkt wordt — is afgedekt door een aparte alert die specifiek op scrape-gezondheid kijkt:
+2. **Multi-laag veiligheidsnet dekt het risico af.** Het risico van `noDataState: OK` (een echte exporter-down wordt niet opgemerkt) is afgedekt door een aparte alert die specifiek op scrape-gezondheid kijkt:
 
    ```
    Exporter Down (CRITICAL, 2m):  peplink_scrape_success == 0
@@ -145,4 +145,4 @@ Alle provisioned alert rules in de PoC gebruiken `noDataState: OK`. Dat betekent
 - Als het scrape-interval veel korter wordt (<5s) waardoor gaps onwaarschijnlijk zijn, vervalt argument 1.
 - Als de `Exporter Down`-regel zelf onbetrouwbaar blijkt (bv. omdat `peplink_scrape_success` niet meer gescraped wordt), is er een fundamenteel observability-gat dat niet door `noDataState` wordt opgelost en een tweede-laag heartbeat vereist (bv. Grafana's eigen Datasource-health check).
 
-Deze keuze is consistent met het 4-lagen aanpak uit `monitoring_blindspot.md`: onderscheid "geen data" van "alles is goed". `noDataState: OK` is veilig zolang één aparte regel expliciet op "geen data" monitort; zonder die regel zou de keuze onverdedigbaar zijn.
+Deze keuze is consistent met de 4-lagen aanpak uit `monitoring_blindspot.md`: onderscheid "geen data" van "alles is goed". `noDataState: OK` is veilig zolang één aparte regel expliciet op "geen data" monitort; zonder die regel zou de keuze onverdedigbaar zijn.

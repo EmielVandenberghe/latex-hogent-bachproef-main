@@ -1,4 +1,4 @@
-# Ping-Jitter Exporter — Nauwkeurige Jittermeting
+# Ping-Jitter Exporter: Nauwkeurige Jittermeting
 
 De ping-jitter exporter voert per site `ping -c 10 -i 0.2` uit en rapporteert de `mdev` (mean deviation) als jitter-metric in Prometheus.
 
@@ -8,12 +8,12 @@ De ping-jitter exporter voert per site `ping -c 10 -i 0.2` uit en rapporteert de
 
 De Prometheus blackbox exporter stuurt 1 ICMP ping per 15 seconden. Jitter berekend als `stddev_over_time(rtt[5m])` is slechts een benadering: het meet de variatie van losse meetpunten over 5 minuten, niet de echte pakket-naar-pakket variatie.
 
-De ping-jitter exporter voert `ping -c 10 -i 0.2` uit: 10 snelle pings met 0.2s tussentijd. Dit geeft de `mdev` (mean deviation) die `ping` zelf berekent — dit is de echte jitter, conform hoe netwerktechnici jitter definiëren voor streaming.
+De ping-jitter exporter voert `ping -c 10 -i 0.2` uit: 10 snelle pings met 0.2s tussentijd. Dit geeft de `mdev` (mean deviation) die `ping` zelf berekent. Dit is de echte jitter, conform hoe netwerktechnici jitter definiëren voor streaming.
 
 | Methode | Formule | Nauwkeurigheid |
 |---------|---------|---------------|
-| Blackbox stddev | `stddev_over_time(rtt[5m])` | Lage nauwkeurigheid — meet RTT-trend-variatie |
-| Ping mdev (deze exporter) | `ping -c 10 -i 0.2` mdev | Hoge nauwkeurigheid — meet pakket-naar-pakket variatie |
+| Blackbox stddev | `stddev_over_time(rtt[5m])` | Lage nauwkeurigheid, meet RTT-trend-variatie |
+| Ping mdev (deze exporter) | `ping -c 10 -i 0.2` mdev | Hoge nauwkeurigheid, meet pakket-naar-pakket variatie |
 
 ---
 
@@ -52,7 +52,7 @@ EXPOSE 9116
 CMD ["python", "-u", "ping_exporter.py"]
 ```
 
-### `poc/stack/docker-compose.yml` — relevante sectie
+### `poc/stack/docker-compose.yml`: relevante sectie
 ```yaml
 ping-exporter:
   build:
@@ -67,7 +67,7 @@ ping-exporter:
 
 > `cap_add: NET_RAW` is vereist voor raw socket access (ICMP ping) in een Docker container.
 
-### `poc/stack/prometheus.yml` — relevante sectie
+### `poc/stack/prometheus.yml`: relevante sectie
 ```yaml
 - job_name: 'ping_jitter'
   static_configs:
@@ -117,9 +117,9 @@ De exporter leest: `min=0.287`, `avg=0.412`, `max=0.891`, `jitter=0.172`.
 
 ## Grafana dashboard
 
-Het dashboard gebruikt `ping_jitter_ms` op twee plaatsen in sectie 2 (Connectiviteit & Netwerkkwaliteit):
-- **4 stat panels** — huidige jitter per site (kleurcodering groen/geel/rood)
-- **Tijdreeks panel** — jitter historiek voor alle sites over tijd
+Het dashboard gebruikt `ping_jitter_ms` op twee plaatsen in sectie 2 (Connectiviteit en Netwerkkwaliteit):
+- **4 stat panels:** huidige jitter per site (kleurcodering groen/geel/rood)
+- **Tijdreeks panel:** jitter historiek voor alle sites over tijd
 
 ---
 
@@ -149,5 +149,5 @@ ping_jitter_ms{site="Bornem"} 0.172
 |----------|-----------|
 | `ping_reachable = 0` voor alle sites | Controleer `network_mode: host` en `cap_add: NET_RAW` in docker-compose.yml |
 | Container crasht bij opstart | Controleer of `iputils-ping` geïnstalleerd is: `docker exec ping-exporter ping -V` |
-| `No data` in Grafana | Prometheus scrape interval is 30s — even wachten na (her)start |
+| `No data` in Grafana | Prometheus scrape interval is 30s, even wachten na (her)start |
 | Jitter altijd 0.000ms | Alle 10 pings identieke RTT (VM loopback?). Normaal op lokale VM-naar-VM, zie waarden bij tc netem simulatie |

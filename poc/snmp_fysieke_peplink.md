@@ -1,6 +1,6 @@
-# SNMP Discovery — Fysieke Peplink Balance 20X
+# SNMP Discovery - Fysieke Peplink Balance 20X
 
-**Datum:** 2026-03-23  
+**Datum:** 2026-03-23
 **Doel:** Valideren welke Peplink enterprise SNMP OIDs beschikbaar zijn op fysieke hardware (vs. FusionHub waar deze ontbraken)
 
 ---
@@ -33,7 +33,7 @@
 
 ---
 
-## Peplink Enterprise OIDs — WAN Status (1.3.6.1.4.1.23695.2.1)
+## Peplink Enterprise OIDs - WAN Status (1.3.6.1.4.1.23695.2.1)
 
 ### WAN count
 
@@ -78,7 +78,7 @@ De Balance 20X heeft 6 WAN-interfaces (index 0-5):
 
 ---
 
-## Peplink Enterprise OIDs — Bandwidth/Traffic (1.3.6.1.4.1.23695.2.1.3 & .2.1.4)
+## Peplink Enterprise OIDs - Bandwidth/Traffic (1.3.6.1.4.1.23695.2.1.3 & .2.1.4)
 
 ### Bandwidth per interval (.2.1.4.1.x.{wan_index}.{interval})
 
@@ -99,7 +99,7 @@ Intervals gevonden: 0, 1, 3 (vermoedelijk 5min, 1uur, 24uur)
 
 ---
 
-## Peplink Enterprise OIDs — LAN & WiFi AP (1.3.6.1.4.1.23695.4)
+## Peplink Enterprise OIDs - LAN & WiFi AP (1.3.6.1.4.1.23695.4)
 
 ### WiFi AP tabel (.4.2.3.1.x.{ssid_index})
 
@@ -125,12 +125,12 @@ Intervals gevonden: 0, 1, 3 (vermoedelijk 5min, 1uur, 24uur)
 | SNMP Feature | FusionHub (virtueel) | Balance 20X (fysiek) |
 |-------------|---------------------|---------------------|
 | MIB-II (sysDescr, uptime, interfaces) | Ja | Ja |
-| Enterprise WAN status tabel | Nee | Ja — 6 interfaces met status, link, signaal |
-| Enterprise WAN bandwidth | Nee | Ja — TX/RX bytes per interval |
+| Enterprise WAN status tabel | Nee | Ja - 6 interfaces met status, link, signaal |
+| Enterprise WAN bandwidth | Nee | Ja - TX/RX bytes per interval |
 | Enterprise WiFi AP info (SSID, clients) | Nee | Ja |
-| Enterprise LAN/VLAN traffic | Nee | Ja — packets + bytes per VLAN |
-| Enterprise CPU/geheugen (.200.x) | Nee | Nee — OIDs bestaan niet op dit model |
-| Enterprise device info (.1.x) | Nee | Nee — OIDs bestaan niet op dit model |
+| Enterprise LAN/VLAN traffic | Nee | Ja - packets + bytes per VLAN |
+| Enterprise CPU/geheugen (.200.x) | Nee | Nee - OIDs bestaan niet op dit model |
+| Enterprise device info (.1.x) | Nee | Nee - OIDs bestaan niet op dit model |
 | Totaal enterprise OIDs | 0 | 200+ |
 
 ### Belangrijke bevinding: CPU/geheugen OIDs
@@ -145,18 +145,18 @@ De Balance 20X gebruikt een andere OID-structuur onder `.23695.2.x` (WAN/traffic
 
 De fysieke Peplink Balance 20X biedt significant meer SNMP-data dan FusionHub:
 
-1. **WAN monitoring:** status, link up/down, signaalsterkte per interface — ideaal voor multi-WAN failover detectie
-2. **Bandbreedte:** TX/RX bytes per WAN en per VLAN — voor traffic monitoring
-3. **WiFi AP:** SSID info en client count — voor site awareness
-4. **Health checks:** status per WAN interface — voor proactieve alerting
+1. **WAN monitoring:** status, link up/down, signaalsterkte per interface - ideaal voor multi-WAN failover detectie
+2. **Bandbreedte:** TX/RX bytes per WAN en per VLAN - voor traffic monitoring
+3. **WiFi AP:** SSID info en client count - voor site awareness
+4. **Health checks:** status per WAN interface - voor proactieve alerting
 
 Deze data kan rechtstreeks in de bestaande Prometheus/Grafana stack geïntegreerd worden via de `incontrol2_exporter` (SNMP-component) of een dedicated `snmp_exporter`.
 
 ---
 
-## Lokale REST API — vergelijking FusionHub vs. Balance 20X
+## Lokale REST API - vergelijking FusionHub vs. Balance 20X
 
-**Endpoint:** `POST https://<ip>/cgi-bin/MANGA/api.cgi`  
+**Endpoint:** `POST https://<ip>/cgi-bin/MANGA/api.cgi`
 **Auth:** Cookie-based login met `{"func": "login", "username": "admin", "password": "<wachtwoord>"}`
 
 ### config.* functies (configuratie uitlezen)
@@ -180,7 +180,7 @@ Na exhaustieve brute-force test van alle mogelijke functienamen (9 prefixes x 80
 
 | Functie | FusionHub | Balance 20X | Data |
 |---------|-----------|-------------|------|
-| `status.cpu` | OK | OK | `{"cpu": {"load": "1.00%"}}` — live CPU load |
+| `status.cpu` | OK | OK | `{"cpu": {"load": "1.00%"}}` - live CPU load |
 | `status.log` | OK | OK | Event log entries (zelfde als syslog) |
 | `status.ap` | FAIL | OK | SSID, security, BSSID, frequentie, kanaal |
 | `status.ap.neighbor` | n.v.t. | OK | Naburige WiFi-netwerken + timestamp |
@@ -203,11 +203,11 @@ Na exhaustieve brute-force test van alle mogelijke functienamen (9 prefixes x 80
 ### Conclusie lokale API
 
 De lokale API biedt beperkte maar bruikbare real-time data:
-- **`status.cpu`** geeft live CPU-load — dit is een waardevolle metric die ook via SNMP enterprise OIDs niet beschikbaar was op de Balance 20X
-- **`status.log`** geeft event logs — alternatief voor syslog
-- **`status.ap`** geeft WiFi AP details — kanaal, frequentie, BSSID
+- **`status.cpu`** geeft live CPU-load - dit is een waardevolle metric die ook via SNMP enterprise OIDs niet beschikbaar was op de Balance 20X
+- **`status.log`** geeft event logs - alternatief voor syslog
+- **`status.ap`** geeft WiFi AP details - kanaal, frequentie, BSSID
 
-De meerderheid van de `status.*` functies (WAN, VPN, clients, throughput, memory) zijn niet beschikbaar via de lokale API op beide platformen. Dit is een bewuste beperking van Peplink — live monitoring data is primair bedoeld via InControl2 cloud-API en SNMP.
+De meerderheid van de `status.*` functies (WAN, VPN, clients, throughput, memory) zijn niet beschikbaar via de lokale API op beide platformen. Dit is een bewuste beperking van Peplink - live monitoring data is primair bedoeld via InControl2 cloud-API en SNMP.
 
 ### Monitoring-bronnen samenvatting
 
@@ -248,4 +248,4 @@ asyncio.run(test())
 
 ---
 
-*Documentatie aangemaakt — 23 maart 2026*
+*Documentatie aangemaakt - 23 maart 2026*

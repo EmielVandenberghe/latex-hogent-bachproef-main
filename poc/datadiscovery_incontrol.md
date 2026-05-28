@@ -1,6 +1,6 @@
-# InControl2 API - Data Discovery
+# InControl2 API: Data Discovery
 
-Testomgeving: 4x FusionHub VM, InControl2 cloud  
+Testomgeving: 4x FusionHub VM, InControl2 cloud
 Datum: 2025-12-29
 
 ---
@@ -32,7 +32,7 @@ $Headers = @{ Authorization = "Bearer $env:IC_TOKEN"; Accept = "application/json
 
 ---
 
-## Organisatie & Device Discovery
+## Organisatie en Device Discovery
 
 ### Org ID vinden
 
@@ -203,7 +203,7 @@ Bruikbaar: WAN up/down events, failover geschiedenis.
 
 ## PepVPN / SpeedFusion
 
-### Status endpoints - WERKEN NIET
+### Status endpoints: WERKEN NIET
 
 ```powershell
 Invoke-RestMethod "https://api.ic.peplink.com/rest/o/a1pokv/pepvpn/status" -Headers $Headers
@@ -220,7 +220,7 @@ Zelfde voor:
 
 Alle PepVPN status endpoints op org/group level geven INTERNAL_ERROR. Waarschijnlijk server-side issue of feature niet beschikbaar op free tier.
 
-### Tunnel stat - WERKT MET POLLING
+### Tunnel stat: WERKT MET POLLING
 
 ```powershell
 Invoke-RestMethod "https://api.ic.peplink.com/rest/o/a1pokv/g/4/d/13/pepvpn/tunnel_stat" -Headers $Headers

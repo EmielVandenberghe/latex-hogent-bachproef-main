@@ -1,4 +1,4 @@
-# Grafana Dashboard — Handleiding & Secties
+# Grafana Dashboard: Handleiding en Secties
 
 Handleiding voor het Mediaventures Observability Dashboard: toegang, secties, alert rules en bijwerken van het dashboard-JSON.
 
@@ -6,20 +6,20 @@ Handleiding voor het Mediaventures Observability Dashboard: toegang, secties, al
 
 ## Toegang
 
-**URL:** http://192.168.137.10:3000  
+**URL:** http://192.168.137.10:3000
 **Login:** admin / admin
 
 ---
 
 ## Dashboardstructuur
 
-Het dashboard "Mediaventures — Observability Dashboard" heeft **11 secties** die van boven naar beneden de volledige infrastructuurstatus tonen.
+Het dashboard "Mediaventures Observability Dashboard" heeft **11 secties** die van boven naar beneden de volledige infrastructuurstatus tonen.
 
 ---
 
-### Sectie 1 — Site Status Overzicht
+### Sectie 1: Site Status Overzicht
 
-**Doel:** In één oogopslag de status van alle 5 locaties zien.
+**Doel:** in één oogopslag de status van alle 5 locaties zien.
 
 Per site (Bornem, Venue, Live1, Live2, Balance 20X) worden 3 waarden getoond:
 
@@ -29,20 +29,20 @@ Per site (Bornem, Venue, Live1, Live2, Balance 20X) worden 3 waarden getoond:
 | PepVPN Tunnel / SNMP | `peplink_tunnel_up` of `peplink_snmp_reachable` | VPN-verbinding of SNMP bereikbaarheid |
 | InControl2 / API | `peplink_device_online` of `peplink_local_api_reachable` | Cloud status of lokale API bereikbaar |
 
-**Interpretatie:** Alle groen = locatie volledig operationeel. Rood = actie vereist.
+**Interpretatie:** alle groen = locatie volledig operationeel. Rood = actie vereist.
 
 ---
 
-### Sectie 2 — Connectiviteit & Netwerkkwaliteit (ICMP)
+### Sectie 2: Connectiviteit en Netwerkkwaliteit (ICMP)
 
-**Doel:** Kwantitatieve netwerkkwaliteitsmetingen voor live streaming.
+**Doel:** kwantitatieve netwerkkwaliteitsmetingen voor live streaming.
 
 **Panels:**
-- **Huidige RTT (5x stat)** — actuele round-trip time per site in milliseconden
-- **RTT Latency over tijd** — tijdreeks van RTT voor alle sites
-- **Packet Loss %** — percentage mislukte pings over 5 minuten
-- **Jitter per site** — mdev van 10 ICMP pings (nauwkeuriger dan stddev_over_time)
-- **Jitter stats (5x stat)** — huidige jitter per site
+- **Huidige RTT (5x stat):** actuele round-trip time per site in milliseconden
+- **RTT Latency over tijd:** tijdreeks van RTT voor alle sites
+- **Packet Loss %:** percentage mislukte pings over 5 minuten
+- **Jitter per site:** mdev van 10 ICMP pings (nauwkeuriger dan stddev_over_time)
+- **Jitter stats (5x stat):** huidige jitter per site
 
 **Drempelwaarden:**
 
@@ -54,17 +54,17 @@ Per site (Bornem, Venue, Live1, Live2, Balance 20X) worden 3 waarden getoond:
 
 ---
 
-### Sectie 3 — WAN Multi-Link Status (Enterprise SNMP)
+### Sectie 3: WAN Multi-Link Status (Enterprise SNMP)
 
-**Doel:** Gedetailleerde WAN-status van fysieke Peplink hardware via enterprise SNMP OIDs.
+**Doel:** gedetailleerde WAN-status van fysieke Peplink hardware via enterprise SNMP OIDs.
 
-> **Let op:** Deze sectie toont alleen data voor fysieke Peplink devices (bv. Balance 20X). FusionHub ondersteunt geen enterprise SNMP OIDs.
+> **Let op:** deze sectie toont alleen data voor fysieke Peplink devices (bv. Balance 20X). FusionHub ondersteunt geen enterprise SNMP OIDs.
 
 **Panels:**
-- **WAN Interface Status (tabel)** — overzicht van alle WAN interfaces met status, link, signaal, health check
-- **WAN Connected (stat)** — aantal actief verbonden WAN interfaces
-- **WiFi Clients (stat)** — verbonden WiFi clients via SNMP
-- **WAN Link Status geschiedenis** — tijdlijn van link up/down per WAN interface
+- **WAN Interface Status (tabel):** overzicht van alle WAN interfaces met status, link, signaal, health check
+- **WAN Connected (stat):** aantal actief verbonden WAN interfaces
+- **WiFi Clients (stat):** verbonden WiFi clients via SNMP
+- **WAN Link Status geschiedenis:** tijdlijn van link up/down per WAN interface
 
 **WAN status waarden:**
 
@@ -78,98 +78,98 @@ Per site (Bornem, Venue, Live1, Live2, Balance 20X) worden 3 waarden getoond:
 | 6 | Health-check-fail |
 
 **Enterprise SNMP OID-structuur (Balance 20X):**
-- WAN: `1.3.6.1.4.1.23695.2.1.2.1.x.{wan_index}` — status, link, signaal, health check
-- WiFi: `1.3.6.1.4.1.23695.4.2.3.1.x.{ssid_index}` — SSID naam, client count
-- LAN: `1.3.6.1.4.1.23695.4.2.2.1.x.{vlan}.{sub}` — VLAN traffic stats
+- WAN: `1.3.6.1.4.1.23695.2.1.2.1.x.{wan_index}`: status, link, signaal, health check
+- WiFi: `1.3.6.1.4.1.23695.4.2.3.1.x.{ssid_index}`: SSID naam, client count
+- LAN: `1.3.6.1.4.1.23695.4.2.2.1.x.{vlan}.{sub}`: VLAN traffic stats
 
 Zie `poc/snmp_fysieke_peplink.md` voor de volledige OID-mapping.
 
 ---
 
-### Sectie 4 — Device Health — Lokale API & CPU
+### Sectie 4: Device Health (Lokale API en CPU)
 
-**Doel:** Live CPU-gebruik en WiFi AP status via de lokale Peplink REST API.
+**Doel:** live CPU-gebruik en WiFi AP status via de lokale Peplink REST API.
 
 **Panels:**
-- **CPU Load gauge** — huidig CPU-gebruik van de Balance 20X (via `status.cpu`)
-- **CPU Load over tijd** — tijdreeks van CPU-gebruik voor alle devices met lokale API
-- **WiFi AP Status** — AP aan/uit per device (via `status.ap`)
-- **Lokale API Bereikbaarheid** — welke devices bereikbaar zijn via de lokale REST API
+- **CPU Load gauge:** huidig CPU-gebruik van de Balance 20X (via `status.cpu`)
+- **CPU Load over tijd:** tijdreeks van CPU-gebruik voor alle devices met lokale API
+- **WiFi AP Status:** AP aan/uit per device (via `status.ap`)
+- **Lokale API Bereikbaarheid:** welke devices bereikbaar zijn via de lokale REST API
 
-**API-endpoint:** `POST https://<ip>/cgi-bin/MANGA/api.cgi`  
-**Auth:** Cookie-based login met `{"func": "login", "username": "admin", "password": "<wachtwoord>"}`
+**API-endpoint:** `POST https://<ip>/cgi-bin/MANGA/api.cgi`
+**Auth:** cookie-based login met `{"func": "login", "username": "admin", "password": "<wachtwoord>"}`
 
-**CPU drempelwaarden:** Groen < 60%, Geel 60-85%, Rood > 85%
+**CPU drempelwaarden:** groen < 60%, geel 60-85%, rood > 85%
 
 ---
 
-### Sectie 5 — PepVPN Tunnels
+### Sectie 5: PepVPN Tunnels
 
-**Doel:** Status van de SpeedFusion VPN-tunnels bewaken.
+**Doel:** status van de SpeedFusion VPN-tunnels bewaken.
 
 **Panels:**
-- **Tunnel status (4x stat)** — UP/DOWN per device
-- **Tunnel status geschiedenis** — tijdlijn met drops naar 0 bij onderbrekingen
+- **Tunnel status (4x stat):** UP/DOWN per device
+- **Tunnel status geschiedenis:** tijdlijn met drops naar 0 bij onderbrekingen
 
 > Tunnels zijn geconfigureerd in een gedeeltelijke mesh: Bornem op Venue, Live1 op Bornem, Live1 op Venue, Live2 op Bornem, Live2 op Venue.
 
 ---
 
-### Sectie 6 — Device Health (InControl2 API)
+### Sectie 6: Device Health (InControl2 API)
 
-**Doel:** Cloud-gebaseerde apparaatstatus via InControl2 API.
+**Doel:** cloud-gebaseerde apparaatstatus via InControl2 API.
 
 **Panels:**
-- **Online/Offline (4x stat)** — device status via API (polling elke 15s)
-- **Uptime** — tijdreeks van uptime in uren
-- **Verbonden clients** — aantal clients per device
-- **Bandbreedte (TX/RX)** — cumulatieve bytes verzonden/ontvangen
+- **Online/Offline (4x stat):** device status via API (polling elke 15s)
+- **Uptime:** tijdreeks van uptime in uren
+- **Verbonden clients:** aantal clients per device
+- **Bandbreedte (TX/RX):** cumulatieve bytes verzonden/ontvangen
 
 > **Let op:** InControl2 uptime en tx/rx bytes zijn cumulatieve waarden die gereset worden bij reboot.
 
 ---
 
-### Sectie 7 — SNMP Direct Monitoring
+### Sectie 7: SNMP Direct Monitoring
 
-**Doel:** Directe SNMP-polling van alle devices (MIB-II), sneller dan de InControl2 cloud API.
+**Doel:** directe SNMP-polling van alle devices (MIB-II), sneller dan de InControl2 cloud API.
 
 **Panels:**
-- **SNMP Reachability (5x stat)** — is het device bereikbaar via SNMP?
-- **SNMP Response Tijd** — hoe snel reageert het device op SNMP queries
-- **Interface Verkeer** — bytes in/out per interface via SNMP MIB-II
+- **SNMP Reachability (5x stat):** is het device bereikbaar via SNMP?
+- **SNMP Response Tijd:** hoe snel reageert het device op SNMP queries
+- **Interface Verkeer:** bytes in/out per interface via SNMP MIB-II
 
 ---
 
-### Sectie 8 — Systeemlogboek (Loki)
+### Sectie 8: Systeemlogboek (Loki)
 
-**Doel:** Real-time logberichten van apparaten en de observability stack zelf.
+**Doel:** real-time logberichten van apparaten en de observability stack zelf.
 
 **Panels:**
-- **FusionHub & Peplink Syslog** — logberichten van alle devices (na syslog configuratie)
-- **Docker Container Logs** — logs van Prometheus, Grafana, exporters
+- **FusionHub en Peplink Syslog:** logberichten van alle devices (na syslog configuratie)
+- **Docker Container Logs:** logs van Prometheus, Grafana, exporters
 
 > Vereist syslog configuratie op elke FusionHub/Peplink (zie `loki_logging.md`).
 
 ---
 
-### Sectie 9 — Events (InControl2)
+### Sectie 9: Events (InControl2)
 
-**Doel:** Teller van recente events per device via InControl2 API.
+**Doel:** teller van recente events per device via InControl2 API.
 
 **Panel:**
-- **Events per device** — bar chart die pieken toont wanneer een device veel events genereert
+- **Events per device:** bar chart die pieken toont wanneer een device veel events genereert
 
 ---
 
-### Sectie 10 — Observability Stack Status
+### Sectie 10: Observability Stack Status
 
-**Doel:** Gezondheid van de monitoring stack zelf bewaken.
+**Doel:** gezondheid van de monitoring stack zelf bewaken.
 
 **Panels:**
-- **Scrape Duur** — hoe lang de exporter nodig heeft per scrape-cyclus
-- **Exporter Status** — OK/FOUT indicator
-- **API/SNMP Fouten** — teller van fouten bij API-calls of SNMP-polls
-- **Local API Fouten** — teller van fouten bij lokale API-polls
+- **Scrape Duur:** hoe lang de exporter nodig heeft per scrape-cyclus
+- **Exporter Status:** OK/FOUT indicator
+- **API/SNMP Fouten:** teller van fouten bij API-calls of SNMP-polls
+- **Local API Fouten:** teller van fouten bij lokale API-polls
 
 ---
 
@@ -202,7 +202,7 @@ ssh -i "$KEY" -p 2222 -o StrictHostKeyChecking=no -o PubkeyAcceptedKeyTypes=+ssh
   vagrant@127.0.0.1 "docker restart grafana"
 ```
 
-> **Let op:** Het dashboard is provisioned via JSON en wordt bij elke Grafana-restart opnieuw geladen. Wijzigingen rechtstreeks in de Grafana UI worden niet opgeslagen. Pas altijd het JSON-bestand aan.
+> **Let op:** het dashboard is provisioned via JSON en wordt bij elke Grafana-restart opnieuw geladen. Wijzigingen rechtstreeks in de Grafana UI worden niet opgeslagen. Pas altijd het JSON-bestand aan.
 
 ---
 

@@ -1,6 +1,6 @@
-# SRT Stream Monitoring — POC Mediaventures
+# SRT Stream Monitoring - POC Mediaventures
 
-**Bachelorproef Observability voor Multi-Site Live-Streamingomgevingen**  
+**Bachelorproef Observability voor Multi-Site Live-Streamingomgevingen**
 **Datum:** april 2026
 
 ---
@@ -30,7 +30,7 @@ srt-test-stream (caller)           srt-exporter (listener)
                                   Prometheus metrics :9117
 ```
 
-Beide containers draaien met `network_mode: host` — verkeer loopt via de **loopback interface (`lo`)**, niet via de Docker bridge.
+Beide containers draaien met `network_mode: host` - verkeer loopt via de **loopback interface (`lo`)**, niet via de Docker bridge.
 
 ---
 
@@ -70,7 +70,7 @@ In `prometheus.yml`:
 
 ---
 
-## Grafana Dashboard — Sectie 11
+## Grafana Dashboard - Sectie 11
 
 Het hoofddashboard bevat sectie **11. SRT Stream Kwaliteit** met de volgende panels:
 
@@ -127,7 +127,7 @@ sudo tc qdisc del dev lo root
 docker compose restart srt-test-stream
 ```
 
-### Scenario 4a — Packet Loss (30% netem — ~5-10% gemeten)
+### Scenario 4a - Packet Loss (30% netem - ~5-10% gemeten)
 
 Vanwege SRT ARQ (Automatic Repeat Request) herstelt de stack een deel van de verloren pakketten. 30% netem loss resulteert slechts in 4-10% gemeten `srt_packet_loss_percent`. Bij langdurige simulatie stijgt de loss progressief door ARQ-cascade: retransmissions zijn zelf ook onderhevig aan de netem-regel, waardoor ze opnieuw verloren gaan.
 
@@ -137,9 +137,9 @@ Vanwege SRT ARQ (Automatic Repeat Request) herstelt de stack een deel van de ver
 - T+118s (19:49:49): Grafana alert gefired (after `for: 1m` + groepsevaluatie 1m)
 - **Totale time-to-detect: ~2 minuten (gemeten T+118s)**
 
-### Scenario 4b — Hoge Latency (100ms delay)
+### Scenario 4b - Hoge Latency (100ms delay)
 
-100ms delay benadert de SRT latency buffer (~120ms). Pakketten die buiten de buffer aankomen worden als verloren beschouwd, wat ~35% `srt_packet_loss_percent` veroorzaakt — zelfs zonder echte pakketverlies op het netwerk. Dit toont aan dat latency-monitoring op beide lagen (ICMP én SRT) noodzakelijk is.
+100ms delay benadert de SRT latency buffer (~120ms). Pakketten die buiten de buffer aankomen worden als verloren beschouwd, wat ~35% `srt_packet_loss_percent` veroorzaakt - zelfs zonder echte pakketverlies op het netwerk. Dit toont aan dat latency-monitoring op beide lagen (ICMP én SRT) noodzakelijk is.
 
 ---
 
@@ -149,6 +149,6 @@ In een echte Mediaventures-omgeving vervangt de `srt-exporter` de teststream-ont
 
 1. Configureer de SRT-encoder (vMix/LiveU) als **caller** richting obs VM poort 9000
 2. `srt-exporter` draait als **listener** en ontvangt de productiestream
-3. Dezelfde metrics worden geëxporteerd — zelfde Grafana dashboard, zelfde alert rules
+3. Dezelfde metrics worden geëxporteerd - zelfde Grafana dashboard, zelfde alert rules
 
 De testomgeving bewijst daarmee dat de monitoringlogica schaalbaar is naar productie zonder aanpassingen aan de Prometheus/Grafana configuratie.
