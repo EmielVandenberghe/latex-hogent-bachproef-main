@@ -9,78 +9,81 @@
 % Info over de opleiding
 \course{Bachelorproef}
 \studyprogramme{toegepaste informatica}
-\academicyear{2022-2023}
+\academicyear{2025-2026}
 \institution{Hogeschool Gent, Valentin Vaerwyckweg 1, 9000 Gent}
 
 % Info over de bachelorproef
-\title{Titel van uw bachelorproef}
-\subtitle{Ondertitel (eventueel)}
-\author{Voornaam Naam}
-\email{voornaam.familienaam@student.hogent.be}
-\supervisor{Voornaam Naam}
-\cosupervisor{Voornaam Naam (Bedrijf)}
+\title{Van reactief naar proactief: een centraal observability-platform voor multi-site live-streaming}
+\subtitle{Een proof-of-concept voor metrics-, log- en flowmonitoring binnen Mediaventures}
+\author{Emiel Vandenberghe}
+\email{emiel.vandenberghe@student.hogent.be} % TODO: controleer je exacte student-e-mail
+\supervisor{M. Saelens (HOGENT)}
+\cosupervisor{A. Van Renterghem (Mediaventures)}
 
 % Indien ingevuld, wordt deze informatie toegevoegd aan het einde van de
 % abstract. Zet in commentaar als je dit niet wilt.
-\specialisation{Systeem- en Netwerkbeheer}
-\keywords{Lambda-calculus, Scheme}
-\projectrepo{https://github.com/user/repo}
+\specialisation{Systeem- en Netwerkbeheer} % TODO: controleer je afstudeerrichting
+\keywords{Observability, Monitoring, PLG-stack, SRT, NDI, PepVPN}
+\projectrepo{https://github.com/EmielVandenberghe/bachp-mediaventures}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-It's only a model.
-You don't vote for kings. Who's that then? We found them. Ni! Ni! Ni! Ni!
-The nose? On second thoughts, let's not go there. It is a silly place. Bloody Peasant! And the hat. She's a witch! Where'd you get the coconuts?
+Mediaventures verzorgt livestreaming voor internationale medische congressen, waarbij meerdere live-surgery-locaties en venues realtime video en audio uitwisselen. De bestaande monitoring is lokaal en gefragmenteerd: er is geen end-to-end zicht op de keten, waardoor techniekers bij storingen handmatig op elk toestel moeten inloggen. Deze bachelorproef ontwerpt en bouwt een gecentraliseerd observability-platform op basis van de open-source PLG-stack (Prometheus, Loki, Grafana) met custom Python-exporters. Het platform verzamelt meer dan 40 metrics uit vijf onafhankelijke bronnen en maakt netwerk-, transport-, applicatie- en AV-hardwarelaag gelijktijdig zichtbaar in \'e\'en dashboard, met actieve alerting naar Microsoft Teams. De kernbijdrage is de verschuiving van reactieve, kwalitatieve detectie tijdens korte testsessies naar continue, geautomatiseerde 24/7-meting.
 \end{abstract}
 
 \begin{multicols}{2} % This is how many columns your poster will be broken into, a portrait poster is generally split into 2 columns
 
 \section{Introductie}
 
-Be quiet! Found them? In Mercia?! The coconut's tropical! But you are dressed as one… Well, what do you want? Knights of Ni, we are but simple travelers who seek the enchanter who lives beyond these woods.
+Tijdens live-surgeryprojecten verbindt Mediaventures meerdere geografisch gescheiden locaties die gelijktijdig video en audio uitwisselen over een complexe keten van routers, 5G- en satellietverbindingen, NDI-netwerken en SRT-encoders. Een probleem op \'e\'en plaats werkt meteen door op meerdere locaties.
 
-Well, what do you want? It's only a model. Camelot! We found them. We shall say `Ni' again to you, if you do not appease us.
+De huidige monitoring is echter \emph{lokaal en gefragmenteerd}: elke locatie bewaakt enkel de eigen omgeving en er is geen zicht op de inter-site verbindingen. Bij storingen moeten techniekers handmatig op elk apparaat inloggen, wat traag is en het risico op kwaliteitsverlies vergroot. Bovendien bestaat er geen kwantitatieve baseline: detectie verloopt vandaag kwalitatief tijdens een testsessie van circa dertig minuten v\'o\'or de uitzending.
 
-The nose? Shut up! Burn her! I am your king. You don't vote for kings.
-
-You can't expect to wield supreme power just `cause some watery tart threw a sword at you! Well, we did do the nose. I don't want to talk to you no more, you empty-headed animal food trough water! I fart in your general direction! Your mother was a hamster and your father smelt of elderberries! Now leave before I am forced to taunt you a second time!
-
-Why do you think that she is a witch? We want a shrubbery!! I don't want to talk to you no more, you empty-headed animal food trough water! I fart in your general direction! Your mother was a hamster and your father smelt of elderberries! Now leave before I am forced to taunt you a second time!
+\textbf{Onderzoeksvraag:} Hoe kan Mediaventures een ge\"integreerde observability-oplossing inzetten om de volledige audiovisuele infrastructuur end-to-end op te volgen en storingen sneller te detecteren?
 
 \section{Experimenten}
 
-A newt? Camelot! Why? No, no, no! Yes, yes. A bit. But she's got a wart.
+De oplossing werd uitgewerkt en gevalideerd in een volledig virtuele testomgeving (vier FusionHub-routers, \'e\'en fysieke Peplink Balance~20X, een VyOS-router en \texttt{tc netem} voor het injecteren van netwerkstoringen). De observability-stack draait als veertien Docker-containers op \'e\'en host.
 
-Shut up! I dunno. Must be a king. Who's that then? Look, my liege! On second thoughts, let's not go there. It is a silly place.
+Negen testscenario's dekken de volledige keten af:
 
-Shut up! Will you shut up?! No, no, no! Yes, yes. A bit. But she's got a wart. He hasn't got shit all over him. It's only a model. It's only a model.
+\begin{itemize}
+  \item \textbf{Netwerklaag:} packet loss, latency en volledige link-down per site.
+  \item \textbf{Stream:} SRT onder packet loss en latency, en een NDI-stream-onderbreking.
+  \item \textbf{Hardware:} uitval van de fysieke Balance~20X (drie bronnen alarmeren onafhankelijk).
+  \item \textbf{Routing:} asymmetrische NAT en cross-layer correlatie netwerk~$\leftrightarrow$~stream.
+  \item \textbf{Alerting:} end-to-end notificatie naar Microsoft Teams via Power Automate.
+\end{itemize}
 
-Bring her forward! I don't want to talk to you no more, you empty-headed animal food trough water! I fart in your general direction! Your mother was a hamster and your father smelt of elderberries! Now leave 
+Opvallende bevindingen: SRT's ARQ-herstel maakt 30\% pakketverlies tot slechts 4--10\% gemeten verlies (de \emph{retransmit-rate} is het vroegere signaal); de multi-bron-aanpak voorkomt valse negatieven (cross-validatie); en een zelf-gevonden \emph{default-to-healthy}-blindspot bevestigde dat ``geen data'' nooit als ``alles oké'' mag gelden.
 
-\section{Sectie met figuur}
+\section{Architectuur}
 
-De {\LaTeX} figure-omgeving bepaalt zelf waar een afbeelding komt en dat is meestal niet op de plek in de tekst waar de figure-omgeving gedefinieerd wordt. Als je wilt forceren dat afbeeldingen toch in de flow van de tekst blijven, dan kan je dat zoals hieronder:
+Custom Python-exporters vertalen de InControl2-API, SNMP, de lokale Peplink-API en de SRT-, NDI- en BirdDog-bronnen naar het Prometheus-formaat. Prometheus en Loki slaan respectievelijk metrics en logs op; Grafana visualiseert en alarmeert.
 
 \begin{center}
   \captionsetup{type=figure}
-  \includegraphics[width=1.0\linewidth]{grail}
-  \captionof{figure}{He hasn't got shit all over him. The nose? Where'd you get the coconuts? What do you mean? We shall say `Ni' again to you, if you do not appease us}
+  \includegraphics[width=1.0\linewidth]{architectuur} % sla de figuur op als poster/architectuur.png
+  \captionof{figure}{De observability-architectuur in drie lagen: collectors en exporters (laag~1) verzamelen metrics en logs uit de Peplink-, stream- en AV-bronnen; Prometheus en Loki slaan ze op (laag~2); Grafana visualiseert en alarmeert richting Microsoft Teams (laag~3).}
 \end{center}
-
-Let er wel op dat dit tot problemen met bladschikking kan leiden.
 
 \section{Conclusies}
 
-Don't underestimate the Force. Oh God, my uncle. How am I ever gonna explain this? I suggest you try it again, Luke. This time, let go your conscious self and act on instinct. Don't be too proud of this technological terror you've constructed. The ability to destroy a planet is insignificant next to the power of the Force.
+Een open-source PLG-stack met custom exporters kan de volledige audiovisuele keten van Mediaventures end-to-end bewaken. Realistische storingen op netwerk-, device-, applicatie- en AV-hardwarelaag worden binnen 1 tot 5~minuten gedetecteerd, gevisualiseerd en actief gemeld aan het NOC via Microsoft Teams.
+
+De meerwaarde ligt niet in een numeriek tijdsverschil --- er bestond geen baseline --- maar in de overgang van detectie tijdens twee korte testvensters per project naar \textbf{continue, geautomatiseerde 24/7-meting}. Even belangrijk is de overgedragen \emph{houding}: elk metric wantrouwen, elke aanname expliciteren en elke blindspot openlijk rapporteren. Het resultaat is een overdraagbaar prototype dat met enkel configuratie en een aanvullende security-review naar productie kan doorgroeien.
 
 \section{Toekomstig onderzoek}
 
-I care. So, what do you think of her, Han? No! Alderaan is peaceful. We have no weapons. You can't possibly… I have traced the Rebel spies to her. Now she is my only link to finding their secret base.
-
-Kid, I've flown from one side of this galaxy to the other. I've seen a lot of strange stuff, but I've never seen anything to make me believe there's one all-powerful Force controlling everything. There's no mystical energy field that controls my destiny. It's all a lot of simple tricks and nonsense. You are a part of the Rebel Alliance and a traitor! Take her away! 
+\begin{itemize}
+  \item Validatie van de NDI-exporter tegen echte hardware-encoders en cross-VLAN-discovery via een NDI Discovery Server.
+  \item Geautomatiseerde correlatie (regel-gebaseerd of machine learning) bovenop Prometheus i.p.v. visuele correlatie.
+  \item Integratie van switches (Netgear M4250) en audio-mengtafels binnen hetzelfde dashboard-concept.
+  \item Perceptuele kwaliteitsmeting van videostreams (PSNR/SSIM) op decoder-niveau.
+\end{itemize}
 
 \end{multicols}
 \end{document}
