@@ -46,19 +46,11 @@ De huidige monitoring is echter \emph{lokaal en gefragmenteerd}: elke locatie be
 
 \section{Experimenten}
 
-De oplossing werd uitgewerkt en gevalideerd in een volledig virtuele testomgeving (vier FusionHub-routers, \'e\'en fysieke Peplink Balance~20X, een VyOS-router en \texttt{tc netem} voor het injecteren van netwerkstoringen). De observability-stack draait als veertien Docker-containers op \'e\'en host.
+De oplossing werd ontwikkeld en gevalideerd in een volledig virtuele testomgeving: vier FusionHub-routers en \'e\'en fysieke Peplink Balance~20X, verbonden via een VyOS-router. Netwerkstoringen werden gecontroleerd nagebootst om de detectie te testen. De observability-stack draait als veertien Docker-containers op \'e\'en host.
 
-Negen testscenario's dekken de volledige keten af:
+Negen testscenario's dekken samen de volledige keten af: storingen op de netwerklaag (vertraging, pakketverlies, uitval), op de streamlaag (SRT en NDI), op de fysieke hardware, en de end-to-end alerting naar Microsoft~Teams. In elk scenario werd de storing binnen \'e\'en tot vijf minuten gedetecteerd en gevisualiseerd.
 
-\begin{itemize}
-  \item \textbf{Netwerklaag:} packet loss, latency en volledige link-down per site.
-  \item \textbf{Stream:} SRT onder packet loss en latency, en een NDI-stream-onderbreking.
-  \item \textbf{Hardware:} uitval van de fysieke Balance~20X (drie bronnen alarmeren onafhankelijk).
-  \item \textbf{Routing:} asymmetrische NAT en cross-layer correlatie netwerk~$\leftrightarrow$~stream.
-  \item \textbf{Alerting:} end-to-end notificatie naar Microsoft Teams via Power Automate.
-\end{itemize}
-
-Opvallende bevindingen: SRT's ARQ-herstel maakt 30\% pakketverlies tot slechts 4--10\% gemeten verlies (de \emph{retransmit-rate} is het vroegere signaal); de multi-bron-aanpak voorkomt valse negatieven (cross-validatie); en een zelf-gevonden \emph{default-to-healthy}-blindspot bevestigde dat ``geen data'' nooit als ``alles oké'' mag gelden.
+Twee inzichten kwamen sterk naar voren. Het combineren van meerdere onafhankelijke databronnen voorkomt valse meldingen, doordat de bronnen elkaar controleren. En een zelf-gevonden fout in de stack, waarbij alle tunnels als actief werden gemeld terwijl er geen geconfigureerd waren, toonde dat een monitoringsysteem ``geen data'' nooit als ``alles in orde'' mag interpreteren.
 
 \section{Architectuur}
 
