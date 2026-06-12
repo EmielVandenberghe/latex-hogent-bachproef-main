@@ -40,7 +40,7 @@ Mediaventures verzorgt livestreaming voor internationale medische congressen, wa
 
 Tijdens live-surgeryprojecten verbindt Mediaventures meerdere geografisch gescheiden locaties die gelijktijdig video en audio uitwisselen over een complexe keten van routers, 5G- en satellietverbindingen, NDI-netwerken en SRT-encoders. Een probleem op \'e\'en plaats werkt meteen door op meerdere locaties.
 
-De huidige monitoring is echter \emph{lokaal en gefragmenteerd}: elke locatie bewaakt enkel de eigen omgeving en er is geen zicht op de inter-site verbindingen. Bij storingen moeten techniekers handmatig op elk apparaat inloggen, wat traag is en het risico op kwaliteitsverlies vergroot. Bovendien bestaat er geen kwantitatieve baseline: detectie verloopt vandaag kwalitatief tijdens een testsessie van circa dertig minuten v\'o\'or de uitzending.
+De huidige monitoring is echter \emph{lokaal en gefragmenteerd}: elke locatie bewaakt enkel de eigen omgeving en er is geen zicht op de inter-site verbindingen. Bij storingen moeten techniekers handmatig op elk apparaat inloggen, wat traag is en het risico op kwaliteitsverlies vergroot. Bovendien zijn er vandaag geen gemeten referentiewaarden: v\'o\'or elke uitzending controleren techniekers de keten ongeveer dertig minuten handmatig en op het oog, zonder cijfers die vastleggen wat een normale verbinding is. Afwijkingen worden zo pas laat en op gevoel opgemerkt.
 
 \textbf{Onderzoeksvraag:} Hoe kan Mediaventures een ge\"integreerde observability-oplossing inzetten om de volledige audiovisuele infrastructuur end-to-end op te volgen en storingen sneller te detecteren?
 
@@ -66,15 +66,15 @@ Custom Python-exporters vertalen de InControl2-API, SNMP, de lokale Peplink-API 
 
 Een open-source PLG-stack met custom exporters kan de volledige audiovisuele keten van Mediaventures end-to-end bewaken. Realistische storingen op netwerk-, device-, applicatie- en AV-hardwarelaag worden binnen 1 tot 5~minuten gedetecteerd, gevisualiseerd en actief gemeld aan het NOC via Microsoft Teams.
 
-De meerwaarde ligt niet in een numeriek tijdsverschil --- er bestond geen baseline --- maar in de overgang van detectie tijdens twee korte testvensters per project naar \textbf{continue, geautomatiseerde 24/7-meting}. Even belangrijk is de overgedragen \emph{houding}: elk metric wantrouwen, elke aanname expliciteren en elke blindspot openlijk rapporteren. Het resultaat is een overdraagbaar prototype dat met enkel configuratie en een aanvullende security-review naar productie kan doorgroeien.
+De winst zit niet in een gemeten tijdsverschil, want zo'n baseline bestond niet. Ze zit in de overstap van handmatig controleren tijdens een korte testsessie per project naar \textbf{continue, geautomatiseerde 24/7-meting}. Even belangrijk is de \emph{houding} die mee wordt overgedragen: elk metric wantrouwen, elke aanname benoemen en elke blinde vlek openlijk rapporteren. Het resultaat is een overdraagbaar prototype dat met enkel configuratie en een aanvullende security-review naar productie kan doorgroeien.
 
 \section{Toekomstig onderzoek}
 
 \begin{itemize}
-  \item Validatie van de NDI-exporter tegen echte hardware-encoders en cross-VLAN-discovery via een NDI Discovery Server.
-  \item Geautomatiseerde correlatie (regel-gebaseerd of machine learning) bovenop Prometheus i.p.v. visuele correlatie.
-  \item Integratie van switches (Netgear M4250) en audio-mengtafels binnen hetzelfde dashboard-concept.
-  \item Perceptuele kwaliteitsmeting van videostreams (PSNR/SSIM) op decoder-niveau.
+  \item De NDI-exporter is getest met een softwarematige testbron. Valideren tegen echte hardware-encoders en bronnen over meerdere VLAN's (via een NDI Discovery Server) moet bevestigen dat de metingen ook in productie kloppen.
+  \item Storingen worden nu visueel gecorreleerd door een operator. Automatische correlatie, eerst met regels en later eventueel machine learning, kan samenhangende alarmen zelf bundelen tot \'e\'en vermoedelijke oorzaak.
+  \item Het dashboard dekt routers en streams, maar nog geen switches (Netgear M4250) of audio-mengtafels. Die toevoegen maakt de keten pas echt volledig.
+  \item De stack meet streamstatistieken zoals bitrate en packet loss, niet de zichtbare beeldkwaliteit. Perceptuele metrieken (PSNR/SSIM) op decoder-niveau zouden meten wat de kijker effectief ziet.
 \end{itemize}
 
 \end{multicols}
